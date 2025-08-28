@@ -49,14 +49,20 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (handled by security middleware)
 
-// Root endpoint
+// Root endpoint - redirect to dashboard
 app.get('/', (req, res) => {
+    res.redirect('/dashboard');
+});
+
+// API info endpoint
+app.get('/api', (req, res) => {
     res.json({
         success: true,
         message: 'ChatGrow API Server is running',
         version: process.env.npm_package_version || '1.0.0',
         timestamp: new Date(),
         endpoints: {
+            dashboard: '/dashboard',
             health: '/health',
             auth: '/api/auth',
             logs: '/api/logs',

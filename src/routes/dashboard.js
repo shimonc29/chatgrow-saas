@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth');
 const { logApiRequest } = require('../utils/logger');
 
 // Dashboard home page
-router.get('/', (req, res) => {
+router.get('/dashboard', (req, res) => {
     const startTime = Date.now();
     
     const html = `
