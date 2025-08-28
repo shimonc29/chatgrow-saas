@@ -12,6 +12,7 @@ const logsRoutes = require('./routes/logs');
 const authRoutes = require('./routes/auth');
 const whatsAppRoutes = require('./routes/whatsapp');
 const healthRoutes = require('./routes/health'); // Added Health monitoring routes
+const eventsRoutes = require('./routes/events'); // Added Events management routes
 
 // Import middleware
 const RateLimiterMiddleware = require('./middleware/rateLimiter');
@@ -128,6 +129,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/whatsapp', whatsAppRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/health', healthRoutes); // Mount health monitoring routes
+app.use('/api/events', eventsRoutes); // Mount events management routes
 app.use('/api/queue', (req, res) => {
     const QueueService = require('./services/queueService');
     const queueService = new QueueService();

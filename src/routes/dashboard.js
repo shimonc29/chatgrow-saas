@@ -288,6 +288,45 @@ router.get('/dashboard', (req, res) => {
                 </div>
             </div>
             
+            <!-- Events Management System -->
+            <div class="card">
+                <h2><span class="icon">📅</span>ניהול אירועים</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">אירועים פעילים</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">הרשמות השבוע</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <a href="/api/events" class="btn btn-success btn-small">צור אירוע</a>
+                    <a href="/api/events" class="btn btn-info btn-small">רשימת אירועים</a>
+                    <a href="/events-dashboard" class="btn btn-small">דשבורד אירועים</a>
+                </div>
+            </div>
+            
+            <!-- Customer Management -->
+            <div class="card">
+                <h2><span class="icon">👥</span>ניהול לקוחות</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">לקוחות רשומים</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">הרשמות החודש</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <a href="/api/events/registrations" class="btn btn-info btn-small">רשימת לקוחות</a>
+                    <a href="/customer-analytics" class="btn btn-small">ניתוח לקוחות</a>
+                </div>
+            </div>
+
             <!-- Message Queue System -->
             <div class="card">
                 <h2><span class="icon">⚡</span>מערכת תורים</h2>
