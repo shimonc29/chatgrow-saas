@@ -119,9 +119,10 @@ app.get('/favicon.ico', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/logs', logsRoutes);
 app.use('/api/whatsapp', whatsAppRoutes);
+app.use('/api/logs', logsRoutes);
 app.use('/api/health', healthRoutes); // Mount health monitoring routes
+app.use('/', require('./routes/dashboard')); // Added dashboard route
 
 // Rate limiting routes (from rate limiter middleware)
 app.use('/api/rate-limit', rateLimiter.createRouter());
@@ -303,20 +304,20 @@ async function connectToDatabase() {
 // Graceful shutdown
 async function gracefulShutdown(signal, server) {
     logInfo(`Received ${signal}. Starting graceful shutdown...`);
-    
+
     try {
         // Close database connection
         if (mongoose.connection.readyState === 1) {
             await mongoose.connection.close();
             logInfo('Database connection closed');
         }
-        
+
         // Close queue connections
         if (messageQueue && typeof messageQueue.close === 'function') {
             await messageQueue.close();
             logInfo('Message queue closed');
         }
-        
+
         // Close server
         if (server) {
             server.close(() => {
@@ -326,7 +327,7 @@ async function gracefulShutdown(signal, server) {
         } else {
             process.exit(0);
         }
-        
+
     } catch (error) {
         logError('Error during graceful shutdown', error);
         process.exit(1);
@@ -338,7 +339,7 @@ async function startServer() {
     try {
         // Connect to database
         const dbConnected = await connectToDatabase();
-        
+
         // Start server
         const server = app.listen(PORT, '0.0.0.0', () => {
             logInfo(`ChatGrow server started successfully`, {
@@ -346,7 +347,7 @@ async function startServer() {
                 environment: process.env.NODE_ENV,
                 version: process.env.npm_package_version || '1.0.0'
             });
-            
+
             console.log(`🚀 ChatGrow server running on port ${PORT}`);
             console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
             console.log(`🔐 Auth API: http://0.0.0.0:${PORT}/api/auth`);
@@ -356,22 +357,22 @@ async function startServer() {
             console.log(`⚡ Queue API: http://0.0.0.0:${PORT}/api/queue`);
             console.log(`🛡️ Rate Limit API: http://0.0.0.0:${PORT}/api/rate-limit`);
         });
-        
+
         // Handle graceful shutdown
         process.on('SIGTERM', () => gracefulShutdown('SIGTERM', server));
         process.on('SIGINT', () => gracefulShutdown('SIGINT', server));
-        
+
         // Handle uncaught exceptions
         process.on('uncaughtException', (error) => {
             logError('Uncaught Exception', error);
             gracefulShutdown('uncaughtException', server);
         });
-        
+
         process.on('unhandledRejection', (reason, promise) => {
             logError('Unhandled Rejection', new Error(reason), { promise });
             gracefulShutdown('unhandledRejection', server);
         });
-        
+
     } catch (error) {
         logError('Failed to start server', error);
         process.exit(1);
@@ -383,4 +384,4 @@ if (require.main === module) {
     startServer();
 }
 
-module.exports = app; 
+module.exports = app;
