@@ -1,4 +1,4 @@
-modules = ["nodejs-14"]
+modules = ["nodejs-18"]
 run = "npm run dev"
 
 [nix]

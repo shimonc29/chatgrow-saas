@@ -32,7 +32,7 @@ const rateLimiter = new RateLimiterMiddleware();
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(securityMiddleware.configureHelmet());
@@ -312,7 +312,7 @@ async function startServer() {
         const dbConnected = await connectToDatabase();
         
         // Start server
-        const server = app.listen(PORT, () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             logInfo(`ChatGrow server started successfully`, {
                 port: PORT,
                 environment: process.env.NODE_ENV,
@@ -320,13 +320,13 @@ async function startServer() {
             });
             
             console.log(`🚀 ChatGrow server running on port ${PORT}`);
-            console.log(`📊 Health check: http://localhost:${PORT}/health`);
-                                      console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
-            console.log(`📝 Logs API: http://localhost:${PORT}/api/logs`);
-            console.log(`📱 WhatsApp API: http://localhost:${PORT}/api/whatsapp`);
-            console.log(`🏥 Health API: http://localhost:${PORT}/api/health`);
-            console.log(`⚡ Queue API: http://localhost:${PORT}/api/queue`);
-            console.log(`🛡️ Rate Limit API: http://localhost:${PORT}/api/rate-limit`);
+            console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
+            console.log(`🔐 Auth API: http://0.0.0.0:${PORT}/api/auth`);
+            console.log(`📝 Logs API: http://0.0.0.0:${PORT}/api/logs`);
+            console.log(`📱 WhatsApp API: http://0.0.0.0:${PORT}/api/whatsapp`);
+            console.log(`🏥 Health API: http://0.0.0.0:${PORT}/api/health`);
+            console.log(`⚡ Queue API: http://0.0.0.0:${PORT}/api/queue`);
+            console.log(`🛡️ Rate Limit API: http://0.0.0.0:${PORT}/api/rate-limit`);
         });
         
         // Handle graceful shutdown
