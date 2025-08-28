@@ -49,6 +49,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (handled by security middleware)
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'ChatGrow API Server is running',
+        version: process.env.npm_package_version || '1.0.0',
+        timestamp: new Date(),
+        endpoints: {
+            health: '/health',
+            auth: '/api/auth',
+            logs: '/api/logs',
+            whatsapp: '/api/whatsapp',
+            healthMonitoring: '/api/health',
+            queue: '/api/queue',
+            rateLimit: '/api/rate-limit'
+        }
+    });
+});
+
 // Health check endpoint
 app.get('/health', async (req, res) => {
     try {
@@ -91,6 +110,11 @@ app.get('/health', async (req, res) => {
             error: error.message
         });
     }
+});
+
+// Favicon handler
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
 });
 
 // API Routes
@@ -262,14 +286,18 @@ async function connectToDatabase() {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000, // 5 second timeout
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      bufferCommands: false, // Disable mongoose buffering
+      bufferMaxEntries: 0 // Disable mongoose buffering
     });
     logInfo('Connected to MongoDB successfully');
+    return true;
   } catch (error) {
     logWarning('MongoDB not available, running in fallback mode:', error.message);
-    // Continue without MongoDB for development
+    // Set mongoose to not buffer commands when disconnected
+    mongoose.set('bufferCommands', false);
     return false;
   }
-  return true;
 }
 
 // Graceful shutdown

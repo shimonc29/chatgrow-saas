@@ -44,6 +44,12 @@ class WhatsAppService {
 
     async createConnection(userId, connectionId, options = {}) {
         try {
+            // Check if MongoDB is available
+            const mongoose = require('mongoose');
+            if (mongoose.connection.readyState !== 1) {
+                throw new Error('Database not available - cannot create WhatsApp connection');
+            }
+
             // Check if connection already exists
             const existingConnection = await WhatsAppConnection.findOne({ connectionId });
             if (existingConnection) {
@@ -535,6 +541,13 @@ class WhatsAppService {
 
     async restoreActiveConnections() {
         try {
+            // Check if MongoDB is available
+            const mongoose = require('mongoose');
+            if (mongoose.connection.readyState !== 1) {
+                logInfo('Skipping WhatsApp connections restore - MongoDB not available');
+                return;
+            }
+
             const activeConnections = await WhatsAppConnection.find({
                 isActive: true,
                 status: { $in: ['connected', 'authenticated'] }
