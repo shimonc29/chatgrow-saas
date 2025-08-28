@@ -153,7 +153,7 @@ app.use('/api/queue', (req, res) => {
         });
     }
 });
-app.use('', require('./routes/dashboard')); // Added dashboard route
+app.use('/', require('./routes/dashboard')); // Added dashboard route
 
 // Rate limiting routes (from rate limiter middleware)
 app.use('/api/rate-limit', rateLimiter.createRouter());
@@ -313,21 +313,22 @@ app.use('*', (req, res) => {
 async function connectToDatabase() {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/chatgrow';
+    
+    // Set mongoose to not buffer commands when disconnected
+    mongoose.set('bufferCommands', false);
+    mongoose.set('bufferMaxEntries', 0);
+    
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
-      bufferCommands: false, // Disable mongoose buffering
-      bufferMaxEntries: 0 // Disable mongoose buffering
+      serverSelectionTimeoutMS: 3000, // 3 second timeout
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 5000
     });
     logInfo('Connected to MongoDB successfully');
     return true;
   } catch (error) {
     logWarning('MongoDB not available, running in fallback mode:', error.message);
-    // Set mongoose to not buffer commands when disconnected
-    mongoose.set('bufferCommands', false);
     return false;
   }
 }
@@ -368,19 +369,23 @@ async function gracefulShutdown(signal, server) {
 // Start server
 async function startServer() {
     try {
-        // Connect to database
-        const dbConnected = await connectToDatabase();
+        // Connect to database (non-blocking)
+        connectToDatabase().catch(err => {
+            logWarning('Database connection failed, continuing in fallback mode');
+        });
 
         // Start server
         const server = app.listen(PORT, '0.0.0.0', () => {
             logInfo(`ChatGrow server started successfully`, {
                 port: PORT,
-                environment: process.env.NODE_ENV,
-                version: process.env.npm_package_version || '1.0.0'
+                environment: process.env.NODE_ENV || 'development',
+                version: '1.0.0'
             });
 
             console.log(`🚀 ChatGrow server running on port ${PORT}`);
+            console.log(`🏠 Dashboard: http://0.0.0.0:${PORT}/dashboard`);
             console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
+            console.log(`📅 Events dashboard: http://0.0.0.0:${PORT}/events-dashboard`);
             console.log(`🔐 Auth API: http://0.0.0.0:${PORT}/api/auth`);
             console.log(`📝 Logs API: http://0.0.0.0:${PORT}/api/logs`);
             console.log(`📱 WhatsApp API: http://0.0.0.0:${PORT}/api/whatsapp`);
@@ -390,22 +395,20 @@ async function startServer() {
         });
 
         // Handle graceful shutdown
-        process.on('SIGTERM', () => gracefulShutdown('SIGTERM', server));
-        process.on('SIGINT', () => gracefulShutdown('SIGINT', server));
+        const shutdownHandler = (signal) => {
+            console.log(`Received ${signal}. Shutting down gracefully...`);
+            server.close(() => {
+                console.log('HTTP server closed.');
+                process.exit(0);
+            });
+        };
 
-        // Handle uncaught exceptions
-        process.on('uncaughtException', (error) => {
-            logError('Uncaught Exception', error);
-            gracefulShutdown('uncaughtException', server);
-        });
-
-        process.on('unhandledRejection', (reason, promise) => {
-            logError('Unhandled Rejection', new Error(reason), { promise });
-            gracefulShutdown('unhandledRejection', server);
-        });
+        process.on('SIGTERM', shutdownHandler);
+        process.on('SIGINT', shutdownHandler);
 
     } catch (error) {
         logError('Failed to start server', error);
+        console.error('Failed to start server:', error.message);
         process.exit(1);
     }
 }

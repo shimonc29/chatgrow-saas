@@ -489,4 +489,64 @@ router.get('/dashboard', (req, res) => {
     res.send(html);
 });
 
+// Events dashboard
+router.get('/events-dashboard', (req, res) => {
+    const startTime = Date.now();
+    
+    const html = `
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דשבורד אירועים - ChatGrow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .btn { display: inline-block; padding: 12px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 דשבורד אירועים</h1>
+            <p>ניהול אירועים, סדנאות ומופעים</p>
+        </div>
+        
+        <div class="card">
+            <h2>🎯 יצירת אירוע חדש</h2>
+            <p>צור אירועים חדשים עבור העסק שלך</p>
+            <a href="/api/events" class="btn">צור אירוע</a>
+        </div>
+        
+        <div class="card">
+            <h2>📋 רשימת אירועים</h2>
+            <p>צפה ונהל את כל האירועים שלך</p>
+            <a href="/api/events" class="btn">רשימת אירועים</a>
+        </div>
+        
+        <div class="card">
+            <h2>👥 רשימת הרשמות</h2>
+            <p>צפה ונהל הרשמות לאירועים</p>
+            <a href="/api/events/registrations" class="btn">הרשמות</a>
+        </div>
+        
+        <div class="card">
+            <a href="/dashboard" class="btn">← חזרה לדשבורד הראשי</a>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+        action: 'events_dashboard'
+    });
+
+    res.send(html);
+});
+
 module.exports = router;
