@@ -128,7 +128,30 @@ app.use('/api/auth', authRoutes);
 app.use('/api/whatsapp', whatsAppRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/health', healthRoutes); // Mount health monitoring routes
-app.use('/', require('./routes/dashboard')); // Added dashboard route
+app.use('/api/queue', (req, res) => {
+    const QueueService = require('./services/queueService');
+    const queueService = new QueueService();
+
+    if (req.path === '/status') {
+        queueService.getQueueStatus(req.query.connectionId || 'default')
+            .then(result => res.json(result))
+            .catch(err => res.status(500).json({ error: err.message }));
+    } else if (req.path === '/stats') {
+        queueService.getQueueStatistics()
+            .then(result => res.json(result))
+            .catch(err => res.status(500).json({ error: err.message }));
+    } else {
+        res.json({
+            success: true,
+            message: 'Queue API is available',
+            endpoints: {
+                status: '/api/queue/status?connectionId=YOUR_ID',
+                stats: '/api/queue/stats'
+            }
+        });
+    }
+});
+app.use('', require('./routes/dashboard')); // Added dashboard route
 
 // Rate limiting routes (from rate limiter middleware)
 app.use('/api/rate-limit', rateLimiter.createRouter());
