@@ -6,3 +6,10 @@ channel = "stable-25_05"
 
 [deployment]
 run = ["sh", "-c", "npm run dev"]
+
+[workflows]
+runButton = "Start ChatGrow"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
