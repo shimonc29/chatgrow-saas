@@ -48,8 +48,6 @@ app.use(securityMiddleware.securityHeaders());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware (handled by security middleware)
-
 // Root endpoint - redirect to dashboard
 app.get('/', (req, res) => {
     res.redirect('/dashboard');
@@ -375,7 +373,7 @@ async function startServer() {
         });
 
         // Start server
-        const server = app.listen(PORT, '0.0.0.0', () => {
+        const server = app.listen(PORT, () => {
             logInfo(`ChatGrow server started successfully`, {
                 port: PORT,
                 environment: process.env.NODE_ENV || 'development',
@@ -383,15 +381,15 @@ async function startServer() {
             });
 
             console.log(`🚀 ChatGrow server running on port ${PORT}`);
-            console.log(`🏠 Dashboard: http://0.0.0.0:${PORT}/dashboard`);
-            console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
-            console.log(`📅 Events dashboard: http://0.0.0.0:${PORT}/events-dashboard`);
-            console.log(`🔐 Auth API: http://0.0.0.0:${PORT}/api/auth`);
-            console.log(`📝 Logs API: http://0.0.0.0:${PORT}/api/logs`);
-            console.log(`📱 WhatsApp API: http://0.0.0.0:${PORT}/api/whatsapp`);
-            console.log(`🏥 Health API: http://0.0.0.0:${PORT}/api/health`);
-            console.log(`⚡ Queue API: http://0.0.0.0:${PORT}/api/queue`);
-            console.log(`🛡️ Rate Limit API: http://0.0.0.0:${PORT}/api/rate-limit`);
+            console.log(`🏠 Dashboard: /dashboard`);
+            console.log(`📊 Health check: /health`);
+            console.log(`📅 Events dashboard: /events-dashboard`);
+            console.log(`🔐 Auth API: /api/auth`);
+            console.log(`📝 Logs API: /api/logs`);
+            console.log(`📱 WhatsApp API: /api/whatsapp`);
+            console.log(`🏥 Health API: /api/health`);
+            console.log(`⚡ Queue API: /api/queue`);
+            console.log(`🛡️ Rate Limit API: /api/rate-limit`);
         });
 
         // Handle graceful shutdown
