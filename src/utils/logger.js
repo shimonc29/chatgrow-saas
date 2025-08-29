@@ -1,9 +1,10 @@
+
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
 const path = require('path');
+const fs = require('fs');
 
 // Create logs directory if it doesn't exist
-const fs = require('fs');
 const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
@@ -209,32 +210,4 @@ module.exports = {
     logRateLimit,
     logApiRequest,
     logDatabaseOperation
-}; 
-const fs = require('fs');
-const path = require('path');
-
-// Simple logger for development
-const logApiRequest = (method, url, status, duration, extra = {}) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] ${method} ${url} - ${status} (${duration}ms)`;
-    console.log(logEntry);
-};
-
-const logInfo = (message, data = {}) => {
-    console.log(`[INFO] ${message}`, data);
-};
-
-const logError = (message, error, data = {}) => {
-    console.error(`[ERROR] ${message}`, error.message, data);
-};
-
-const logWarning = (message, data = {}) => {
-    console.warn(`[WARN] ${message}`, data);
-};
-
-module.exports = {
-    logApiRequest,
-    logInfo,
-    logError,
-    logWarning
 };
