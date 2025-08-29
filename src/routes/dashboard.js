@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
@@ -7,7 +6,7 @@ const { logApiRequest } = require('../utils/logger');
 // Dashboard home page
 router.get('/dashboard', (req, res) => {
     const startTime = Date.now();
-    
+
     const html = `
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -21,37 +20,37 @@ router.get('/dashboard', (req, res) => {
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-        
+
         .header {
             text-align: center;
             color: white;
             margin-bottom: 40px;
         }
-        
+
         .header h1 {
             font-size: 3rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .header p {
             font-size: 1.2rem;
             opacity: 0.9;
         }
-        
+
         .status-bar {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -60,37 +59,37 @@ router.get('/dashboard', (req, res) => {
             margin-bottom: 30px;
             color: white;
         }
-        
+
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             text-align: center;
         }
-        
+
         .status-item {
             padding: 15px;
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
         }
-        
+
         .status-item h3 {
             font-size: 0.9rem;
             margin-bottom: 5px;
             opacity: 0.8;
         }
-        
+
         .status-item .value {
             font-size: 1.5rem;
             font-weight: bold;
         }
-        
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-        
+
         .card {
             background: white;
             border-radius: 15px;
@@ -98,12 +97,12 @@ router.get('/dashboard', (req, res) => {
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
+
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(0,0,0,0.15);
         }
-        
+
         .card h2 {
             color: #4a5568;
             margin-bottom: 20px;
@@ -112,11 +111,11 @@ router.get('/dashboard', (req, res) => {
             align-items: center;
             gap: 10px;
         }
-        
+
         .icon {
             font-size: 1.8rem;
         }
-        
+
         .btn {
             display: inline-block;
             padding: 12px 20px;
@@ -130,34 +129,34 @@ router.get('/dashboard', (req, res) => {
             cursor: pointer;
             font-size: 0.9rem;
         }
-        
+
         .btn:hover {
             background: #5a6fd8;
             transform: translateY(-2px);
         }
-        
+
         .btn-success { background: #48bb78; }
         .btn-success:hover { background: #38a169; }
-        
+
         .btn-warning { background: #ed8936; }
         .btn-warning:hover { background: #dd7724; }
-        
+
         .btn-danger { background: #f56565; }
         .btn-danger:hover { background: #e53e3e; }
-        
+
         .btn-info { background: #4299e1; }
         .btn-info:hover { background: #3182ce; }
-        
+
         .btn-small {
             padding: 8px 16px;
             font-size: 0.8rem;
         }
-        
+
         .feature-list {
             list-style: none;
             padding: 0;
         }
-        
+
         .feature-list li {
             padding: 8px 0;
             border-bottom: 1px solid #e2e8f0;
@@ -165,63 +164,63 @@ router.get('/dashboard', (req, res) => {
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .feature-list li:last-child {
             border-bottom: none;
         }
-        
+
         .status-online {
             color: #48bb78;
             font-weight: bold;
         }
-        
+
         .status-offline {
             color: #f56565;
             font-weight: bold;
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-top: 15px;
         }
-        
+
         .stat-item {
             text-align: center;
             padding: 10px;
             background: #f7fafc;
             border-radius: 8px;
         }
-        
+
         .stat-number {
             font-size: 1.5rem;
             font-weight: bold;
             color: #667eea;
         }
-        
+
         .stat-label {
             font-size: 0.8rem;
             color: #718096;
             margin-top: 5px;
         }
-        
+
         .footer {
             text-align: center;
             margin-top: 40px;
             color: rgba(255,255,255,0.8);
             font-size: 0.9rem;
         }
-        
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
             }
-            
+
             .grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .status-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -234,7 +233,7 @@ router.get('/dashboard', (req, res) => {
             <h1>🚀 ChatGrow</h1>
             <p>מערכת ניהול הודעות WhatsApp מתקדמת</p>
         </div>
-        
+
         <div class="status-bar">
             <div class="status-grid">
                 <div class="status-item">
@@ -255,7 +254,7 @@ router.get('/dashboard', (req, res) => {
                 </div>
             </div>
         </div>
-        
+
         <div class="grid">
             <!-- Authentication System -->
             <div class="card">
@@ -272,22 +271,22 @@ router.get('/dashboard', (req, res) => {
                     <a href="/api/auth/me" class="btn btn-small">פרופיל</a>
                 </div>
             </div>
-            
+
             <!-- WhatsApp Management -->
             <div class="card">
                 <h2><span class="icon">📱</span>ניהול WhatsApp</h2>
-                <ul class="feature-list">
-                    <li>חיבורים מרובים <span class="status-offline">✗</span></li>
-                    <li>QR Code Auth <span class="status-offline">✗</span></li>
-                    <li>שליחת הודעות <span class="status-offline">✗</span></li>
-                    <li>מדיה וקבצים <span class="status-offline">✗</span></li>
+                <p style="color: orange;">⚠️ שירות WhatsApp לא זמין - דרוש חיבור למסד נתונים</p>
+                <p>לחיבור WhatsApp תצטרך:</p>
+                <ul style="text-align: right; margin: 10px 0;">
+                    <li>חיבור ל-MongoDB</li>
+                    <li>מפתח API של WhatsApp Business</li>
+                    <li>אישור Facebook Business</li>
                 </ul>
-                <div style="margin-top: 15px;">
-                    <a href="/api/whatsapp/connections" class="btn btn-info btn-small">חיבורים</a>
-                    <a href="/api/whatsapp/status" class="btn btn-small">סטטוס</a>
+                <div class="button-group">
+                    <button class="btn btn-secondary" disabled>בהמתנה לחיבור למסד נתונים</button>
                 </div>
             </div>
-            
+
             <!-- Events Management System -->
             <div class="card">
                 <h2><span class="icon">📅</span>ניהול אירועים</h2>
@@ -307,7 +306,7 @@ router.get('/dashboard', (req, res) => {
                     <a href="/events-dashboard" class="btn btn-small">דשבורד אירועים</a>
                 </div>
             </div>
-            
+
             <!-- Customer Management -->
             <div class="card">
                 <h2><span class="icon">👥</span>ניהול לקוחות</h2>
@@ -345,7 +344,7 @@ router.get('/dashboard', (req, res) => {
                     <a href="/api/queue/stats" class="btn btn-small">סטטיסטיקות</a>
                 </div>
             </div>
-            
+
             <!-- Rate Limiting -->
             <div class="card">
                 <h2><span class="icon">🛡️</span>הגבלת קצב</h2>
@@ -359,7 +358,7 @@ router.get('/dashboard', (req, res) => {
                     <a href="/api/rate-limit/config" class="btn btn-small">הגדרות</a>
                 </div>
             </div>
-            
+
             <!-- Logging System -->
             <div class="card">
                 <h2><span class="icon">📊</span>מערכת לוגים</h2>
@@ -379,7 +378,7 @@ router.get('/dashboard', (req, res) => {
                     <a href="/api/logs/report" class="btn btn-warning btn-small">דוחות</a>
                 </div>
             </div>
-            
+
             <!-- Health Monitoring -->
             <div class="card">
                 <h2><span class="icon">🏥</span>ניטור בריאות</h2>
@@ -394,7 +393,7 @@ router.get('/dashboard', (req, res) => {
                     <a href="/api/health/dashboard" class="btn btn-small">דשבורד</a>
                 </div>
             </div>
-            
+
             <!-- Load Testing -->
             <div class="card">
                 <h2><span class="icon">🧪</span>בדיקת עומס</h2>
@@ -413,7 +412,7 @@ router.get('/dashboard', (req, res) => {
                     <button onclick="runRateLimitTest()" class="btn btn-info btn-small">בדיקת Rate Limit</button>
                 </div>
             </div>
-            
+
             <!-- API Documentation -->
             <div class="card">
                 <h2><span class="icon">📚</span>תיעוד API</h2>
@@ -426,13 +425,13 @@ router.get('/dashboard', (req, res) => {
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer">
             <p>ChatGrow v1.0.0 - מערכת ניהול הודעות WhatsApp מתקדמת</p>
             <p>רץ על פורט 5000 | MongoDB: לא זמין | Redis: לא זמין</p>
         </div>
     </div>
-    
+
     <script>
         // Load test functions
         async function runLoadTest() {
@@ -447,7 +446,7 @@ router.get('/dashboard', (req, res) => {
                 }
             }
         }
-        
+
         async function runRateLimitTest() {
             if(confirm('האם אתה רוצה להריץ בדיקת הגבלת קצב?')) {
                 alert('מתחיל בדיקת Rate Limiting...');
@@ -460,7 +459,7 @@ router.get('/dashboard', (req, res) => {
                 }
             }
         }
-        
+
         // Auto refresh status every 30 seconds
         setInterval(async () => {
             try {
@@ -472,7 +471,7 @@ router.get('/dashboard', (req, res) => {
                 console.log('Failed to update health status:', error);
             }
         }, 30000);
-        
+
         // Welcome message
         console.log('🚀 ChatGrow Dashboard loaded successfully!');
         console.log('📊 Health check available at: /api/health');
@@ -492,7 +491,7 @@ router.get('/dashboard', (req, res) => {
 // Events dashboard
 router.get('/events-dashboard', (req, res) => {
     const startTime = Date.now();
-    
+
     const html = `
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -516,25 +515,25 @@ router.get('/events-dashboard', (req, res) => {
             <h1>📅 דשבורד אירועים</h1>
             <p>ניהול אירועים, סדנאות ומופעים</p>
         </div>
-        
+
         <div class="card">
             <h2>🎯 יצירת אירוע חדש</h2>
             <p>צור אירועים חדשים עבור העסק שלך</p>
             <a href="/api/events" class="btn">צור אירוע</a>
         </div>
-        
+
         <div class="card">
             <h2>📋 רשימת אירועים</h2>
             <p>צפה ונהל את כל האירועים שלך</p>
             <a href="/api/events" class="btn">רשימת אירועים</a>
         </div>
-        
+
         <div class="card">
             <h2>👥 רשימת הרשמות</h2>
             <p>צפה ונהל הרשמות לאירועים</p>
             <a href="/api/events/registrations" class="btn">הרשמות</a>
         </div>
-        
+
         <div class="card">
             <a href="/dashboard" class="btn">← חזרה לדשבורד הראשי</a>
         </div>

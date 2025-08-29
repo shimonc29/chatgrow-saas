@@ -31,19 +31,19 @@ const { messageQueue } = require('./queues/messageQueue');
 const QueueService = require('./services/queueService');
 const LogService = require('./services/logService');
 
-// Initialize services (with error handling)
-let queueService, logService, rateLimiter;
+// Initialize services (WhatsApp disabled until MongoDB is available)
+// const whatsAppService = require('./services/whatsappService');
 
 // Always use mock services for development to prevent startup issues
 console.log('Initializing services in fallback mode for development...');
-queueService = {
+const queueService = {
     addMessage: () => Promise.resolve({ id: 'mock-' + Date.now() }),
     getQueueStatus: () => Promise.resolve({ status: 'mock', waiting: 0, active: 0 }),
     pauseQueue: () => Promise.resolve(),
     resumeQueue: () => Promise.resolve(),
     getQueueStatistics: () => Promise.resolve({ total: 0, processed: 0, failed: 0 })
 };
-logService = {
+const logService = {
     logMessage: (data) => {
         console.log('Mock log:', data);
         return Promise.resolve({ messageId: data.messageId || 'mock-' + Date.now() });
@@ -125,10 +125,10 @@ app.get('/favicon.ico', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/whatsapp', whatsAppRoutes);
+// app.use('/api/whatsapp', whatsAppRoutes); // Disabled until MongoDB available
+app.use('/api/events', eventsRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/health', healthRoutes); // Mount health monitoring routes
-app.use('/api/events', eventsRoutes); // Mount events management routes
 app.use('/api/queue', (req, res) => {
     const QueueService = require('./services/queueService');
     const queueService = new QueueService();
@@ -155,13 +155,22 @@ app.use('/api/queue', (req, res) => {
 app.use('/', require('./routes/dashboard')); // Added dashboard route
 
 // Rate limiting routes (with error handling)
-if (rateLimiter && typeof rateLimiter.createRouter === 'function') {
-    app.use('/api/rate-limit', rateLimiter.createRouter());
+let rateLimiter; // Declare rateLimiter here
+if (RateLimiterMiddleware) {
+    rateLimiter = new RateLimiterMiddleware();
+    if (typeof rateLimiter.createRouter === 'function') {
+        app.use('/api/rate-limit', rateLimiter.createRouter());
+    } else {
+        app.use('/api/rate-limit', (req, res) => {
+            res.json({ message: 'Rate limiting not available in fallback mode' });
+        });
+    }
 } else {
     app.use('/api/rate-limit', (req, res) => {
         res.json({ message: 'Rate limiting not available in fallback mode' });
     });
 }
+
 
 // Message queue endpoints
 app.post('/api/queue/message', async (req, res) => {
