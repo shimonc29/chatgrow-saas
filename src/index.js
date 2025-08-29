@@ -412,12 +412,14 @@ async function startServer() {
             });
 
             // Test basic functionality
-            console.log(`\n🚀 ChatGrow Server is running!`);
+            console.log(`\n🚀 ChatGrow Server is running successfully!`);
+            console.log(`🌐 Server URL: http://localhost:${PORT}/`);
             console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
             console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
             console.log(`📱 WhatsApp API: http://localhost:${PORT}/api/whatsapp`);
-            console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
-            console.log(`📋 API Documentation available at each endpoint\n`);
+            console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
+            console.log(`📋 API Documentation available at each endpoint`);
+            console.log(`✅ Server is ready for connections!\n`);
         });
 
         // Graceful shutdown
