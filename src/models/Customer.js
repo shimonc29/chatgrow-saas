@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
@@ -8,7 +7,7 @@ const customerSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    
+
     // Personal information
     firstName: {
         type: String,
@@ -46,7 +45,7 @@ const customerSchema = new mongoose.Schema({
         type: String,
         enum: ['male', 'female', 'other', 'prefer_not_to_say']
     },
-    
+
     // Contact preferences
     preferredContactMethod: {
         type: String,
@@ -67,7 +66,7 @@ const customerSchema = new mongoose.Schema({
             default: false
         }
     },
-    
+
     // Address information
     address: {
         street: String,
@@ -79,7 +78,7 @@ const customerSchema = new mongoose.Schema({
             default: 'Israel'
         }
     },
-    
+
     // Customer status and classification
     status: {
         type: String,
@@ -100,7 +99,7 @@ const customerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Customer'
     },
-    
+
     // Service preferences and history
     servicePreferences: {
         preferredServices: [String],
@@ -109,7 +108,7 @@ const customerSchema = new mongoose.Schema({
         medicalConditions: String,
         notes: String
     },
-    
+
     // Financial information
     financialInfo: {
         totalSpent: {
@@ -134,7 +133,7 @@ const customerSchema = new mongoose.Schema({
             default: 0
         }
     },
-    
+
     // Visit tracking
     visitHistory: {
         firstVisit: {
@@ -155,7 +154,7 @@ const customerSchema = new mongoose.Schema({
             default: 0
         }
     },
-    
+
     // Rating and feedback
     customerRating: {
         averageRating: {
@@ -184,14 +183,14 @@ const customerSchema = new mongoose.Schema({
             }
         }]
     },
-    
+
     // Emergency contact
     emergencyContact: {
         name: String,
         phone: String,
         relationship: String
     },
-    
+
     // Custom fields for business-specific information
     customFields: [{
         name: String,
@@ -201,7 +200,7 @@ const customerSchema = new mongoose.Schema({
             enum: ['text', 'number', 'boolean', 'date', 'select']
         }
     }],
-    
+
     // Communication log
     communicationLog: [{
         type: {
@@ -223,17 +222,17 @@ const customerSchema = new mongoose.Schema({
             ref: 'User'
         }
     }],
-    
+
     // Tags and categories
     tags: [String],
     categories: [String],
-    
+
     // System information
     isActive: {
         type: Boolean,
         default: true
     }
-    
+
 }, {
     timestamps: true,
     collection: 'customers'
@@ -270,7 +269,7 @@ customerSchema.virtual('isLoyal').get(function() {
 customerSchema.virtual('riskLevel').get(function() {
     const noShowRate = this.visitHistory.totalVisits > 0 ? 
         this.visitHistory.noShowCount / this.visitHistory.totalVisits : 0;
-    
+
     if (noShowRate > 0.3) return 'high';
     if (noShowRate > 0.1) return 'medium';
     return 'low';
@@ -310,12 +309,12 @@ customerSchema.methods.addFeedback = async function(rating, comment, appointment
         appointmentId,
         date: new Date()
     });
-    
+
     // Update average rating
     const allRatings = this.customerRating.feedback.map(f => f.rating);
     this.customerRating.averageRating = allRatings.reduce((a, b) => a + b, 0) / allRatings.length;
     this.customerRating.totalRatings = allRatings.length;
-    
+
     return await this.save();
 };
 

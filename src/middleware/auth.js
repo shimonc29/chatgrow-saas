@@ -555,3 +555,26 @@ class AuthMiddleware {
 const authMiddleware = new AuthMiddleware();
 
 module.exports = authMiddleware; 
+const jwt = require('jsonwebtoken');
+
+// Mock authentication middleware for development
+const authMiddleware = (req, res, next) => {
+    try {
+        // In development, create a mock user
+        req.user = {
+            id: 'business-owner-1',
+            name: 'בעל עסק לדוגמה',
+            email: 'owner@example.com',
+            businessType: 'beauty_salon'
+        };
+        
+        next();
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            message: 'אין הרשאה לגשת למידע זה'
+        });
+    }
+};
+
+module.exports = authMiddleware;

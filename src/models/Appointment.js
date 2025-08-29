@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
@@ -20,7 +19,7 @@ const appointmentSchema = new mongoose.Schema({
         trim: true,
         maxlength: [100, 'שם השירות לא יכול לעבור 100 תווים']
     },
-    
+
     // Customer information
     customer: {
         customerId: {
@@ -49,7 +48,7 @@ const appointmentSchema = new mongoose.Schema({
         },
         notes: String
     },
-    
+
     // Appointment scheduling
     appointmentDate: {
         type: Date,
@@ -67,7 +66,7 @@ const appointmentSchema = new mongoose.Schema({
         type: Number,
         required: true // minutes
     },
-    
+
     // Status and management
     status: {
         type: String,
@@ -79,7 +78,7 @@ const appointmentSchema = new mongoose.Schema({
         enum: ['low', 'normal', 'high', 'urgent'],
         default: 'normal'
     },
-    
+
     // Pricing and payment
     price: {
         type: Number,
@@ -99,7 +98,7 @@ const appointmentSchema = new mongoose.Schema({
         type: String,
         enum: ['cash', 'credit_card', 'bank_transfer', 'paypal', 'bit', 'apple_pay']
     },
-    
+
     // Location and method
     appointmentType: {
         type: String,
@@ -112,7 +111,7 @@ const appointmentSchema = new mongoose.Schema({
         meetingUrl: String, // for online appointments
         additionalInfo: String
     },
-    
+
     // Reminders and notifications
     reminders: {
         enabled: {
@@ -135,7 +134,7 @@ const appointmentSchema = new mongoose.Schema({
             default: [24 * 60, 60] // 24 hours and 1 hour before (in minutes)
         }]
     },
-    
+
     // Business details
     businessDetails: {
         businessName: String,
@@ -143,7 +142,7 @@ const appointmentSchema = new mongoose.Schema({
         serviceDescription: String,
         cancellationPolicy: String
     },
-    
+
     // History and changes
     history: [{
         action: {
@@ -157,7 +156,7 @@ const appointmentSchema = new mongoose.Schema({
         details: String,
         previousValues: mongoose.Schema.Types.Mixed
     }],
-    
+
     // Additional metadata
     notes: String,
     internalNotes: String, // Only visible to business owner
@@ -170,7 +169,7 @@ const appointmentSchema = new mongoose.Schema({
             enum: ['text', 'number', 'boolean', 'date']
         }
     }],
-    
+
     // System tracking
     source: {
         type: String,
@@ -179,7 +178,7 @@ const appointmentSchema = new mongoose.Schema({
     },
     ipAddress: String,
     userAgent: String
-    
+
 }, {
     timestamps: true,
     collection: 'appointments'
@@ -239,16 +238,16 @@ appointmentSchema.methods.complete = async function() {
 appointmentSchema.methods.reschedule = async function(newDate, newStartTime, newEndTime) {
     const oldDate = this.appointmentDate;
     const oldStart = this.startTime;
-    
+
     this.appointmentDate = newDate;
     this.startTime = newStartTime;
     this.endTime = newEndTime;
     this.status = 'rescheduled';
-    
+
     this.addToHistory('rescheduled', 
         `התור הועבר מ-${oldDate.toLocaleDateString()} ${oldStart} לתאריך ${newDate.toLocaleDateString()} ${newStartTime}`
     );
-    
+
     return await this.save();
 };
 
@@ -256,11 +255,11 @@ appointmentSchema.methods.updatePayment = async function(status, method = null) 
     const oldStatus = this.paymentStatus;
     this.paymentStatus = status;
     if (method) this.paymentMethod = method;
-    
+
     this.addToHistory('payment_updated', 
         `סטטוס תשלום השתנה מ-${oldStatus} ל-${status}`
     );
-    
+
     return await this.save();
 };
 
@@ -287,7 +286,7 @@ appointmentSchema.statics.getTodayAppointments = function(businessId) {
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-    
+
     return this.find({
         businessId,
         appointmentDate: {
@@ -301,7 +300,7 @@ appointmentSchema.statics.getUpcomingAppointments = function(businessId, days = 
     const now = new Date();
     const futureDate = new Date();
     futureDate.setDate(now.getDate() + days);
-    
+
     return this.find({
         businessId,
         appointmentDate: {
@@ -342,7 +341,7 @@ appointmentSchema.statics.findAvailableSlots = async function(businessId, date, 
         appointmentDate: date,
         status: { $in: ['scheduled', 'confirmed'] }
     }).sort({ startTime: 1 });
-    
+
     return existingAppointments; // Simplified for now
 };
 
