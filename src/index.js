@@ -24,7 +24,7 @@ try {
     whatsAppRoutes = express.Router();
     healthRoutes = express.Router();
     eventsRoutes = express.Router();
-    
+
     // Add basic responses
     logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
     authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
@@ -194,13 +194,13 @@ app.get('/api/calendar', (req, res) => {
             <div class="container">
                 <h1>📅 יומן וניהול זמינות</h1>
                 <p>הגדר את הזמינות השבועית שלך ונהל את לוח השנה העסקי</p>
-                
+
                 <div style="margin: 20px 0;">
                     <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
                     <button class="btn" onclick="alert('בהמתנה לפיתוח')">➕ הוסף זמינות</button>
                     <button class="btn" onclick="alert('בהמתנה לפיתוח')">🚫 חסום תאריך</button>
                 </div>
-                
+
                 <h3>יומן השבוע</h3>
                 <div class="calendar-grid">
                     <div class="day-header">ראשון</div>
@@ -210,7 +210,7 @@ app.get('/api/calendar', (req, res) => {
                     <div class="day-header">חמישי</div>
                     <div class="day-header">שישי</div>
                     <div class="day-header">שבת</div>
-                    
+
                     <div class="day-cell available">1<br>זמין</div>
                     <div class="day-cell available">2<br>זמין</div>
                     <div class="day-cell booked">3<br>תפוס</div>
@@ -219,7 +219,7 @@ app.get('/api/calendar', (req, res) => {
                     <div class="day-cell">6<br>סגור</div>
                     <div class="day-cell">7<br>סגור</div>
                 </div>
-                
+
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
                     <h4>מקרא:</h4>
                     <div style="display: flex; gap: 20px;">
@@ -262,13 +262,13 @@ app.get('/api/payments', (req, res) => {
             <div class="container">
                 <h1>💳 ניהול תשלומים</h1>
                 <p>מעקב אחר תשלומים, חשבוניות ודוחות פיננסיים</p>
-                
+
                 <div>
                     <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
                     <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">➕ חשבונית חדשה</button>
                     <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">📊 דוח חודשי</button>
                 </div>
-                
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-number">₪12,450</div>
@@ -287,7 +287,7 @@ app.get('/api/payments', (req, res) => {
                         <div>חובות פגי תוקף</div>
                     </div>
                 </div>
-                
+
                 <h3>חשבוניות אחרונות</h3>
                 <table class="payments-table">
                     <thead>
@@ -353,39 +353,39 @@ app.get('/api/reports', (req, res) => {
             <div class="container">
                 <h1>📊 דוחות ואנליטיקה</h1>
                 <p>ניתוח מפורט של הביצועים העסקיים שלך</p>
-                
+
                 <div>
                     <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
                     <button class="btn" onclick="alert('בהמתנה לפיתוח')">📈 דוח מותאם</button>
                     <button class="btn" onclick="alert('בהמתנה לפיתוח')">💾 יצא לאקסל</button>
                 </div>
-                
+
                 <div class="reports-grid">
                     <div class="report-card">
                         <h3>📈 הכנסות חודשיות</h3>
                         <div class="chart-placeholder">גרף הכנסות יוצג כאן</div>
                         <p>עלייה של 15% לעומת החודש הקודם</p>
                     </div>
-                    
+
                     <div class="report-card">
                         <h3>👥 ניתוח לקוחות</h3>
                         <div class="chart-placeholder">גרף פילוח לקוחות יוצג כאן</div>
                         <p>85% לקוחות חוזרים, 15% לקוחות חדשים</p>
                     </div>
-                    
+
                     <div class="report-card">
                         <h3>⏰ שעות פעילות</h3>
                         <div class="chart-placeholder">גרף שעות יוצג כאן</div>
                         <p>שעות השיא: 14:00-18:00</p>
                     </div>
-                    
+
                     <div class="report-card">
                         <h3>🎯 שביעות רצון</h3>
                         <div class="chart-placeholder">גרף שביעות רצון יוצג כאן</div>
                         <p>דירוג ממוצע: 4.8/5</p>
                     </div>
                 </div>
-                
+
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 30px;">
                     <h3>💡 תובנות עסקיות</h3>
                     <ul>
@@ -426,12 +426,12 @@ app.get('/api/whatsapp', (req, res) => {
             <div class="container">
                 <h1>📱 הגדרות WhatsApp</h1>
                 <p>ניהול חיבור WhatsApp ותזכורות אוטומטיות</p>
-                
+
                 <div>
                     <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
                     <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">🔗 חבר WhatsApp</button>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3>סטטוס חיבור</h3>
                     <p class="status-disconnected">❌ לא מחובר ל-WhatsApp</p>
@@ -440,7 +440,7 @@ app.get('/api/whatsapp', (req, res) => {
                     </div>
                     <button class="btn" onclick="alert('בהמתנה לפיתוח')">🔄 רענן QR</button>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3>⚙️ הגדרות תזכורות</h3>
                     <label>
@@ -453,29 +453,29 @@ app.get('/api/whatsapp', (req, res) => {
                         <input type="checkbox"> שלח תזכורת אחרי הפגישה
                     </label>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3>📝 תבניות הודעות</h3>
-                    
+
                     <div class="message-template">
                         <h4>תזכורת 24 שעות</h4>
                         <textarea rows="3" placeholder="שלום {name}, יש לך תור מחר בשעה {time} ל{service}. נשמח לראותך!">שלום {name}, יש לך תור מחר בשעה {time} ל{service}. נשמח לראותך!</textarea>
                         <button class="btn btn-warning">💾 שמור תבנית</button>
                     </div>
-                    
+
                     <div class="message-template">
                         <h4>תזכורת שעה לפני</h4>
                         <textarea rows="3" placeholder="היי {name}, התור שלך מתחיל בעוד שעה. מחכים לך! 😊">היי {name}, התור שלך מתחיל בעוד שעה. מחכים לך! 😊</textarea>
                         <button class="btn btn-warning">💾 שמור תבנית</button>
                     </div>
-                    
+
                     <div class="message-template">
                         <h4>הודעת תודה</h4>
                         <textarea rows="3" placeholder="תודה על הביקור {name}! נשמח לראותך שוב ✨">תודה על הביקור {name}! נשמח לראותך שוב ✨</textarea>
                         <button class="btn btn-warning">💾 שמור תבנית</button>
                     </div>
                 </div>
-                
+
                 <div class="settings-section">
                     <h3>📊 סטטיסטיקות הודעות</h3>
                     <p>📤 הודעות נשלחו היום: 0</p>
@@ -536,7 +536,7 @@ app.get('/dashboard', (req, res) => {
                     padding: 0;
                     box-sizing: border-box;
                 }
-                
+
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -544,7 +544,7 @@ app.get('/dashboard', (req, res) => {
                     padding: 20px;
                     direction: rtl;
                 }
-                
+
                 .container {
                     max-width: 1200px;
                     margin: 0 auto;
@@ -553,36 +553,36 @@ app.get('/dashboard', (req, res) => {
                     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
                     overflow: hidden;
                 }
-                
+
                 .header {
                     background: linear-gradient(45deg, #667eea, #764ba2);
                     color: white;
                     padding: 30px 40px;
                     text-align: center;
                 }
-                
+
                 .header h1 {
                     font-size: 2.5em;
                     margin-bottom: 10px;
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                 }
-                
+
                 .header p {
                     font-size: 1.2em;
                     opacity: 0.9;
                 }
-                
+
                 .main-content {
                     padding: 40px;
                 }
-                
+
                 .stats-overview {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                     gap: 20px;
                     margin-bottom: 40px;
                 }
-                
+
                 .stat-card {
                     background: white;
                     border-radius: 15px;
@@ -592,37 +592,37 @@ app.get('/dashboard', (req, res) => {
                     border: 3px solid transparent;
                     transition: all 0.3s ease;
                 }
-                
+
                 .stat-card:hover {
                     transform: translateY(-5px);
                     border-color: #667eea;
                     box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
                 }
-                
+
                 .stat-number {
                     font-size: 2.5em;
                     font-weight: bold;
                     color: #667eea;
                     margin-bottom: 10px;
                 }
-                
+
                 .stat-label {
                     color: #666;
                     font-size: 1.1em;
                 }
-                
+
                 .stat-icon {
                     font-size: 2em;
                     margin-bottom: 15px;
                 }
-                
+
                 .features-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
                     gap: 30px;
                     margin-bottom: 40px;
                 }
-                
+
                 .feature-card {
                     background: white;
                     border-radius: 15px;
@@ -630,35 +630,35 @@ app.get('/dashboard', (req, res) => {
                     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
                     transition: all 0.3s ease;
                 }
-                
+
                 .feature-card:hover {
                     transform: translateY(-5px);
                     box-shadow: 0 15px 40px rgba(0,0,0,0.15);
                 }
-                
+
                 .feature-header {
                     display: flex;
                     align-items: center;
                     margin-bottom: 20px;
                 }
-                
+
                 .feature-icon {
                     font-size: 2.5em;
                     margin-left: 15px;
                 }
-                
+
                 .feature-title {
                     font-size: 1.5em;
                     color: #333;
                     font-weight: bold;
                 }
-                
+
                 .feature-description {
                     color: #666;
                     line-height: 1.6;
                     margin-bottom: 20px;
                 }
-                
+
                 .btn {
                     background: linear-gradient(45deg, #667eea, #764ba2);
                     color: white;
@@ -672,24 +672,24 @@ app.get('/dashboard', (req, res) => {
                     display: inline-block;
                     margin: 5px;
                 }
-                
+
                 .btn:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
                 }
-                
+
                 .btn-secondary {
                     background: linear-gradient(45deg, #95a5a6, #7f8c8d);
                 }
-                
+
                 .btn-success {
                     background: linear-gradient(45deg, #27ae60, #2ecc71);
                 }
-                
+
                 .btn-warning {
                     background: linear-gradient(45deg, #f39c12, #e67e22);
                 }
-                
+
                 .demo-notice {
                     background: #e8f4f8;
                     border: 2px solid #3498db;
@@ -698,12 +698,12 @@ app.get('/dashboard', (req, res) => {
                     margin-bottom: 30px;
                     text-align: center;
                 }
-                
+
                 .demo-notice h3 {
                     color: #2980b9;
                     margin-bottom: 10px;
                 }
-                
+
                 .status-badge {
                     display: inline-block;
                     padding: 5px 12px;
@@ -721,40 +721,40 @@ app.get('/dashboard', (req, res) => {
                     <h1>🗓️ BusinessFlow</h1>
                     <p>מערכת ניהול תורים ולקוחות מתקדמת לעסקים</p>
                 </div>
-                
+
                 <div class="main-content">
                     <div class="demo-notice">
                         <h3>🎯 ברוכים הבאים למערכת החדשה!</h3>
                         <p>BusinessFlow - פתרון מקיף לניהול תורים, לקוחות ותשלומים עבור עסקים קטנים ובינוניים</p>
                         <span class="status-badge">מצב הדגמה</span>
                     </div>
-                    
+
                     <div class="stats-overview">
                         <div class="stat-card">
                             <div class="stat-icon">📅</div>
                             <div class="stat-number">0</div>
                             <div class="stat-label">תורים השבוע</div>
                         </div>
-                        
+
                         <div class="stat-card">
                             <div class="stat-icon">👥</div>
                             <div class="stat-number">0</div>
                             <div class="stat-label">לקוחות פעילים</div>
                         </div>
-                        
+
                         <div class="stat-card">
                             <div class="stat-icon">💰</div>
                             <div class="stat-number">₪0</div>
                             <div class="stat-label">הכנסות החודש</div>
                         </div>
-                        
+
                         <div class="stat-card">
                             <div class="stat-icon">⭐</div>
                             <div class="stat-number">4.8</div>
                             <div class="stat-label">דירוג ממוצע</div>
                         </div>
                     </div>
-                    
+
                     <div class="features-grid">
                         <div class="feature-card">
                             <div class="feature-header">
@@ -764,9 +764,9 @@ app.get('/dashboard', (req, res) => {
                             <div class="feature-description">
                                 הגדרת זמינות שבועית, חסימת תאריכים ונהול לוח השנה העסקי שלך בצורה פשוטה ויעילה.
                             </div>
-                            <button class="btn" onclick="alert('בהמתנה לפיתוח')">נהל יומן</button>
+                            <a href="/api/calendar" class="btn">נהל יומן</a>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-header">
                                 <div class="feature-icon">⏰</div>
@@ -777,7 +777,7 @@ app.get('/dashboard', (req, res) => {
                             </div>
                             <a href="/api/appointments" class="btn">נהל תורים</a>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-header">
                                 <div class="feature-icon">👨‍💼</div>
@@ -788,7 +788,7 @@ app.get('/dashboard', (req, res) => {
                             </div>
                             <a href="/api/customers" class="btn">רשימת לקוחות</a>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-header">
                                 <div class="feature-icon">💳</div>
@@ -797,9 +797,9 @@ app.get('/dashboard', (req, res) => {
                             <div class="feature-description">
                                 מעקב אחר תשלומים, חשבוניות אוטומטיות, תזכורות תשלום ודיווחים פיננסיים מפורטים.
                             </div>
-                            <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">נהל תשלומים</button>
+                            <a href="/api/payments" class="btn btn-warning">נהל תשלומים</a>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-header">
                                 <div class="feature-icon">📱</div>
@@ -808,9 +808,9 @@ app.get('/dashboard', (req, res) => {
                             <div class="feature-description">
                                 שליחת תזכורות אוטומטיות ללקוחות דרך WhatsApp, SMS ואימייל עם הודעות מותאמות אישית.
                             </div>
-                            <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">הגדרות WhatsApp</button>
+                            <a href="/api/whatsapp" class="btn btn-secondary">הגדרות WhatsApp</a>
                         </div>
-                        
+
                         <div class="feature-card">
                             <div class="feature-header">
                                 <div class="feature-icon">📊</div>
@@ -819,7 +819,7 @@ app.get('/dashboard', (req, res) => {
                             <div class="feature-description">
                                 דוחות מפורטים על הכנסות, נוכחות לקוחות, שעות עבודה ומדדי ביצועים עסקיים.
                             </div>
-                            <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">צפה בדוחות</button>
+                            <a href="/api/reports" class="btn btn-secondary">צפה בדוחות</a>
                         </div>
                     </div>
                 </div>
