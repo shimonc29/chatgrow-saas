@@ -2,7 +2,15 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs').promises;
-const WhatsAppConnection = require('../models/WhatsAppConnection');
+// Safe require with fallback
+let WhatsAppConnection;
+try {
+    WhatsAppConnection = require('../models/WhatsAppConnection');
+} catch (error) {
+    console.log('WhatsAppConnection model not available - running in fallback mode');
+    WhatsAppConnection = null;
+}
+
 const { logInfo, logError, logWarning, logDebug } = require('../utils/logger');
 
 class WhatsAppService {
@@ -44,10 +52,10 @@ class WhatsAppService {
 
     async createConnection(userId, connectionId, options = {}) {
         try {
-            // Check if MongoDB is available
+            // Check if MongoDB and model are available
             const mongoose = require('mongoose');
-            if (mongoose.connection.readyState !== 1) {
-                throw new Error('Database not available - cannot create WhatsApp connection');
+            if (mongoose.connection.readyState !== 1 || !WhatsAppConnection) {
+                throw new Error('Database or WhatsApp model not available - cannot create WhatsApp connection');
             }
 
             // Check if connection already exists
@@ -432,6 +440,10 @@ class WhatsAppService {
 
     async getConnectionStatus(connectionId) {
         try {
+            if (!WhatsAppConnection) {
+                throw new Error('WhatsApp model not available');
+            }
+
             const connection = await WhatsAppConnection.findOne({ connectionId });
             if (!connection) {
                 throw new Error(`Connection ${connectionId} not found`);
@@ -474,6 +486,10 @@ class WhatsAppService {
 
     async getQRCode(connectionId) {
         try {
+            if (!WhatsAppConnection) {
+                throw new Error('WhatsApp model not available');
+            }
+
             const connection = await WhatsAppConnection.findOne({ connectionId });
             if (!connection) {
                 throw new Error(`Connection ${connectionId} not found`);
@@ -526,10 +542,12 @@ class WhatsAppService {
         try {
             await this.disconnect(connectionId);
 
-            const connection = await WhatsAppConnection.findOne({ connectionId });
-            if (connection) {
-                connection.isActive = false;
-                await connection.save();
+            if (WhatsAppConnection) {
+                const connection = await WhatsAppConnection.findOne({ connectionId });
+                if (connection) {
+                    connection.isActive = false;
+                    await connection.save();
+                }
             }
 
             logInfo('WhatsApp connection deleted', { connectionId });
@@ -545,6 +563,12 @@ class WhatsAppService {
             const mongoose = require('mongoose');
             if (mongoose.connection.readyState !== 1) {
                 logInfo('Skipping WhatsApp connections restore - MongoDB not available');
+                return;
+            }
+
+            // Only try to restore if models are available
+            if (typeof WhatsAppConnection === 'undefined') {
+                logInfo('WhatsApp model not available, skipping restore');
                 return;
             }
 
@@ -575,7 +599,9 @@ class WhatsAppService {
                 }
             }
         } catch (error) {
-            logError('Failed to restore active connections', error);
+            logInfo('Cannot restore active connections - running in fallback mode', {
+                reason: error.message
+            });
         }
     }
 
@@ -617,7 +643,11 @@ class WhatsAppService {
 
     async getServiceStats() {
         try {
-            const stats = await WhatsAppConnection.getConnectionStats();
+            let stats = {};
+            if (WhatsAppConnection) {
+                stats = await WhatsAppConnection.getConnectionStats();
+            }
+            
             const activeConnections = this.clients.size;
 
             return {
@@ -627,7 +657,10 @@ class WhatsAppService {
             };
         } catch (error) {
             logError('Failed to get service stats', error);
-            throw error;
+            return {
+                activeConnections: this.clients.size,
+                totalConnections: this.connectionStates.size
+            };
         }
     }
 
