@@ -129,6 +129,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/health', healthRoutes); // Mount health monitoring routes
+app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/customers', require('./routes/customers'));
 app.use('/api/queue', (req, res) => {
     const QueueService = require('./services/queueService');
     const queueService = new QueueService();

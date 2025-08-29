@@ -1,551 +1,389 @@
+
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
-const { logApiRequest } = require('../utils/logger');
+const Event = require('../models/Event');
+const Registration = require('../models/Registration');
+const User = require('../models/User');
 
-// Dashboard home page
-router.get('/dashboard', (req, res) => {
-    const startTime = Date.now();
+router.get('/', async (req, res) => {
+    try {
+        // Get sample data for demo
+        const today = new Date();
+        const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+        const weekEnd = new Date(today.setDate(today.getDate() - today.getDay() + 6));
 
-    const html = `
+        res.send(`
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatGrow - ממשק ניהול</title>
+    <title>BusinessFlow - ניהול תורים לעסקים</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            padding: 20px;
+            direction: rtl;
         }
-
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-
+        
         .header {
-            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            margin-bottom: 40px;
+            padding: 30px 40px;
+            text-align: center;
         }
-
+        
         .header h1 {
-            font-size: 3rem;
+            font-size: 2.5em;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
+        
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.2em;
             opacity: 0.9;
         }
-
-        .status-bar {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            color: white;
+        
+        .main-content {
+            padding: 40px;
         }
-
-        .status-grid {
+        
+        .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            text-align: center;
+            margin-bottom: 40px;
         }
-
-        .status-item {
-            padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-
-        .status-item h3 {
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-            opacity: 0.8;
-        }
-
-        .status-item .value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
+        
+        .stat-card {
             background: white;
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-
-        .card h2 {
-            color: #4a5568;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .icon {
-            font-size: 1.8rem;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 20px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-
-        .btn-success { background: #48bb78; }
-        .btn-success:hover { background: #38a169; }
-
-        .btn-warning { background: #ed8936; }
-        .btn-warning:hover { background: #dd7724; }
-
-        .btn-danger { background: #f56565; }
-        .btn-danger:hover { background: #e53e3e; }
-
-        .btn-info { background: #4299e1; }
-        .btn-info:hover { background: #3182ce; }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 0.8rem;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .feature-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .feature-list li:last-child {
-            border-bottom: none;
-        }
-
-        .status-online {
-            color: #48bb78;
-            font-weight: bold;
-        }
-
-        .status-offline {
-            color: #f56565;
-            font-weight: bold;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .stat-item {
             text-align: center;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
         }
-
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+        }
+        
         .stat-number {
-            font-size: 1.5rem;
+            font-size: 2.5em;
             font-weight: bold;
             color: #667eea;
+            margin-bottom: 10px;
         }
-
+        
         .stat-label {
-            font-size: 0.8rem;
-            color: #718096;
-            margin-top: 5px;
+            color: #666;
+            font-size: 1.1em;
         }
-
-        .footer {
+        
+        .stat-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .feature-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-left: 15px;
+        }
+        
+        .feature-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+        
+        .quick-actions {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .quick-actions h2 {
+            color: #333;
+            margin-bottom: 20px;
             text-align: center;
-            margin-top: 40px;
-            color: rgba(255,255,255,0.8);
-            font-size: 0.9rem;
         }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .status-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-demo {
+            background: #3498db;
+            color: white;
+        }
+        
+        .demo-notice {
+            background: #e8f4f8;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .demo-notice h3 {
+            color: #2980b9;
+            margin-bottom: 10px;
+        }
+        
+        .demo-notice p {
+            color: #34495e;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 ChatGrow</h1>
-            <p>מערכת ניהול הודעות WhatsApp מתקדמת</p>
+            <h1>🗓️ BusinessFlow</h1>
+            <p>מערכת ניהול תורים ולקוחות מתקדמת לעסקים</p>
         </div>
-
-        <div class="status-bar">
-            <div class="status-grid">
-                <div class="status-item">
-                    <h3>סטטוס שרת</h3>
-                    <div class="value status-online">🟢 פעיל</div>
+        
+        <div class="main-content">
+            <div class="demo-notice">
+                <h3>🎯 ברוכים הבאים למערכת החדשה!</h3>
+                <p>BusinessFlow - פתרון מקיף לניהול תורים, לקוחות ותשלומים עבור עסקים קטנים ובינוניים</p>
+                <span class="status-badge status-demo">מצב הדגמה</span>
+            </div>
+            
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">תורים השבוע</div>
                 </div>
-                <div class="status-item">
-                    <h3>MongoDB</h3>
-                    <div class="value status-offline">🔴 לא זמין</div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">לקוחות פעילים</div>
                 </div>
-                <div class="status-item">
-                    <h3>Redis</h3>
-                    <div class="value status-offline">🔴 לא זמין</div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-number">₪0</div>
+                    <div class="stat-label">הכנסות החודש</div>
                 </div>
-                <div class="status-item">
-                    <h3>WhatsApp</h3>
-                    <div class="value status-offline">🔴 לא מחובר</div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number">4.8</div>
+                    <div class="stat-label">דירוג ממוצע</div>
                 </div>
             </div>
-        </div>
-
-        <div class="grid">
-            <!-- Authentication System -->
-            <div class="card">
-                <h2><span class="icon">🔐</span>מערכת אימות</h2>
-                <ul class="feature-list">
-                    <li>JWT Authentication <span class="status-online">✓</span></li>
-                    <li>תוכניות מנוי <span class="status-online">✓</span></li>
-                    <li>ניהול סשנים <span class="status-online">✓</span></li>
-                    <li>API Keys <span class="status-online">✓</span></li>
-                </ul>
-                <div style="margin-top: 15px;">
-                    <a href="/api/auth/register" class="btn btn-success btn-small">הרשמה</a>
-                    <a href="/api/auth/login" class="btn btn-info btn-small">התחברות</a>
-                    <a href="/api/auth/me" class="btn btn-small">פרופיל</a>
-                </div>
-            </div>
-
-            <!-- WhatsApp Management -->
-            <div class="card">
-                <h2><span class="icon">📱</span>ניהול WhatsApp</h2>
-                <p style="color: orange;">⚠️ שירות WhatsApp לא זמין - דרוש חיבור למסד נתונים</p>
-                <p>לחיבור WhatsApp תצטרך:</p>
-                <ul style="text-align: right; margin: 10px 0;">
-                    <li>חיבור ל-MongoDB</li>
-                    <li>מפתח API של WhatsApp Business</li>
-                    <li>אישור Facebook Business</li>
-                </ul>
-                <div class="button-group">
-                    <button class="btn btn-secondary" disabled>בהמתנה לחיבור למסד נתונים</button>
-                </div>
-            </div>
-
-            <!-- Events Management System -->
-            <div class="card">
-                <h2><span class="icon">📅</span>ניהול אירועים</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">אירועים פעילים</div>
+            
+            <div class="features-grid">
+                <!-- Calendar Management -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">🗓️</div>
+                        <div class="feature-title">יומן וזמינות</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">הרשמות השבוע</div>
+                    <div class="feature-description">
+                        הגדרת זמינות שבועית, חסימת תאריכים ונהול לוח השנה העסקי שלך בצורה פשוטה ויעילה.
                     </div>
+                    <a href="/api/calendar" class="btn">נהל יומן</a>
+                    <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">הגדרות זמינות</button>
                 </div>
-                <div style="margin-top: 15px;">
-                    <a href="/api/events" class="btn btn-success btn-small">צור אירוע</a>
-                    <a href="/api/events" class="btn btn-info btn-small">רשימת אירועים</a>
-                    <a href="/events-dashboard" class="btn btn-small">דשבורד אירועים</a>
+                
+                <!-- Appointment Management -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">⏰</div>
+                        <div class="feature-title">ניהול תורים</div>
+                    </div>
+                    <div class="feature-description">
+                        קביעת תורים, עריכה וביטול. ממשק נוח ללקוחות עם אפשרות הזמנה עצמית 24/7.
+                    </div>
+                    <a href="/api/appointments" class="btn">נהל תורים</a>
+                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">תור חדש</button>
+                </div>
+                
+                <!-- Customer Management -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">👨‍💼</div>
+                        <div class="feature-title">ניהול לקוחות</div>
+                    </div>
+                    <div class="feature-description">
+                        מאגר לקוחות מלא עם היסטוריית פגישות, העדפות אישיות ומעקב אחר סטטוס התשלומים.
+                    </div>
+                    <a href="/api/customers" class="btn">רשימת לקוחות</a>
+                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">לקוח חדש</button>
+                </div>
+                
+                <!-- Payment Management -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">💳</div>
+                        <div class="feature-title">ניהול תשלומים</div>
+                    </div>
+                    <div class="feature-description">
+                        מעקב אחר תשלומים, חשבוניות אוטומטיות, תזכורות תשלום ודיווחים פיננסיים מפורטים.
+                    </div>
+                    <a href="/api/payments" class="btn">נהל תשלומים</a>
+                    <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">חשבונית חדשה</button>
+                </div>
+                
+                <!-- WhatsApp Reminders -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-title">תזכורות WhatsApp</div>
+                    </div>
+                    <div class="feature-description">
+                        שליחת תזכורות אוטומטיות ללקוחות דרך WhatsApp, SMS ואימייל עם הודעות מותאמות אישית.
+                    </div>
+                    <a href="/api/whatsapp" class="btn">הגדרות WhatsApp</a>
+                    <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">בדוק תזכורות</button>
+                </div>
+                
+                <!-- Reports & Analytics -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">דוחות ואנליטיקה</div>
+                    </div>
+                    <div class="feature-description">
+                        דוחות מפורטים על הכנסות, נוכחות לקוחות, שעות עבודה ומדדי ביצועים עסקיים.
+                    </div>
+                    <a href="/api/reports" class="btn">צפה בדוחות</a>
+                    <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
                 </div>
             </div>
-
-            <!-- Customer Management -->
-            <div class="card">
-                <h2><span class="icon">👥</span>ניהול לקוחות</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">לקוחות רשומים</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">הרשמות החודש</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <a href="/api/events/registrations" class="btn btn-info btn-small">רשימת לקוחות</a>
-                    <a href="/customer-analytics" class="btn btn-small">ניתוח לקוחות</a>
+            
+            <div class="quick-actions">
+                <h2>🚀 פעולות מהירות</h2>
+                <div class="actions-grid">
+                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח - תור חדש')">➕ הוסף תור חדש</button>
+                    <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח - רשימת היום')">📋 רשימת תורי היום</button>
+                    <button class="btn" onclick="alert('בהמתנה לפיתוח - לקוח חדש')">👤 הוסף לקוח חדש</button>
+                    <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח - הגדרות')">⚙️ הגדרות מערכת</button>
+                    <button class="btn" onclick="alert('בהמתנה לפיתוח - גיבוי')">💾 גבה נתונים</button>
+                    <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח - סטטיסטיקות')">📈 סטטיסטיקות שבועיות</button>
                 </div>
             </div>
-
-            <!-- Message Queue System -->
-            <div class="card">
-                <h2><span class="icon">⚡</span>מערכת תורים</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">הודעות בתור</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">הודעות עובדות</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <a href="/api/queue/status" class="btn btn-info btn-small">סטטוס תור</a>
-                    <a href="/api/queue/stats" class="btn btn-small">סטטיסטיקות</a>
-                </div>
-            </div>
-
-            <!-- Rate Limiting -->
-            <div class="card">
-                <h2><span class="icon">🛡️</span>הגבלת קצב</h2>
-                <ul class="feature-list">
-                    <li>חסימה אוטומטית <span class="status-online">✓</span></li>
-                    <li>Exponential Backoff <span class="status-online">✓</span></li>
-                    <li>ניטור פר חיבור <span class="status-online">✓</span></li>
-                </ul>
-                <div style="margin-top: 15px;">
-                    <a href="/api/rate-limit/status" class="btn btn-info btn-small">סטטוס</a>
-                    <a href="/api/rate-limit/config" class="btn btn-small">הגדרות</a>
-                </div>
-            </div>
-
-            <!-- Logging System -->
-            <div class="card">
-                <h2><span class="icon">📊</span>מערכת לוגים</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">הודעות שנשלחו</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">שיעור הצלחה</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <a href="/api/logs/messages" class="btn btn-info btn-small">הודעות</a>
-                    <a href="/api/logs/stats" class="btn btn-small">סטטיסטיקות</a>
-                    <a href="/api/logs/report" class="btn btn-warning btn-small">דוחות</a>
-                </div>
-            </div>
-
-            <!-- Health Monitoring -->
-            <div class="card">
-                <h2><span class="icon">🏥</span>ניטור בריאות</h2>
-                <ul class="feature-list">
-                    <li>בדיקות אוטומטיות <span class="status-online">✓</span></li>
-                    <li>התראות <span class="status-online">✓</span></li>
-                    <li>דשבורד ביצועים <span class="status-online">✓</span></li>
-                </ul>
-                <div style="margin-top: 15px;">
-                    <a href="/api/health" class="btn btn-success btn-small">בריאות כללית</a>
-                    <a href="/api/health/detailed" class="btn btn-info btn-small">דוח מפורט</a>
-                    <a href="/api/health/dashboard" class="btn btn-small">דשבורד</a>
-                </div>
-            </div>
-
-            <!-- Load Testing -->
-            <div class="card">
-                <h2><span class="icon">🧪</span>בדיקת עומס</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">500+</div>
-                        <div class="stat-label">הודעות לבדיקה</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">98%</div>
-                        <div class="stat-label">יעד הצלחה</div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <button onclick="runLoadTest()" class="btn btn-warning btn-small">הרץ בדיקת עומס</button>
-                    <button onclick="runRateLimitTest()" class="btn btn-info btn-small">בדיקת Rate Limit</button>
-                </div>
-            </div>
-
-            <!-- API Documentation -->
-            <div class="card">
-                <h2><span class="icon">📚</span>תיעוד API</h2>
-                <ul class="feature-list">
-                    <li><a href="/api/auth" style="text-decoration: none;">🔐 Authentication API</a></li>
-                    <li><a href="/api/whatsapp" style="text-decoration: none;">📱 WhatsApp API</a></li>
-                    <li><a href="/api/queue" style="text-decoration: none;">⚡ Queue API</a></li>
-                    <li><a href="/api/logs" style="text-decoration: none;">📊 Logs API</a></li>
-                    <li><a href="/api/health" style="text-decoration: none;">🏥 Health API</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>ChatGrow v1.0.0 - מערכת ניהול הודעות WhatsApp מתקדמת</p>
-            <p>רץ על פורט 5000 | MongoDB: לא זמין | Redis: לא זמין</p>
-        </div>
-    </div>
-
-    <script>
-        // Load test functions
-        async function runLoadTest() {
-            if(confirm('האם אתה בטוח שאתה רוצה להריץ בדיקת עומס של 500 הודעות?')) {
-                alert('מתחיל בדיקת עומס... בדוק את הקונסול לעדכונים');
-                try {
-                    const response = await fetch('/api/test/load', { method: 'POST' });
-                    const result = await response.json();
-                    alert('בדיקת עומס הסתיימה! בדוק את התוצאות בלוגים');
-                } catch (error) {
-                    alert('שגיאה בהרצת בדיקת עומס: ' + error.message);
-                }
-            }
-        }
-
-        async function runRateLimitTest() {
-            if(confirm('האם אתה רוצה להריץ בדיקת הגבלת קצב?')) {
-                alert('מתחיל בדיקת Rate Limiting...');
-                try {
-                    const response = await fetch('/api/test/rate-limit', { method: 'POST' });
-                    const result = await response.json();
-                    alert('בדיקת Rate Limiting הסתיימה!');
-                } catch (error) {
-                    alert('שגיאה בבדיקת Rate Limiting: ' + error.message);
-                }
-            }
-        }
-
-        // Auto refresh status every 30 seconds
-        setInterval(async () => {
-            try {
-                const response = await fetch('/api/health');
-                const health = await response.json();
-                // Update status indicators based on health check
-                console.log('Health status updated:', health);
-            } catch (error) {
-                console.log('Failed to update health status:', error);
-            }
-        }, 30000);
-
-        // Welcome message
-        console.log('🚀 ChatGrow Dashboard loaded successfully!');
-        console.log('📊 Health check available at: /api/health');
-        console.log('🔐 Authentication API: /api/auth');
-        console.log('📱 WhatsApp API: /api/whatsapp');
-    </script>
-</body>
-</html>`;
-
-    logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
-        action: 'dashboard_home'
-    });
-
-    res.send(html);
-});
-
-// Events dashboard
-router.get('/events-dashboard', (req, res) => {
-    const startTime = Date.now();
-
-    const html = `
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דשבורד אירועים - ChatGrow</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; color: white; margin-bottom: 40px; }
-        .header h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-        .btn { display: inline-block; padding: 12px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; margin: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📅 דשבורד אירועים</h1>
-            <p>ניהול אירועים, סדנאות ומופעים</p>
-        </div>
-
-        <div class="card">
-            <h2>🎯 יצירת אירוע חדש</h2>
-            <p>צור אירועים חדשים עבור העסק שלך</p>
-            <a href="/api/events" class="btn">צור אירוע</a>
-        </div>
-
-        <div class="card">
-            <h2>📋 רשימת אירועים</h2>
-            <p>צפה ונהל את כל האירועים שלך</p>
-            <a href="/api/events" class="btn">רשימת אירועים</a>
-        </div>
-
-        <div class="card">
-            <h2>👥 רשימת הרשמות</h2>
-            <p>צפה ונהל הרשמות לאירועים</p>
-            <a href="/api/events/registrations" class="btn">הרשמות</a>
-        </div>
-
-        <div class="card">
-            <a href="/dashboard" class="btn">← חזרה לדשבורד הראשי</a>
         </div>
     </div>
 </body>
-</html>`;
-
-    logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
-        action: 'events_dashboard'
-    });
-
-    res.send(html);
+</html>
+        `);
+    } catch (error) {
+        console.error('Dashboard error:', error);
+        res.status(500).send(`
+            <h1>שגיאה בטעינת הדאשבורד</h1>
+            <p>אנא נסה שוב מאוחר יותר</p>
+            <pre>${error.message}</pre>
+        `);
+    }
 });
 
 module.exports = router;
