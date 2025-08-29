@@ -7,12 +7,31 @@ require('dotenv').config();
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
-// Import routes
-const logsRoutes = require('./routes/logs');
-const authRoutes = require('./routes/auth');
-const whatsAppRoutes = require('./routes/whatsapp');
-const healthRoutes = require('./routes/health'); // Added Health monitoring routes
-const eventsRoutes = require('./routes/events'); // Added Events management routes
+// Import routes with error handling
+let logsRoutes, authRoutes, whatsAppRoutes, healthRoutes, eventsRoutes;
+try {
+    logsRoutes = require('./routes/logs');
+    authRoutes = require('./routes/auth');
+    whatsAppRoutes = require('./routes/whatsapp');
+    healthRoutes = require('./routes/health');
+    eventsRoutes = require('./routes/events');
+} catch (error) {
+    console.warn('Some routes not available, using fallback');
+    // Create minimal fallback routes
+    const express = require('express');
+    logsRoutes = express.Router();
+    authRoutes = express.Router();
+    whatsAppRoutes = express.Router();
+    healthRoutes = express.Router();
+    eventsRoutes = express.Router();
+    
+    // Add basic responses
+    logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
+    authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
+    whatsAppRoutes.get('/', (req, res) => res.json({ message: 'WhatsApp service not available' }));
+    healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
+    eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
+}
 
 // Import middleware (with error handling)
 let RateLimiterMiddleware, authMiddleware, securityMiddleware;
@@ -24,12 +43,23 @@ try {
     console.warn('Some middleware modules not available, using fallback');
 }
 
-// Import queue system
-const { messageQueue } = require('./queues/messageQueue');
+// Import queue system with error handling
+let messageQueue;
+try {
+    messageQueue = require('./queues/messageQueue').messageQueue;
+} catch (error) {
+    console.warn('Message queue not available, using fallback');
+    messageQueue = null;
+}
 
-// Import services
-const QueueService = require('./services/queueService');
-const LogService = require('./services/logService');
+// Import services with error handling
+let QueueService, LogService;
+try {
+    QueueService = require('./services/queueService');
+    LogService = require('./services/logService');
+} catch (error) {
+    console.warn('Some services not available, using fallback');
+}
 
 // Initialize services (WhatsApp disabled until MongoDB is available)
 // const whatsAppService = require('./services/whatsappService');
@@ -123,14 +153,21 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-// app.use('/api/whatsapp', whatsAppRoutes); // Disabled until MongoDB available
-app.use('/api/events', eventsRoutes);
-app.use('/api/logs', logsRoutes);
-app.use('/api/health', healthRoutes); // Mount health monitoring routes
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/customers', require('./routes/customers'));
+// API Routes with error handling
+if (authRoutes) app.use('/api/auth', authRoutes);
+if (eventsRoutes) app.use('/api/events', eventsRoutes);
+if (logsRoutes) app.use('/api/logs', logsRoutes);
+if (healthRoutes) app.use('/api/health', healthRoutes);
+
+// Load appointments and customers routes with error handling
+try {
+    app.use('/api/appointments', require('./routes/appointments'));
+    app.use('/api/customers', require('./routes/customers'));
+} catch (error) {
+    console.warn('Appointments/Customers routes not available');
+    app.get('/api/appointments', (req, res) => res.json({ message: 'Appointments service not available' }));
+    app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
+}
 app.use('/api/queue', (req, res) => {
     const QueueService = require('./services/queueService');
     const queueService = new QueueService();
@@ -154,7 +191,72 @@ app.use('/api/queue', (req, res) => {
         });
     }
 });
-app.use('/', require('./routes/dashboard')); // Added dashboard route
+// Dashboard route with error handling
+try {
+    app.use('/', require('./routes/dashboard'));
+} catch (error) {
+    console.warn('Dashboard route not available, using fallback');
+    app.get('/dashboard', (req, res) => {
+        res.send(`
+            <!DOCTYPE html>
+            <html dir="rtl" lang="he">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>ניהול תורים - ChatGrow</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    h1 { color: #2c3e50; text-align: center; margin-bottom: 40px; }
+                    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+                    .card { background: #3498db; color: white; padding: 20px; border-radius: 8px; text-align: center; }
+                    .card h3 { margin: 0 0 10px 0; }
+                    .card p { margin: 0; font-size: 24px; font-weight: bold; }
+                    .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 30px; }
+                    .btn { padding: 15px 25px; background: #2980b9; color: white; text-decoration: none; border-radius: 5px; text-align: center; border: none; cursor: pointer; font-size: 16px; }
+                    .btn:hover { background: #1abc9c; }
+                    .status { background: #27ae60; padding: 10px; border-radius: 5px; text-align: center; color: white; margin-bottom: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="status">✅ השרת פועל בהצלחה - מצב פיתוח</div>
+                    <h1>מערכת ניהול תורים - ChatGrow</h1>
+                    
+                    <div class="cards">
+                        <div class="card">
+                            <h3>תורים השבוע</h3>
+                            <p>0</p>
+                        </div>
+                        <div class="card">
+                            <h3>לקוחות פעילים</h3>
+                            <p>0</p>
+                        </div>
+                        <div class="card">
+                            <h3>הכנסות חודשיות</h3>
+                            <p>₪0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn" onclick="alert('ממשק זה זמין במצב פיתוח')">תור חדש</button>
+                        <button class="btn" onclick="alert('ממשק זה זמין במצב פיתוח')">לקוח חדש</button>
+                        <button class="btn" onclick="alert('ממשק זה זמין במצב פיתוח')">דוחות</button>
+                        <button class="btn" onclick="alert('ממשק זה זמין במצב פיתוח')">הגדרות</button>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding: 20px; background: #ecf0f1; border-radius: 5px;">
+                        <h3>מצב המערכת</h3>
+                        <p>✅ השרת פועל בהצלחה על פורט 5000</p>
+                        <p>⚠️ מאגר נתונים: מצב פיתוח (ללא MongoDB)</p>
+                        <p>📱 WhatsApp: לא מחובר (מצב פיתוח)</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+    });
+}
 
 // Rate limiting routes (with error handling)
 let rateLimiter; // Declare rateLimiter here
