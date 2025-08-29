@@ -64,9 +64,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors());
 
-// Root endpoint - redirect to dashboard
+// Basic root route
 app.get('/', (req, res) => {
-    res.redirect('/dashboard');
+  res.redirect('/dashboard');
 });
 
 // API info endpoint
@@ -318,11 +318,11 @@ app.use('*', (req, res) => {
 async function connectToDatabase() {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/chatgrow';
-    
+
     // Set mongoose to not buffer commands when disconnected
     mongoose.set('bufferCommands', false);
     mongoose.set('bufferMaxEntries', 0);
-    
+
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -382,32 +382,52 @@ async function startServer() {
         }, 1000);
 
         // Start server immediately
-        const server = app.listen(PORT, '0.0.0.0', () => {
-            logInfo(`ChatGrow server started successfully`, {
-                port: PORT,
-                environment: process.env.NODE_ENV || 'development',
-                version: '1.0.0'
-            });
+        const PORT = process.env.PORT || 5000;
+        const HOST = process.env.HOST || '0.0.0.0';
 
-            console.log(`🚀 ChatGrow server running on port ${PORT}`);
-            console.log(`🏠 Dashboard: http://localhost:${PORT}/dashboard`);
-            console.log(`📊 Health check: http://localhost:${PORT}/health`);
-            console.log(`📅 Events dashboard: http://localhost:${PORT}/events-dashboard`);
-            console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
-            console.log(`📝 Logs API: http://localhost:${PORT}/api/logs`);
-            console.log(`📱 WhatsApp API: http://localhost:${PORT}/api/whatsapp`);
-            console.log(`🏥 Health API: http://localhost:${PORT}/api/health`);
-            console.log(`⚡ Queue API: http://localhost:${PORT}/api/queue`);
-            console.log(`🛡️ Rate Limit API: http://localhost:${PORT}/api/rate-limit`);
+        // Handle uncaught exceptions
+        process.on('uncaughtException', (error) => {
+          console.error('Uncaught Exception:', error);
+          // Don't exit in development, just log the error
+          if (process.env.NODE_ENV === 'production') {
+            process.exit(1);
+          }
         });
 
-        // Handle graceful shutdown
-        const shutdownHandler = (signal) => {
-            gracefulShutdown(signal, server);
-        };
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', (reason, promise) => {
+          console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+          // Don't exit in development, just log the error
+          if (process.env.NODE_ENV === 'production') {
+            process.exit(1);
+          }
+        });
 
-        process.on('SIGTERM', shutdownHandler);
-        process.on('SIGINT', shutdownHandler);
+        const server = app.listen(PORT, HOST, () => {
+            logInfo('Server started successfully', {
+                port: PORT,
+                host: HOST,
+                environment: process.env.NODE_ENV || 'development',
+                timestamp: new Date().toISOString()
+            });
+
+            // Test basic functionality
+            console.log(`\n🚀 ChatGrow Server is running!`);
+            console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
+            console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
+            console.log(`📱 WhatsApp API: http://localhost:${PORT}/api/whatsapp`);
+            console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
+            console.log(`📋 API Documentation available at each endpoint\n`);
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            gracefulShutdown('SIGTERM', server);
+        });
+
+        process.on('SIGINT', () => {
+            gracefulShutdown('SIGINT', server);
+        });
 
         return server;
 

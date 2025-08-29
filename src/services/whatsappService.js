@@ -12,7 +12,7 @@ class WhatsAppService {
         this.reconnectTimers = new Map(); // connectionId -> timer
         this.healthCheckInterval = null;
         this.sessionDir = path.join(process.cwd(), 'sessions');
-        
+
         this.init();
     }
 
@@ -20,13 +20,13 @@ class WhatsAppService {
         try {
             // Ensure sessions directory exists
             await this.ensureSessionDirectory();
-            
+
             // Start health check
             this.startHealthCheck();
-            
+
             // Restore active connections
             await this.restoreActiveConnections();
-            
+
             logInfo('WhatsApp service initialized successfully');
         } catch (error) {
             logError('Failed to initialize WhatsApp service', error);
@@ -76,7 +76,7 @@ class WhatsAppService {
 
             // Create WhatsApp client
             const client = await this.createClient(connectionId, connection.settings);
-            
+
             // Store client and connection state
             this.clients.set(connectionId, client);
             this.connectionStates.set(connectionId, {
@@ -104,7 +104,7 @@ class WhatsAppService {
 
     async createClient(connectionId, settings) {
         const sessionPath = path.join(this.sessionDir, connectionId);
-        
+
         const client = new Client({
             authStrategy: new LocalAuth({
                 clientId: connectionId,
@@ -143,7 +143,7 @@ class WhatsAppService {
             try {
                 const qrDataUrl = await qrcode.toDataURL(qr);
                 await connectionState.connection.updateStatus('connecting');
-                
+
                 // Store QR code with expiration
                 connectionState.connection.qrCode = qrDataUrl;
                 connectionState.connection.qrCodeExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -161,7 +161,7 @@ class WhatsAppService {
         client.on('ready', async () => {
             try {
                 await connectionState.connection.updateStatus('authenticated');
-                
+
                 // Clear QR code
                 connectionState.connection.qrCode = null;
                 connectionState.connection.qrCodeExpiresAt = null;
@@ -201,7 +201,7 @@ class WhatsAppService {
         client.on('disconnected', async (reason) => {
             try {
                 await connectionState.connection.updateStatus('disconnected', `Disconnected: ${reason}`);
-                
+
                 if (settings.autoReconnect && connectionState.reconnectAttempts < settings.maxReconnectAttempts) {
                     await this.scheduleReconnect(connectionId, settings);
                 }
@@ -219,7 +219,7 @@ class WhatsAppService {
         client.on('message', async (message) => {
             try {
                 await connectionState.connection.incrementMessageCount('received');
-                
+
                 if (settings.enableLogging) {
                     logInfo('WhatsApp message received', {
                         connectionId,
@@ -239,7 +239,7 @@ class WhatsAppService {
                 if (ack === 2) { // Message delivered
                     await connectionState.connection.incrementMessageCount('delivered');
                 }
-                
+
                 if (settings.enableLogging) {
                     logDebug('WhatsApp message acknowledgment', {
                         connectionId,
@@ -308,7 +308,7 @@ class WhatsAppService {
             });
         } catch (error) {
             logError('WhatsApp reconnection failed', error, { connectionId });
-            
+
             if (connectionState.reconnectAttempts < connectionState.connection.settings.maxReconnectAttempts) {
                 await this.scheduleReconnect(connectionId, connectionState.connection.settings);
             } else {
@@ -324,7 +324,7 @@ class WhatsAppService {
         try {
             const client = this.clients.get(connectionId);
             const connectionState = this.connectionStates.get(connectionId);
-            
+
             if (!client || !connectionState) {
                 throw new Error(`Connection ${connectionId} not found`);
             }
@@ -335,7 +335,7 @@ class WhatsAppService {
 
             // Format phone number
             const formattedNumber = this.formatPhoneNumber(to);
-            
+
             // Send message with retry logic
             const result = await this.sendMessageWithRetry(
                 client,
@@ -380,11 +380,11 @@ class WhatsAppService {
 
     async sendMessageWithRetry(client, to, message, settings, options = {}) {
         let lastError;
-        
+
         for (let attempt = 1; attempt <= settings.messageRetryAttempts; attempt++) {
             try {
                 let result;
-                
+
                 if (typeof message === 'string') {
                     result = await client.sendMessage(to, message, options);
                 } else if (message.media) {
@@ -400,7 +400,7 @@ class WhatsAppService {
                 return result;
             } catch (error) {
                 lastError = error;
-                
+
                 if (attempt < settings.messageRetryAttempts) {
                     logWarning('Message send attempt failed, retrying', {
                         attempt,
@@ -408,7 +408,7 @@ class WhatsAppService {
                         error: error.message,
                         delay: settings.messageRetryDelay
                     });
-                    
+
                     await this.sleep(settings.messageRetryDelay);
                 }
             }
@@ -420,12 +420,12 @@ class WhatsAppService {
     formatPhoneNumber(phoneNumber) {
         // Remove all non-digit characters
         let cleaned = phoneNumber.replace(/\D/g, '');
-        
+
         // Add country code if not present
         if (!cleaned.startsWith('972')) {
             cleaned = '972' + cleaned;
         }
-        
+
         // Add @c.us suffix for WhatsApp
         return cleaned + '@c.us';
     }
@@ -525,7 +525,7 @@ class WhatsAppService {
     async deleteConnection(connectionId) {
         try {
             await this.disconnect(connectionId);
-            
+
             const connection = await WhatsAppConnection.findOne({ connectionId });
             if (connection) {
                 connection.isActive = false;
@@ -591,17 +591,17 @@ class WhatsAppService {
 
     async performHealthCheck() {
         const connections = Array.from(this.connectionStates.values());
-        
+
         for (const connectionState of connections) {
             try {
                 const health = connectionState.connection.getHealthStatus();
-                
+
                 if (!health.isHealthy && connectionState.connection.settings.autoReconnect) {
                     logWarning('Unhealthy connection detected, attempting reconnect', {
                         connectionId: connectionState.connection.connectionId,
                         heartbeatAge: health.heartbeatAge
                     });
-                    
+
                     await this.scheduleReconnect(
                         connectionState.connection.connectionId,
                         connectionState.connection.settings
@@ -619,7 +619,7 @@ class WhatsAppService {
         try {
             const stats = await WhatsAppConnection.getConnectionStats();
             const activeConnections = this.clients.size;
-            
+
             return {
                 ...stats,
                 activeConnections,
@@ -677,4 +677,4 @@ process.on('SIGINT', async () => {
     await whatsAppService.cleanup();
 });
 
-module.exports = whatsAppService; 
+module.exports = whatsAppService;
