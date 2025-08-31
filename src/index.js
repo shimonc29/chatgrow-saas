@@ -537,7 +537,7 @@ app.use('/auth', authRoutes);
 app.use('/provider', providerRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/health', healthRoutes);
-app.use('/logs', logRoutes);
+if (logsRoutes) app.use('/logs', logsRoutes);
 
 // Rate limiting routes (with error handling)
 let rateLimiter; // Declare rateLimiter here
