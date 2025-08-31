@@ -525,27 +525,8 @@ try {
     console.warn('Dashboard route file not available, using built-in dashboard');
 }
 
-// This part is replaced by the user's changes
-// Old code:
-// const dashboardRoutes = require('./routes/dashboard');
-// const healthRoutes = require('./routes/health');
-// const logRoutes = require('./routes/logs');
-//
-// // Apply routes
-// app.use('/', (req, res) => {
-//     res.redirect('/dashboard');
-// });
-// app.use('/dashboard', dashboardRoutes);
-// app.use('/api/customers', customerRoutes);
-// app.use('/api/appointments', appointmentRoutes);
-// app.use('/api/analytics', analyticsRoutes);
-// app.use('/api/payments', paymentRoutes);
-// app.use('/health', healthRoutes);
-// app.use('/logs', logRoutes);
-
-// New code based on user's changes:
+// Load additional routes for multi-provider system
 const dashboardRoutes = require('./routes/dashboard');
-const healthRoutes = require('./routes/health');
 const logRoutes = require('./routes/logs');
 const authRoutes = require('./routes/auth');
 const providerRoutes = require('./routes/provider');
@@ -557,10 +538,6 @@ app.use('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/provider', providerRoutes);
 app.use('/dashboard', dashboardRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/payments', paymentRoutes);
 app.use('/health', healthRoutes);
 app.use('/logs', logRoutes);
 
