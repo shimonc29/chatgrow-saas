@@ -17,7 +17,6 @@ try {
 } catch (error) {
     console.warn('Some routes not available, using fallback');
     // Create minimal fallback routes
-    const express = require('express');
     logsRoutes = express.Router();
     authRoutes = express.Router();
     healthRoutes = express.Router();
