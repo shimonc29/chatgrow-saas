@@ -29,15 +29,24 @@ class WhatsAppService {
             // Ensure sessions directory exists
             await this.ensureSessionDirectory();
 
-            // Start health check
-            this.startHealthCheck();
+            // Start health check (safe)
+            try {
+                this.startHealthCheck();
+            } catch (error) {
+                logWarning('Health check initialization failed, continuing without it', { error: error.message });
+            }
 
-            // Restore active connections
-            await this.restoreActiveConnections();
+            // Restore active connections (safe)
+            try {
+                await this.restoreActiveConnections();
+            } catch (error) {
+                logWarning('Connection restore failed, continuing in safe mode', { error: error.message });
+            }
 
             logInfo('WhatsApp service initialized successfully');
         } catch (error) {
-            logError('Failed to initialize WhatsApp service', error);
+            logError('Failed to initialize WhatsApp service, continuing in fallback mode', error);
+            // Don't throw - let the service continue in fallback mode
         }
     }
 
@@ -567,7 +576,7 @@ class WhatsAppService {
             }
 
             // Only try to restore if models are available
-            if (typeof WhatsAppConnection === 'undefined') {
+            if (!WhatsAppConnection || typeof WhatsAppConnection === 'undefined') {
                 logInfo('WhatsApp model not available, skipping restore');
                 return;
             }
@@ -606,6 +615,12 @@ class WhatsAppService {
     }
 
     startHealthCheck() {
+        // Only start health check if we have connections to monitor
+        if (this.connectionStates.size === 0) {
+            logInfo('No connections to monitor, skipping health check startup');
+            return;
+        }
+
         this.healthCheckInterval = setInterval(async () => {
             try {
                 await this.performHealthCheck();
@@ -613,16 +628,27 @@ class WhatsAppService {
                 logError('Health check failed', error);
             }
         }, 60000); // Every minute
+        
+        logInfo('WhatsApp health check started');
     }
 
     async performHealthCheck() {
+        if (this.connectionStates.size === 0) {
+            return; // No connections to check
+        }
+
         const connections = Array.from(this.connectionStates.values());
 
         for (const connectionState of connections) {
             try {
+                // Safe health check
+                if (!connectionState.connection || typeof connectionState.connection.getHealthStatus !== 'function') {
+                    continue;
+                }
+
                 const health = connectionState.connection.getHealthStatus();
 
-                if (!health.isHealthy && connectionState.connection.settings.autoReconnect) {
+                if (!health.isHealthy && connectionState.connection.settings && connectionState.connection.settings.autoReconnect) {
                     logWarning('Unhealthy connection detected, attempting reconnect', {
                         connectionId: connectionState.connection.connectionId,
                         heartbeatAge: health.heartbeatAge
@@ -635,7 +661,7 @@ class WhatsAppService {
                 }
             } catch (error) {
                 logError('Failed to perform health check for connection', error, {
-                    connectionId: connectionState.connection.connectionId
+                    connectionId: connectionState.connection?.connectionId || 'unknown'
                 });
             }
         }
