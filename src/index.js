@@ -720,16 +720,17 @@ async function connectToDatabase() {
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 3000, // 3 second timeout
+      serverSelectionTimeoutMS: 5000, // 5 second timeout
       socketTimeoutMS: 30000,
-      connectTimeoutMS: 5000
+      connectTimeoutMS: 10000
     });
-    logInfo('Connected to MongoDB successfully');
+    logInfo('Connected to MongoDB Atlas successfully');
     return true;
   } catch (error) {
     logWarning('MongoDB not available, running in fallback mode:', error.message);
     return false;
   }
+}
 }
 
 // Graceful shutdown
