@@ -31,7 +31,6 @@ try {
 }
 
 // Create simple WhatsApp fallback
-const express = require('express');
 const whatsAppRoutes = express.Router();
 whatsAppRoutes.get('/', (req, res) => res.json({ 
     message: 'WhatsApp service in development - בפיתוח עתידי',
