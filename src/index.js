@@ -731,7 +731,6 @@ async function connectToDatabase() {
     return false;
   }
 }
-}
 
 // Graceful shutdown
 async function gracefulShutdown(signal, server) {
