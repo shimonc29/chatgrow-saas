@@ -533,9 +533,6 @@ try {
 const providerRoutes = require('./routes/provider');
 
 // Apply routes
-app.use('/', (req, res) => {
-    res.redirect('/auth/login');
-});
 app.use('/auth', authRoutes);
 app.use('/provider', providerRoutes);
 app.use('/dashboard', dashboardRoutes);
