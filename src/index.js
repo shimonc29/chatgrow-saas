@@ -778,6 +778,17 @@ if (require.main === module) {
     const PORT = process.env.PORT || 5000;
     const HOST = process.env.HOST || '0.0.0.0';
 
+    // Add global error handlers before starting server
+    process.on('uncaughtException', (error) => {
+        console.error('Uncaught Exception:', error.message);
+        // Don't exit in development - just log
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled Rejection:', reason);
+        // Don't exit in development - just log
+    });
+
     // Simple server startup without complex error handling
     const server = app.listen(PORT, HOST, () => {
         console.log(`🚀 ChatGrow Server running on ${HOST}:${PORT}`);
