@@ -1,6 +1,21 @@
 const mongoose = require('mongoose');
 const { logInfo, logError, logDebug } = require('../utils/logger');
 
+/**
+ * WhatsAppConnection Model
+ * 
+ * ⚠️ בפיתוח עתידי ⚠️
+ * 
+ * מודל זה נמצא בפיתוח עתידי ועדיין לא מוכן לשימוש במסגרת הייצור.
+ * הפונקציונליות תושלם בגרסאות עתידיות של המערכת.
+ * 
+ * Future Development:
+ * - Enhanced WhatsApp Web integration
+ * - Advanced message management
+ * - Real-time connection monitoring
+ * - Session persistence improvements
+ */
+
 const whatsAppConnectionSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
