@@ -27,11 +27,18 @@ class WhatsAppService {
     async init() {
         try {
             // Ensure sessions directory exists
-            await this.ensureSessionDirectory();
+            try {
+                await this.ensureSessionDirectory();
+            } catch (error) {
+                logWarning('Session directory setup failed, continuing without it', { error: error.message });
+            }
 
             // Start health check (safe)
             try {
-                this.startHealthCheck();
+                // Only start health check if we have connections
+                if (this.connectionStates.size > 0) {
+                    this.startHealthCheck();
+                }
             } catch (error) {
                 logWarning('Health check initialization failed, continuing without it', { error: error.message });
             }
@@ -45,7 +52,7 @@ class WhatsAppService {
 
             logInfo('WhatsApp service initialized successfully');
         } catch (error) {
-            logError('Failed to initialize WhatsApp service, continuing in fallback mode', error);
+            logWarning('WhatsApp service initialization had issues, continuing in fallback mode', { error: error.message });
             // Don't throw - let the service continue in fallback mode
         }
     }
@@ -575,16 +582,23 @@ class WhatsAppService {
                 return;
             }
 
-            // Only try to restore if models are available
-            if (!WhatsAppConnection || typeof WhatsAppConnection === 'undefined') {
-                logInfo('WhatsApp model not available, skipping restore');
+            // Check if WhatsAppConnection model is available and has the required methods
+            if (!WhatsAppConnection || typeof WhatsAppConnection.find !== 'function') {
+                logInfo('WhatsApp model not available or incomplete, skipping restore');
                 return;
             }
 
-            const activeConnections = await WhatsAppConnection.find({
-                isActive: true,
-                status: { $in: ['connected', 'authenticated'] }
-            });
+            // Try to query the database safely
+            let activeConnections = [];
+            try {
+                activeConnections = await WhatsAppConnection.find({
+                    isActive: true,
+                    status: { $in: ['connected', 'authenticated'] }
+                });
+            } catch (dbError) {
+                logInfo('Database query failed, skipping restore', { error: dbError.message });
+                return;
+            }
 
             logInfo('Restoring active WhatsApp connections', {
                 count: activeConnections.length
@@ -628,7 +642,7 @@ class WhatsAppService {
                 logError('Health check failed', error);
             }
         }, 60000); // Every minute
-        
+
         logInfo('WhatsApp health check started');
     }
 
@@ -673,7 +687,7 @@ class WhatsAppService {
             if (WhatsAppConnection) {
                 stats = await WhatsAppConnection.getConnectionStats();
             }
-            
+
             const activeConnections = this.clients.size;
 
             return {
