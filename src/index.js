@@ -518,320 +518,51 @@ app.use('/api/queue', (req, res) => {
 });
 // Dashboard route with error handling
 try {
-    const dashboardRouter = require('./routes/dashboard');
-    app.use('/dashboard', dashboardRouter);
+    const dashboardRoutes = require('./routes/dashboard');
+    app.use('/dashboard', dashboardRoutes);
     console.log('Dashboard route loaded successfully');
 } catch (error) {
     console.warn('Dashboard route file not available, using built-in dashboard');
 }
 
-// Always provide dashboard route (fallback or main)
-app.get('/dashboard', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html dir="rtl" lang="he">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>ניהול תורים - BusinessFlow</title>
-            <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
+// This part is replaced by the user's changes
+// Old code:
+// const dashboardRoutes = require('./routes/dashboard');
+// const healthRoutes = require('./routes/health');
+// const logRoutes = require('./routes/logs');
+//
+// // Apply routes
+// app.use('/', (req, res) => {
+//     res.redirect('/dashboard');
+// });
+// app.use('/dashboard', dashboardRoutes);
+// app.use('/api/customers', customerRoutes);
+// app.use('/api/appointments', appointmentRoutes);
+// app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/payments', paymentRoutes);
+// app.use('/health', healthRoutes);
+// app.use('/logs', logRoutes);
 
-                body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    min-height: 100vh;
-                    padding: 20px;
-                    direction: rtl;
-                }
+// New code based on user's changes:
+const dashboardRoutes = require('./routes/dashboard');
+const healthRoutes = require('./routes/health');
+const logRoutes = require('./routes/logs');
+const authRoutes = require('./routes/auth');
+const providerRoutes = require('./routes/provider');
 
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    background: rgba(255, 255, 255, 0.95);
-                    border-radius: 20px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                    overflow: hidden;
-                }
-
-                .header {
-                    background: linear-gradient(45deg, #667eea, #764ba2);
-                    color: white;
-                    padding: 30px 40px;
-                    text-align: center;
-                }
-
-                .header h1 {
-                    font-size: 2.5em;
-                    margin-bottom: 10px;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                }
-
-                .header p {
-                    font-size: 1.2em;
-                    opacity: 0.9;
-                }
-
-                .main-content {
-                    padding: 40px;
-                }
-
-                .stats-overview {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 20px;
-                    margin-bottom: 40px;
-                }
-
-                .stat-card {
-                    background: white;
-                    border-radius: 15px;
-                    padding: 25px;
-                    text-align: center;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                    border: 3px solid transparent;
-                    transition: all 0.3s ease;
-                }
-
-                .stat-card:hover {
-                    transform: translateY(-5px);
-                    border-color: #667eea;
-                    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
-                }
-
-                .stat-number {
-                    font-size: 2.5em;
-                    font-weight: bold;
-                    color: #667eea;
-                    margin-bottom: 10px;
-                }
-
-                .stat-label {
-                    color: #666;
-                    font-size: 1.1em;
-                }
-
-                .stat-icon {
-                    font-size: 2em;
-                    margin-bottom: 15px;
-                }
-
-                .features-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-                    gap: 30px;
-                    margin-bottom: 40px;
-                }
-
-                .feature-card {
-                    background: white;
-                    border-radius: 15px;
-                    padding: 30px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                    transition: all 0.3s ease;
-                }
-
-                .feature-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-                }
-
-                .feature-header {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-
-                .feature-icon {
-                    font-size: 2.5em;
-                    margin-left: 15px;
-                }
-
-                .feature-title {
-                    font-size: 1.5em;
-                    color: #333;
-                    font-weight: bold;
-                }
-
-                .feature-description {
-                    color: #666;
-                    line-height: 1.6;
-                    margin-bottom: 20px;
-                }
-
-                .btn {
-                    background: linear-gradient(45deg, #667eea, #764ba2);
-                    color: white;
-                    border: none;
-                    padding: 12px 25px;
-                    border-radius: 8px;
-                    font-size: 1em;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    text-decoration: none;
-                    display: inline-block;
-                    margin: 5px;
-                }
-
-                .btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-                }
-
-                .btn-secondary {
-                    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
-                }
-
-                .btn-success {
-                    background: linear-gradient(45deg, #27ae60, #2ecc71);
-                }
-
-                .btn-warning {
-                    background: linear-gradient(45deg, #f39c12, #e67e22);
-                }
-
-                .demo-notice {
-                    background: #e8f4f8;
-                    border: 2px solid #3498db;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin-bottom: 30px;
-                    text-align: center;
-                }
-
-                .demo-notice h3 {
-                    color: #2980b9;
-                    margin-bottom: 10px;
-                }
-
-                .status-badge {
-                    display: inline-block;
-                    padding: 5px 12px;
-                    border-radius: 20px;
-                    font-size: 0.9em;
-                    font-weight: bold;
-                    background: #27ae60;
-                    color: white;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🗓️ BusinessFlow</h1>
-                    <p>מערכת ניהול תורים ולקוחות מתקדמת לעסקים</p>
-                </div>
-
-                <div class="main-content">
-                    <div class="demo-notice">
-                        <h3>🎯 ברוכים הבאים למערכת החדשה!</h3>
-                        <p>BusinessFlow - פתרון מקיף לניהול תורים, לקוחות ותשלומים עבור עסקים קטנים ובינוניים</p>
-                        <span class="status-badge">מצב הדגמה</span>
-                    </div>
-
-                    <div class="stats-overview">
-                        <div class="stat-card">
-                            <div class="stat-icon">📅</div>
-                            <div class="stat-number">0</div>
-                            <div class="stat-label">תורים השבוע</div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-number">0</div>
-                            <div class="stat-label">לקוחות פעילים</div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon">💰</div>
-                            <div class="stat-number">₪0</div>
-                            <div class="stat-label">הכנסות החודש</div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon">⭐</div>
-                            <div class="stat-number">4.8</div>
-                            <div class="stat-label">דירוג ממוצע</div>
-                        </div>
-                    </div>
-
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">🗓️</div>
-                                <div class="feature-title">יומן וזמינות</div>
-                            </div>
-                            <div class="feature-description">
-                                הגדרת זמינות שבועית, חסימת תאריכים ונהול לוח השנה העסקי שלך בצורה פשוטה ויעילה.
-                            </div>
-                            <a href="/api/calendar" class="btn">נהל יומן</a>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">⏰</div>
-                                <div class="feature-title">ניהול תורים</div>
-                            </div>
-                            <div class="feature-description">
-                                קביעת תורים, עריכה וביטול. ממשק נוח ללקוחות עם אפשרות הזמנה עצמית 24/7.
-                            </div>
-                            <a href="/api/appointments" class="btn">נהל תורים</a>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">👨‍💼</div>
-                                <div class="feature-title">ניהול לקוחות</div>
-                            </div>
-                            <div class="feature-description">
-                                מאגר לקוחות מלא עם היסטוריית פגישות, העדפות אישיות ומעקב אחר סטטוס התשלומים.
-                            </div>
-                            <a href="/api/customers" class="btn">רשימת לקוחות</a>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">💳</div>
-                                <div class="feature-title">ניהול תשלומים</div>
-                            </div>
-                            <div class="feature-description">
-                                מעקב אחר תשלומים, חשבוניות אוטומטיות, תזכורות תשלום ודיווחים פיננסיים מפורטים.
-                            </div>
-                            <a href="/api/payments" class="btn btn-warning">נהל תשלומים</a>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">📱</div>
-                                <div class="feature-title">תזכורות WhatsApp</div>
-                            </div>
-                            <div class="feature-description">
-                                שליחת תזכורות אוטומטיות ללקוחות דרך WhatsApp, SMS ואימייל עם הודעות מותאמות אישית.
-                            </div>
-                            <a href="/api/whatsapp" class="btn btn-secondary">הגדרות WhatsApp</a>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="feature-header">
-                                <div class="feature-icon">📊</div>
-                                <div class="feature-title">דוחות ואנליטיקה</div>
-                            </div>
-                            <div class="feature-description">
-                                דוחות מפורטים על הכנסות, נוכחות לקוחות, שעות עבודה ומדדי ביצועים עסקיים.
-                            </div>
-                            <a href="/api/reports" class="btn btn-secondary">צפה בדוחות</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-    `);
+// Apply routes
+app.use('/', (req, res) => {
+    res.redirect('/auth/login');
 });
+app.use('/auth', authRoutes);
+app.use('/provider', providerRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/health', healthRoutes);
+app.use('/logs', logRoutes);
 
 // Rate limiting routes (with error handling)
 let rateLimiter; // Declare rateLimiter here
