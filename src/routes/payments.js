@@ -2,6 +2,27 @@
 const express = require('express');
 const router = express.Router();
 
+// Utility functions for server-side rendering
+const getPaymentMethod = (method) => {
+    const methods = {
+        'cash': 'מזומן',
+        'credit_card': 'כרטיס אשראי',
+        'bank_transfer': 'העברה בנקאית',
+        'bit': 'ביט',
+        'paypal': 'PayPal'
+    };
+    return methods[method] || method;
+};
+
+const getPaymentStatus = (status) => {
+    const statuses = {
+        'paid': 'שולם',
+        'pending': 'ממתין',
+        'overdue': 'באיחור'
+    };
+    return statuses[status] || status;
+};
+
 // Mock payments data
 const payments = [
     {
