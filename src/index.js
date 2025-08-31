@@ -526,9 +526,6 @@ try {
 }
 
 // Load additional routes for multi-provider system
-const dashboardRoutes = require('./routes/dashboard');
-const logRoutes = require('./routes/logs');
-const authRoutes = require('./routes/auth');
 const providerRoutes = require('./routes/provider');
 
 // Apply routes
