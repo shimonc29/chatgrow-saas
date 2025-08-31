@@ -517,12 +517,16 @@ app.use('/api/queue', (req, res) => {
     }
 });
 // Dashboard route with error handling
+let dashboardRoutes;
 try {
-    const dashboardRoutes = require('./routes/dashboard');
-    app.use('/dashboard', dashboardRoutes);
+    dashboardRoutes = require('./routes/dashboard');
     console.log('Dashboard route loaded successfully');
 } catch (error) {
     console.warn('Dashboard route file not available, using built-in dashboard');
+    dashboardRoutes = express.Router();
+    dashboardRoutes.get('/', (req, res) => {
+        res.send('<h1>Dashboard not available</h1><a href="/auth/login">Login</a>');
+    });
 }
 
 // Load additional routes for multi-provider system
