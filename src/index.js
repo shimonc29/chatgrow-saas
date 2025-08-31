@@ -7,12 +7,11 @@ require('dotenv').config();
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
-// Import routes with error handling
-let logsRoutes, authRoutes, whatsAppRoutes, healthRoutes, eventsRoutes;
+// Import routes with error handling (excluding WhatsApp for now)
+let logsRoutes, authRoutes, healthRoutes, eventsRoutes;
 try {
     logsRoutes = require('./routes/logs');
     authRoutes = require('./routes/auth');
-    whatsAppRoutes = require('./routes/whatsapp');
     healthRoutes = require('./routes/health');
     eventsRoutes = require('./routes/events');
 } catch (error) {
@@ -21,17 +20,23 @@ try {
     const express = require('express');
     logsRoutes = express.Router();
     authRoutes = express.Router();
-    whatsAppRoutes = express.Router();
     healthRoutes = express.Router();
     eventsRoutes = express.Router();
 
     // Add basic responses
     logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
     authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
-    whatsAppRoutes.get('/', (req, res) => res.json({ message: 'WhatsApp service not available' }));
     healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
     eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
 }
+
+// Create simple WhatsApp fallback
+const express = require('express');
+const whatsAppRoutes = express.Router();
+whatsAppRoutes.get('/', (req, res) => res.json({ 
+    message: 'WhatsApp service in development - בפיתוח עתידי',
+    status: 'coming_soon'
+}));
 
 // Import middleware (with error handling)
 let RateLimiterMiddleware, authMiddleware, securityMiddleware;
@@ -60,6 +65,9 @@ try {
 } catch (error) {
     console.warn('Some services not available, using fallback');
 }
+
+// Skip WhatsApp service import completely for now
+// const whatsAppService = require('./services/whatsappService');
 
 // Initialize services safely with try-catch
 console.log('Initializing services in safe mode...');
@@ -168,6 +176,9 @@ if (authRoutes) app.use('/api/auth', authRoutes);
 if (eventsRoutes) app.use('/api/events', eventsRoutes);
 if (logsRoutes) app.use('/api/logs', logsRoutes);
 if (healthRoutes) app.use('/api/health', healthRoutes);
+
+// Add simple WhatsApp API
+app.use('/api/whatsapp', whatsAppRoutes);
 
 // Load appointments and customers routes with error handling
 try {
