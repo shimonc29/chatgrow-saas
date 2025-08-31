@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
@@ -25,7 +24,7 @@ router.get('/', async (req, res) => {
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -33,7 +32,7 @@ router.get('/', async (req, res) => {
             padding: 20px;
             direction: rtl;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -42,36 +41,36 @@ router.get('/', async (req, res) => {
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-        
+
         .header {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             padding: 30px 40px;
             text-align: center;
         }
-        
+
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
         }
-        
+
         .main-content {
             padding: 40px;
         }
-        
+
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
-        
+
         .stat-card {
             background: white;
             border-radius: 15px;
@@ -81,37 +80,37 @@ router.get('/', async (req, res) => {
             border: 3px solid transparent;
             transition: all 0.3s ease;
         }
-        
+
         .stat-card:hover {
             transform: translateY(-5px);
             border-color: #667eea;
             box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
         }
-        
+
         .stat-number {
             font-size: 2.5em;
             font-weight: bold;
             color: #667eea;
             margin-bottom: 10px;
         }
-        
+
         .stat-label {
             color: #666;
             font-size: 1.1em;
         }
-        
+
         .stat-icon {
             font-size: 2em;
             margin-bottom: 15px;
         }
-        
+
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .feature-card {
             background: white;
             border-radius: 15px;
@@ -119,35 +118,35 @@ router.get('/', async (req, res) => {
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
         }
-        
+
         .feature-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.15);
         }
-        
+
         .feature-header {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .feature-icon {
             font-size: 2.5em;
             margin-left: 15px;
         }
-        
+
         .feature-title {
             font-size: 1.5em;
             color: #333;
             font-weight: bold;
         }
-        
+
         .feature-description {
             color: #666;
             line-height: 1.6;
             margin-bottom: 20px;
         }
-        
+
         .btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
@@ -161,43 +160,43 @@ router.get('/', async (req, res) => {
             display: inline-block;
             margin: 5px;
         }
-        
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
         .btn-secondary {
             background: linear-gradient(45deg, #95a5a6, #7f8c8d);
         }
-        
+
         .btn-success {
             background: linear-gradient(45deg, #27ae60, #2ecc71);
         }
-        
+
         .btn-warning {
             background: linear-gradient(45deg, #f39c12, #e67e22);
         }
-        
+
         .quick-actions {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 30px;
             margin-top: 30px;
         }
-        
+
         .quick-actions h2 {
             color: #333;
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
-        
+
         .status-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -205,22 +204,22 @@ router.get('/', async (req, res) => {
             font-size: 0.9em;
             font-weight: bold;
         }
-        
+
         .status-active {
             background: #27ae60;
             color: white;
         }
-        
+
         .status-pending {
             background: #f39c12;
             color: white;
         }
-        
+
         .status-demo {
             background: #3498db;
             color: white;
         }
-        
+
         .demo-notice {
             background: #e8f4f8;
             border: 2px solid #3498db;
@@ -229,12 +228,12 @@ router.get('/', async (req, res) => {
             margin-bottom: 30px;
             text-align: center;
         }
-        
+
         .demo-notice h3 {
             color: #2980b9;
             margin-bottom: 10px;
         }
-        
+
         .demo-notice p {
             color: #34495e;
         }
@@ -246,40 +245,40 @@ router.get('/', async (req, res) => {
             <h1>🗓️ BusinessFlow</h1>
             <p>מערכת ניהול תורים ולקוחות מתקדמת לעסקים</p>
         </div>
-        
+
         <div class="main-content">
             <div class="demo-notice">
                 <h3>🎯 ברוכים הבאים למערכת החדשה!</h3>
                 <p>BusinessFlow - פתרון מקיף לניהול תורים, לקוחות ותשלומים עבור עסקים קטנים ובינוניים</p>
                 <span class="status-badge status-demo">מצב הדגמה</span>
             </div>
-            
+
             <div class="stats-overview">
                 <div class="stat-card">
                     <div class="stat-icon">📅</div>
                     <div class="stat-number">0</div>
                     <div class="stat-label">תורים השבוע</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">👥</div>
                     <div class="stat-number">0</div>
                     <div class="stat-label">לקוחות פעילים</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">💰</div>
                     <div class="stat-number">₪0</div>
                     <div class="stat-label">הכנסות החודש</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-number">4.8</div>
                     <div class="stat-label">דירוג ממוצע</div>
                 </div>
             </div>
-            
+
             <div class="features-grid">
                 <!-- Calendar Management -->
                 <div class="feature-card">
@@ -293,7 +292,7 @@ router.get('/', async (req, res) => {
                     <a href="/api/calendar" class="btn">נהל יומן</a>
                     <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">הגדרות זמינות</button>
                 </div>
-                
+
                 <!-- Appointment Management -->
                 <div class="feature-card">
                     <div class="feature-header">
@@ -306,33 +305,38 @@ router.get('/', async (req, res) => {
                     <a href="/api/appointments" class="btn">נהל תורים</a>
                     <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">תור חדש</button>
                 </div>
-                
+
                 <!-- Customer Management -->
-                <div class="feature-card">
-                    <div class="feature-header">
-                        <div class="feature-icon">👨‍💼</div>
-                        <div class="feature-title">ניהול לקוחות</div>
-                    </div>
-                    <div class="feature-description">
-                        מאגר לקוחות מלא עם היסטוריית פגישות, העדפות אישיות ומעקב אחר סטטוס התשלומים.
-                    </div>
-                    <a href="/api/customers" class="btn">רשימת לקוחות</a>
-                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">לקוח חדש</button>
-                </div>
-                
-                <!-- Payment Management -->
-                <div class="feature-card">
-                    <div class="feature-header">
-                        <div class="feature-icon">💳</div>
-                        <div class="feature-title">ניהול תשלומים</div>
-                    </div>
-                    <div class="feature-description">
-                        מעקב אחר תשלומים, חשבוניות אוטומטיות, תזכורות תשלום ודיווחים פיננסיים מפורטים.
-                    </div>
-                    <a href="/api/payments" class="btn">נהל תשלומים</a>
-                    <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">חשבונית חדשה</button>
-                </div>
-                
+                <a href="/api/customers" class="feature-card">
+                            <div class="feature-icon">👨‍💼</div>
+                            <div class="feature-title">ניהול לקוחות</div>
+                            <div class="feature-description">
+                                מאגר לקוחות מלא עם היסטוריית פגישות, העדפות אישיות ומעקב אחר סטטוס התשלומים.
+                            </div>
+                            <a href="/api/customers" class="btn">רשימת לקוחות</a>
+                            <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">לקוח חדש</button>
+                        </a>
+
+                        <a href="/api/payments" class="feature-card">
+                            <div class="feature-icon">💰</div>
+                            <div class="feature-title">ניהול תשלומים</div>
+                            <div class="feature-description">
+                                מעקב אחר תשלומים, חשבוניות אוטומטיות, תזכורות תשלום ודיווחים פיננסיים מפורטים.
+                            </div>
+                            <a href="/api/payments" class="btn">נהל תשלומים</a>
+                            <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">חשבונית חדשה</button>
+                        </a>
+
+                        <a href="/api/analytics" class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <div class="feature-title">דוחות ואנליטיקה</div>
+                            <div class="feature-description">
+                                דוחות מפורטים על הכנסות, נוכחות לקוחות, שעות עבודה ומדדי ביצועים עסקיים.
+                            </div>
+                            <a href="/api/reports" class="btn">צפה בדוחות</a>
+                            <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
+                        </a>
+
                 <!-- WhatsApp Reminders -->
                 <div class="feature-card">
                     <div class="feature-header">
@@ -345,7 +349,7 @@ router.get('/', async (req, res) => {
                     <a href="/api/whatsapp" class="btn">הגדרות WhatsApp</a>
                     <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">בדוק תזכורות</button>
                 </div>
-                
+
                 <!-- Reports & Analytics -->
                 <div class="feature-card">
                     <div class="feature-header">
@@ -359,7 +363,7 @@ router.get('/', async (req, res) => {
                     <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
                 </div>
             </div>
-            
+
             <div class="quick-actions">
                 <h2>🚀 פעולות מהירות</h2>
                 <div class="actions-grid">

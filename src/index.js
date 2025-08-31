@@ -163,11 +163,15 @@ if (healthRoutes) app.use('/api/health', healthRoutes);
 try {
     app.use('/api/appointments', require('./routes/appointments'));
     app.use('/api/customers', require('./routes/customers'));
-    console.log('Appointments and Customers routes loaded successfully');
+    app.use('/api/analytics', require('./routes/analytics'));
+    app.use('/api/payments', require('./routes/payments'));
+    console.log('All business management routes loaded successfully');
 } catch (error) {
-    console.warn('Appointments/Customers routes not available, creating fallback routes');
+    console.warn('Some business routes not available, creating fallback routes');
     app.get('/api/appointments', (req, res) => res.json({ message: 'Appointments service not available' }));
     app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
+    app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
+    app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
 }
 
 // Add missing routes for dashboard links
