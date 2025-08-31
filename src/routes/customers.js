@@ -2,6 +2,12 @@
 const express = require('express');
 const router = express.Router();
 
+// Utility function for server-side rendering
+const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('he-IL');
+};
+
 // Mock data for development
 const customers = [
     {
