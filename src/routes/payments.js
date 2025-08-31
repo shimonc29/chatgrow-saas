@@ -287,7 +287,7 @@ router.get('/', (req, res) => {
                                     </div>
                                     <div class="detail-item">
                                         <div class="detail-label">📅 תאריך</div>
-                                        <div class="detail-value">${formatDate(payment.date)}</div>
+                                        <div class="detail-value">${new Date(payment.date).toLocaleDateString('he-IL')}</div>
                                     </div>
                                     <div class="detail-item">
                                         <div class="detail-label">💳 אמצעי תשלום</div>
