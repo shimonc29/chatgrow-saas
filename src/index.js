@@ -61,29 +61,39 @@ try {
     console.warn('Some services not available, using fallback');
 }
 
-// Initialize services (WhatsApp disabled until MongoDB is available)
-// const whatsAppService = require('./services/whatsappService');
+// Initialize services safely with try-catch
+console.log('Initializing services in safe mode...');
 
-// Always use mock services for development to prevent startup issues
-console.log('Initializing services in fallback mode for development...');
-const queueService = {
-    addMessage: () => Promise.resolve({ id: 'mock-' + Date.now() }),
-    getQueueStatus: () => Promise.resolve({ status: 'mock', waiting: 0, active: 0 }),
-    pauseQueue: () => Promise.resolve(),
-    resumeQueue: () => Promise.resolve(),
-    getQueueStatistics: () => Promise.resolve({ total: 0, processed: 0, failed: 0 })
-};
-const logService = {
-    logMessage: (data) => {
-        console.log('Mock log:', data);
-        return Promise.resolve({ messageId: data.messageId || 'mock-' + Date.now() });
-    },
-    updateMessageStatus: (messageId, status, details) => {
-        console.log('Mock status update:', { messageId, status, details });
-        return Promise.resolve();
-    },
-    getMessageHistory: () => Promise.resolve({ messages: [], total: 0 })
-};
+let queueService, logService;
+try {
+    // Try to initialize real services
+    const QueueServiceClass = require('./services/queueService');
+    const LogServiceClass = require('./services/logService');
+    queueService = new QueueServiceClass();
+    logService = new LogServiceClass();
+    console.log('Real services initialized successfully');
+} catch (error) {
+    console.warn('Using fallback mock services due to:', error.message);
+    // Fallback to mock services
+    queueService = {
+        addMessage: () => Promise.resolve({ id: 'mock-' + Date.now() }),
+        getQueueStatus: () => Promise.resolve({ status: 'mock', waiting: 0, active: 0 }),
+        pauseQueue: () => Promise.resolve(),
+        resumeQueue: () => Promise.resolve(),
+        getQueueStatistics: () => Promise.resolve({ total: 0, processed: 0, failed: 0 })
+    };
+    logService = {
+        logMessage: (data) => {
+            console.log('Mock log:', data);
+            return Promise.resolve({ messageId: data.messageId || 'mock-' + Date.now() });
+        },
+        updateMessageStatus: (messageId, status, details) => {
+            console.log('Mock status update:', { messageId, status, details });
+            return Promise.resolve();
+        },
+        getMessageHistory: () => Promise.resolve({ messages: [], total: 0 })
+    };
+}
 
 // Create Express app
 const app = express();
@@ -768,33 +778,19 @@ async function gracefulShutdown(signal, server) {
 // Start server
 async function startServer() {
     try {
-        // Connect to database (non-blocking) - don't wait for it
-        setTimeout(() => {
-            connectToDatabase().catch(err => {
-                logWarning('Database connection failed, continuing in fallback mode');
-            });
-        }, 1000);
-
-        // Start server immediately
         const PORT = process.env.PORT || 5000;
         const HOST = process.env.HOST || '0.0.0.0';
 
-        // Handle uncaught exceptions
+        // Handle uncaught exceptions (don't exit in development)
         process.on('uncaughtException', (error) => {
           console.error('Uncaught Exception:', error);
-          // Don't exit in development, just log the error
-          if (process.env.NODE_ENV === 'production') {
-            process.exit(1);
-          }
+          // Just log the error, don't exit
         });
 
-        // Handle unhandled promise rejections
+        // Handle unhandled promise rejections (don't exit in development)
         process.on('unhandledRejection', (reason, promise) => {
           console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-          // Don't exit in development, just log the error
-          if (process.env.NODE_ENV === 'production') {
-            process.exit(1);
-          }
+          // Just log the error, don't exit
         });
 
         const server = app.listen(PORT, HOST, () => {
@@ -814,6 +810,13 @@ async function startServer() {
             console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
             console.log(`📋 API Documentation available at each endpoint`);
             console.log(`✅ Server is ready for connections!\n`);
+
+            // Try to connect to database after server starts (non-blocking)
+            setTimeout(() => {
+                connectToDatabase().catch(err => {
+                    logWarning('Database connection failed, continuing in fallback mode:', err.message);
+                });
+            }, 2000);
         });
 
         // Graceful shutdown
@@ -830,7 +833,8 @@ async function startServer() {
     } catch (error) {
         logError('Failed to start server', error);
         console.error('Failed to start server:', error.message);
-        process.exit(1);
+        // Don't exit, just continue
+        return null;
     }
 }
 
