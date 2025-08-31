@@ -753,105 +753,64 @@ async function connectToDatabase() {
   }
 }
 
-// Graceful shutdown
+// Simplified graceful shutdown
 async function gracefulShutdown(signal, server) {
-    logInfo(`Received ${signal}. Starting graceful shutdown...`);
-
+    console.log(`Received ${signal}. Starting graceful shutdown...`);
     try {
-        // Close database connection
         if (mongoose.connection.readyState === 1) {
             await mongoose.connection.close();
-            logInfo('Database connection closed');
         }
-
-        // Close queue connections
-        if (messageQueue && typeof messageQueue.close === 'function') {
-            await messageQueue.close();
-            logInfo('Message queue closed');
-        }
-
-        // Close server
         if (server) {
-            server.close(() => {
-                logInfo('HTTP server closed');
-                process.exit(0);
-            });
+            server.close(() => process.exit(0));
         } else {
             process.exit(0);
         }
-
     } catch (error) {
-        logError('Error during graceful shutdown', error);
+        console.error('Shutdown error:', error.message);
         process.exit(1);
     }
 }
 
-// Start server
-async function startServer() {
-    try {
-        const PORT = process.env.PORT || 5000;
-        const HOST = process.env.HOST || '0.0.0.0';
+// Removed complex startServer function - using simple startup instead
 
-        // Handle uncaught exceptions (don't exit in development)
-        process.on('uncaughtException', (error) => {
-          console.error('Uncaught Exception:', error);
-          // Just log the error, don't exit
-        });
-
-        // Handle unhandled promise rejections (don't exit in development)
-        process.on('unhandledRejection', (reason, promise) => {
-          console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-          // Just log the error, don't exit
-        });
-
-        const server = app.listen(PORT, HOST, () => {
-            logInfo('Server started successfully', {
-                port: PORT,
-                host: HOST,
-                environment: process.env.NODE_ENV || 'development',
-                timestamp: new Date().toISOString()
-            });
-
-            // Test basic functionality
-            console.log(`\n🚀 ChatGrow Server is running successfully!`);
-            console.log(`🌐 Server URL: http://localhost:${PORT}/`);
-            console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
-            console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
-            console.log(`📱 WhatsApp API: http://localhost:${PORT}/api/whatsapp`);
-            console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-            console.log(`📋 API Documentation available at each endpoint`);
-            console.log(`✅ Server is ready for connections!\n`);
-
-            // Try to connect to database after server starts (non-blocking)
-            setTimeout(() => {
-                connectToDatabase().catch(err => {
-                    logWarning('Database connection failed, continuing in fallback mode:', err.message);
-                });
-            }, 2000);
-        });
-
-        // Graceful shutdown
-        process.on('SIGTERM', () => {
-            gracefulShutdown('SIGTERM', server);
-        });
-
-        process.on('SIGINT', () => {
-            gracefulShutdown('SIGINT', server);
-        });
-
-        return server;
-
-    } catch (error) {
-        logError('Failed to start server', error);
-        console.error('Failed to start server:', error.message);
-        // Don't exit, just continue
-        return null;
-    }
-}
-
-// Start the application
+// Only start if this file is run directly
 if (require.main === module) {
-    startServer();
+    const PORT = process.env.PORT || 5000;
+    const HOST = process.env.HOST || '0.0.0.0';
+
+    // Simple server startup without complex error handling
+    const server = app.listen(PORT, HOST, () => {
+        console.log(`🚀 ChatGrow Server running on ${HOST}:${PORT}`);
+        console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
+        console.log(`🏥 Health: http://localhost:${PORT}/health`);
+        
+        // Try database connection after server is up (non-blocking)
+        setTimeout(() => {
+            connectToDatabase().catch(err => {
+                console.warn('Database connection failed, continuing in fallback mode:', err.message);
+            });
+        }, 1000);
+    });
+
+    // Simple error handling
+    server.on('error', (error) => {
+        console.error('Server error:', error.message);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('Received SIGTERM, shutting down gracefully...');
+        server.close(() => {
+            process.exit(0);
+        });
+    });
+
+    process.on('SIGINT', () => {
+        console.log('Received SIGINT, shutting down gracefully...');
+        server.close(() => {
+            process.exit(0);
+        });
+    });
 }
 
 module.exports = app;
