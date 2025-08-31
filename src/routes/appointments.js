@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 
@@ -101,12 +100,43 @@ const services = [
     { name: 'טיפול פנים', duration: 75, price: 350 }
 ];
 
+// Add new appointment form route
+router.post('/add', (req, res) => {
+    try {
+        const { customerName, phone, service, date, time, notes } = req.body;
+
+        // In a real app, this would save to database
+        const newAppointment = {
+            id: Date.now().toString(),
+            customerName,
+            phone,
+            service,
+            date,
+            time,
+            notes,
+            status: 'pending',
+            createdAt: new Date()
+        };
+
+        res.json({ success: true, message: 'תור נוסף בהצלחה!', appointment: newAppointment });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Update appointment status
+router.post('/update-status', (req, res) => {
+    try {
+        const { appointmentId, status } = req.body;
+
+        // In a real app, this would update the database
+        res.json({ success: true, message: `סטטוס התור עודכן ל${getStatusText(status)}` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 router.get('/', (req, res) => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayAppointments = appointments.filter(app => app.date === today);
-    const upcomingAppointments = appointments.filter(app => app.date > today);
-    const totalRevenue = appointments.filter(app => app.status === 'completed').reduce((sum, app) => sum + app.price, 0);
-    
     res.send(`
         <!DOCTYPE html>
         <html lang="he" dir="rtl">
@@ -120,20 +150,20 @@ router.get('/', (req, res) => {
                     padding: 0;
                     box-sizing: border-box;
                 }
-                
+
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     background: #f5f7fa;
                     direction: rtl;
                     line-height: 1.6;
                 }
-                
+
                 .container {
-                    max-width: 1600px;
+                    max-width: 1400px;
                     margin: 0 auto;
                     padding: 20px;
                 }
-                
+
                 .header {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
@@ -142,13 +172,13 @@ router.get('/', (req, res) => {
                     margin-bottom: 30px;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
                 }
-                
+
                 .header h1 {
                     font-size: 2.5em;
                     margin-bottom: 10px;
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                 }
-                
+
                 .btn {
                     background: linear-gradient(45deg, #667eea, #764ba2);
                     color: white;
@@ -162,24 +192,147 @@ router.get('/', (req, res) => {
                     display: inline-block;
                     margin: 5px;
                 }
-                
+
                 .btn:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
                 }
-                
-                .btn-success { background: linear-gradient(45deg, #27ae60, #2ecc71); }
-                .btn-warning { background: linear-gradient(45deg, #f39c12, #e67e22); }
-                .btn-danger { background: linear-gradient(45deg, #e74c3c, #c0392b); }
-                .btn-info { background: linear-gradient(45deg, #3498db, #2980b9); }
-                
-                .stats-grid {
+
+                .btn-success { background: linear-gradient(45deg, #28a745, #20c997); }
+                .btn-danger { background: linear-gradient(45deg, #dc3545, #e91e63); }
+                .btn-warning { background: linear-gradient(45deg, #ffc107, #ff9800); }
+
+                .main-content {
+                    display: grid;
+                    grid-template-columns: 1fr 350px;
+                    gap: 30px;
+                }
+
+                .appointments-section {
+                    background: white;
+                    border-radius: 15px;
+                    padding: 30px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                }
+
+                .sidebar {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+
+                .add-appointment-form {
+                    background: white;
+                    border-radius: 15px;
+                    padding: 25px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                }
+
+                .form-group {
+                    margin-bottom: 20px;
+                }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                }
+
+                .form-group input,
+                .form-group select,
+                .form-group textarea {
+                    width: 100%;
+                    padding: 12px;
+                    border: 2px solid #e9ecef;
+                    border-radius: 8px;
+                    font-size: 1em;
+                    transition: border-color 0.3s ease;
+                }
+
+                .form-group input:focus,
+                .form-group select:focus,
+                .form-group textarea:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+
+                .appointment-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px;
+                    border: 1px solid #e9ecef;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
+                    transition: all 0.3s ease;
+                }
+
+                .appointment-item:hover {
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                    transform: translateY(-2px);
+                }
+
+                .appointment-info {
+                    flex: 1;
+                }
+
+                .appointment-time {
+                    font-weight: bold;
+                    color: #667eea;
+                    font-size: 1.1em;
+                }
+
+                .appointment-client {
+                    font-size: 1.2em;
+                    margin: 5px 0;
+                }
+
+                .appointment-service {
+                    color: #6c757d;
+                }
+
+                .appointment-actions {
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .status-badge {
+                    padding: 5px 15px;
+                    border-radius: 20px;
+                    font-size: 0.85em;
+                    font-weight: bold;
+                    margin-left: 10px;
+                }
+
+                .status-confirmed {
+                    background: #d4edda;
+                    color: #155724;
+                }
+
+                .status-pending {
+                    background: #fff3cd;
+                    color: #856404;
+                }
+
+                .status-cancelled {
+                    background: #f8d7da;
+                    color: #721c24;
+                }
+
+                .status-completed {
+                    background: #d1ecf1;
+                    color: #0c5460;
+                }
+
+                .quick-stats {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                     gap: 20px;
                     margin-bottom: 30px;
                 }
-                
+
                 .stat-card {
                     background: white;
                     padding: 25px;
@@ -188,256 +341,81 @@ router.get('/', (req, res) => {
                     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
                     transition: transform 0.3s ease;
                 }
-                
+
                 .stat-card:hover {
                     transform: translateY(-5px);
                 }
-                
+
                 .stat-number {
                     font-size: 2.2em;
                     font-weight: bold;
+                    color: #667eea;
                     margin-bottom: 10px;
                 }
-                
-                .stat-number.positive { color: #27ae60; }
-                .stat-number.warning { color: #f39c12; }
-                .stat-number.primary { color: #667eea; }
-                
-                .quick-actions {
+
+                .filters {
                     background: white;
                     border-radius: 15px;
                     padding: 25px;
-                    margin-bottom: 30px;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
                 }
-                
-                .new-appointment-form {
-                    background: #f8f9fa;
-                    border-radius: 15px;
-                    padding: 25px;
-                    margin-bottom: 30px;
-                    border: 2px dashed #dee2e6;
-                    display: none;
-                }
-                
-                .form-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                    margin-bottom: 20px;
-                }
-                
-                .form-group {
+
+                .filter-row {
                     display: flex;
-                    flex-direction: column;
+                    gap: 15px;
+                    margin-bottom: 15px;
+                    align-items: center;
                 }
-                
-                .form-group label {
-                    margin-bottom: 8px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                
-                .form-group input,
-                .form-group select,
-                .form-group textarea {
-                    padding: 12px;
+
+                .filter-row select,
+                .filter-row input {
+                    flex: 1;
+                    padding: 10px;
                     border: 2px solid #e9ecef;
                     border-radius: 8px;
-                    font-size: 1em;
-                    transition: border-color 0.3s ease;
                 }
-                
-                .form-group input:focus,
-                .form-group select:focus,
-                .form-group textarea:focus {
-                    border-color: #667eea;
-                    outline: none;
-                }
-                
-                .appointments-section {
-                    background: white;
-                    border-radius: 15px;
-                    padding: 30px;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-                }
-                
-                .filters-toolbar {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 15px;
-                    margin-bottom: 30px;
-                    padding: 20px;
-                    background: #f8f9fa;
-                    border-radius: 10px;
-                }
-                
-                .appointments-grid {
-                    display: grid;
-                    gap: 20px;
-                    margin-top: 20px;
-                }
-                
-                .appointment-card {
-                    border: 2px solid #e9ecef;
-                    border-radius: 15px;
-                    padding: 25px;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    background: white;
-                }
-                
-                .appointment-card:hover {
-                    border-color: #667eea;
-                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-                }
-                
-                .status-confirmed { border-right: 5px solid #27ae60; }
-                .status-pending { border-right: 5px solid #f39c12; }
-                .status-cancelled { border-right: 5px solid #e74c3c; }
-                .status-completed { border-right: 5px solid #3498db; }
-                .status-no_show { border-right: 5px solid #95a5a6; }
-                
-                .appointment-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-                
-                .customer-name {
-                    font-size: 1.4em;
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                
-                .appointment-time {
-                    background: #667eea;
-                    color: white;
-                    padding: 8px 15px;
-                    border-radius: 20px;
-                    font-weight: bold;
-                }
-                
-                .appointment-details {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 15px;
-                    margin-bottom: 20px;
-                }
-                
-                .detail-item {
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .detail-label {
-                    font-size: 0.9em;
-                    color: #7f8c8d;
-                    margin-bottom: 5px;
-                }
-                
-                .detail-value {
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                
-                .status-badge {
-                    padding: 6px 12px;
-                    border-radius: 20px;
-                    font-size: 0.9em;
-                    font-weight: bold;
-                    color: white;
-                    display: inline-block;
-                }
-                
-                .status-confirmed .status-badge { background: #27ae60; }
-                .status-pending .status-badge { background: #f39c12; }
-                .status-cancelled .status-badge { background: #e74c3c; }
-                .status-completed .status-badge { background: #3498db; }
-                .status-no_show .status-badge { background: #95a5a6; }
-                
-                .appointment-notes {
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin-bottom: 20px;
-                    border-right: 3px solid #667eea;
-                }
-                
-                .appointment-actions {
-                    display: flex;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                    margin-top: 15px;
-                }
-                
-                .calendar-view {
-                    background: white;
-                    border-radius: 15px;
-                    padding: 30px;
-                    margin-bottom: 30px;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-                }
-                
-                .calendar-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-                
-                .calendar-grid {
-                    display: grid;
-                    grid-template-columns: repeat(7, 1fr);
-                    gap: 2px;
-                    background: #e9ecef;
-                    border-radius: 10px;
-                    padding: 10px;
-                }
-                
-                .calendar-day {
-                    background: white;
-                    padding: 10px;
-                    text-align: center;
-                    min-height: 80px;
-                    border-radius: 5px;
-                    position: relative;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                }
-                
-                .calendar-day:hover {
-                    background: #f8f9fa;
-                }
-                
-                .calendar-day.has-appointments {
-                    background: #e3f2fd;
-                    border: 2px solid #2196f3;
-                }
-                
-                .calendar-day.today {
-                    background: #667eea;
-                    color: white;
-                }
-                
-                .appointment-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    position: absolute;
-                    bottom: 5px;
-                    right: 5px;
-                }
-                
-                .dot-confirmed { background: #27ae60; }
-                .dot-pending { background: #f39c12; }
-                .dot-cancelled { background: #e74c3c; }
-                
+
                 @media (max-width: 768px) {
-                    .container { padding: 10px; }
-                    .header { padding: 20px; }
-                    .appointments-grid { grid-template-columns: 1fr; }
+                    .main-content {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .appointment-actions {
+                        flex-direction: column;
+                    }
+                }
+
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 1000;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.5);
+                }
+
+                .modal-content {
+                    background-color: white;
+                    margin: 5% auto;
+                    padding: 30px;
+                    border-radius: 15px;
+                    width: 90%;
+                    max-width: 600px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+
+                .close {
+                    color: #aaa;
+                    float: left;
+                    font-size: 28px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+
+                .close:hover {
+                    color: #000;
                 }
             </style>
         </head>
@@ -445,426 +423,317 @@ router.get('/', (req, res) => {
             <div class="container">
                 <div class="header">
                     <h1>📅 ניהול תורים</h1>
-                    <p>מערכת ניהול תורים מתקדמת עם לוח שנה ותזכורות אוטומטיות</p>
+                    <p>נהל את כל התורים שלך במקום אחד - מערכת מתקדמת לניהול עסק</p>
                     <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
+                    <button class="btn" onclick="showAddAppointmentModal()">➕ תור חדש</button>
+                    <button class="btn" onclick="exportAppointments()">📊 ייצוא נתונים</button>
                 </div>
-                
-                <div class="stats-grid">
+
+                <div class="quick-stats">
                     <div class="stat-card">
-                        <div class="stat-number primary">${todayAppointments.length}</div>
+                        <div class="stat-number">12</div>
                         <div>תורים היום</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number warning">${upcomingAppointments.length}</div>
-                        <div>תורים קרובים</div>
+                        <div class="stat-number">47</div>
+                        <div>תורים השבוע</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number positive">₪${totalRevenue.toLocaleString()}</div>
-                        <div>הכנסות השבוע</div>
+                        <div class="stat-number">3</div>
+                        <div>ממתינים לאישור</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number primary">${appointments.filter(a => a.status === 'confirmed').length}</div>
-                        <div>תורים מאושרים</div>
+                        <div class="stat-number">₪1,200</div>
+                        <div>הכנסות צפויות</div>
                     </div>
                 </div>
-                
-                <div class="quick-actions">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>⚡ פעולות מהירות</h2>
-                    </div>
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <button class="btn btn-success" onclick="toggleNewAppointmentForm()">📅 תור חדש</button>
-                        <button class="btn btn-info" onclick="showTodaySchedule()">📋 יומן היום</button>
-                        <button class="btn btn-warning" onclick="sendReminders()">📱 שלח תזכורות</button>
-                        <button class="btn" onclick="exportSchedule()">📊 ייצא לוח זמנים</button>
-                        <button class="btn" onclick="toggleCalendarView()">📅 תצוגת לוח שנה</button>
-                    </div>
-                </div>
-                
-                <div class="new-appointment-form" id="newAppointmentForm">
-                    <h3>📅 קביעת תור חדש</h3>
-                    <form onsubmit="addAppointment(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>שם הלקוח *</label>
-                                <input type="text" name="customerName" required placeholder="הכנס שם לקוח">
-                            </div>
-                            <div class="form-group">
-                                <label>טלפון *</label>
-                                <input type="tel" name="phone" required placeholder="050-1234567">
-                            </div>
-                            <div class="form-group">
-                                <label>שירות *</label>
-                                <select name="service" required onchange="updateServiceDetails(this)">
-                                    <option value="">בחר שירות</option>
-                                    ${services.map(service => `
-                                        <option value="${service.name}" data-duration="${service.duration}" data-price="${service.price}">
-                                            ${service.name} - ₪${service.price} (${service.duration} דקות)
-                                        </option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>תאריך *</label>
-                                <input type="date" name="date" required min="${today}">
-                            </div>
-                            <div class="form-group">
-                                <label>שעה *</label>
-                                <input type="time" name="time" required>
-                            </div>
-                            <div class="form-group">
-                                <label>משך זמן (דקות)</label>
-                                <input type="number" name="duration" min="15" max="480" placeholder="120" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>מחיר</label>
-                                <input type="number" name="price" min="0" placeholder="250" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>סטטוס</label>
-                                <select name="status">
-                                    <option value="pending">ממתין לאישור</option>
-                                    <option value="confirmed">מאושר</option>
-                                </select>
-                            </div>
+
+                <div class="main-content">
+                    <div class="appointments-section">
+                        <h2>📋 תורים קרובים</h2>
+
+                        <div class="filter-row">
+                            <input type="date" id="filterDate" onchange="filterAppointments()">
+                            <select id="filterStatus" onchange="filterAppointments()">
+                                <option value="">כל הסטטוסים</option>
+                                <option value="pending">ממתין</option>
+                                <option value="confirmed">מאושר</option>
+                                <option value="completed">הושלם</option>
+                                <option value="cancelled">בוטל</option>
+                            </select>
+                            <input type="text" id="searchCustomer" placeholder="חיפוש לקוח..." onkeyup="filterAppointments()">
                         </div>
-                        <div class="form-group">
-                            <label>הערות</label>
-                            <textarea name="notes" rows="3" placeholder="הערות נוספות על התור..."></textarea>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <button type="submit" class="btn btn-success">💾 שמור תור</button>
-                            <button type="button" class="btn" onclick="toggleNewAppointmentForm()">❌ ביטול</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <div class="calendar-view" id="calendarView" style="display: none;">
-                    <div class="calendar-header">
-                        <h3>📅 לוח שנה - ${new Date().toLocaleDateString('he-IL', { month: 'long', year: 'numeric' })}</h3>
-                        <div>
-                            <button class="btn" onclick="previousMonth()">◀ חודש קודם</button>
-                            <button class="btn" onclick="nextMonth()">חודש הבא ▶</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- Calendar will be generated by JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="appointments-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>📋 רשימת תורים</h2>
-                        <div>
-                            <button class="btn btn-info" onclick="refreshAppointments()">🔄 רענן</button>
-                        </div>
-                    </div>
-                    
-                    <div class="filters-toolbar">
-                        <input type="text" id="searchAppointments" placeholder="🔍 חפש לקוח או שירות..." oninput="filterAppointments()">
-                        <input type="date" id="dateFilter" onchange="filterAppointments()" placeholder="סנן לפי תאריך">
-                        <select id="statusFilter" onchange="filterAppointments()">
-                            <option value="">כל הסטטוסים</option>
-                            <option value="confirmed">מאושרים</option>
-                            <option value="pending">ממתינים</option>
-                            <option value="completed">הושלמו</option>
-                            <option value="cancelled">בוטלו</option>
-                        </select>
-                        <select id="sortBy" onchange="sortAppointments()">
-                            <option value="date">מיון לפי תאריך</option>
-                            <option value="time">מיון לפי שעה</option>
-                            <option value="customer">מיון לפי לקוח</option>
-                            <option value="service">מיון לפי שירות</option>
-                        </select>
-                    </div>
-                    
-                    <div class="appointments-grid" id="appointmentsGrid">
-                        ${appointments.map(appointment => `
-                            <div class="appointment-card status-${appointment.status}" data-appointment='${JSON.stringify(appointment)}'>
-                                <div class="appointment-header">
-                                    <div class="customer-name">${appointment.customerName}</div>
-                                    <div class="appointment-time">${formatDate(appointment.date)} ${formatTime(appointment.time)}</div>
-                                </div>
-                                
-                                <div class="appointment-details">
-                                    <div class="detail-item">
-                                        <div class="detail-label">🎯 שירות</div>
-                                        <div class="detail-value">${appointment.service}</div>
+
+                        <div id="appointmentsList">
+                            ${appointments.map(appointment => `
+                                <div class="appointment-item" data-status="${appointment.status}" data-appointment-id="${appointment.id}">
+                                    <div class="appointment-info">
+                                        <div class="appointment-time">📅 ${appointment.date} • ⏰ ${appointment.time}</div>
+                                        <div class="appointment-client">👤 ${appointment.customerName}</div>
+                                        <div class="appointment-service">🎯 ${appointment.service}</div>
+                                        <div class="appointment-service">📞 ${appointment.phone}</div>
+                                        ${appointment.notes ? `<div class="appointment-service">📝 ${appointment.notes}</div>` : ''}
                                     </div>
-                                    <div class="detail-item">
-                                        <div class="detail-label">⏱️ משך זמן</div>
-                                        <div class="detail-value">${appointment.duration} דקות</div>
-                                    </div>
-                                    <div class="detail-item">
-                                        <div class="detail-label">💰 מחיר</div>
-                                        <div class="detail-value">₪${appointment.price}</div>
-                                    </div>
-                                    <div class="detail-item">
-                                        <div class="detail-label">📱 טלפון</div>
-                                        <div class="detail-value">${appointment.phone}</div>
-                                    </div>
-                                    <div class="detail-item">
-                                        <div class="detail-label">📊 סטטוס</div>
-                                        <div class="status-badge">${getStatusText(appointment.status)}</div>
-                                    </div>
-                                    <div class="detail-item">
-                                        <div class="detail-label">📱 תזכורת</div>
-                                        <div class="detail-value">${appointment.reminderSent ? '✅ נשלחה' : '⏳ לא נשלחה'}</div>
+                                    <div class="appointment-actions">
+                                        <span class="status-badge status-${appointment.status}">${getStatusText(appointment.status)}</span>
+                                        <button class="btn" onclick="openEditModal('${appointment.id}')">✏️ עריכה</button>
+                                        ${appointment.status === 'pending' ? `<button class="btn btn-success" onclick="confirmAppointment('${appointment.id}')">✅ אשר</button>` : ''}
+                                        ${appointment.status === 'confirmed' ? `<button class="btn btn-warning" onclick="completeAppointment('${appointment.id}')">✅ סיים</button>` : ''}
+                                        <button class="btn btn-danger" onclick="cancelAppointment('${appointment.id}')">❌ בטל</button>
+                                        <button class="btn" onclick="sendReminder('${appointment.id}')">📱 תזכורת</button>
                                     </div>
                                 </div>
-                                
-                                ${appointment.notes ? `
-                                <div class="appointment-notes">
-                                    <strong>📝 הערות:</strong> ${appointment.notes}
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="add-appointment-form">
+                            <h3>➕ תור חדש</h3>
+                            <form id="appointmentForm" onsubmit="addAppointment(event)">
+                                <div class="form-group">
+                                    <label>שם הלקוח</label>
+                                    <input type="text" name="customerName" required>
                                 </div>
-                                ` : ''}
-                                
-                                <div class="appointment-actions">
-                                    ${appointment.status === 'pending' ? `
-                                        <button class="btn btn-success" onclick="confirmAppointment(${appointment.id})">✅ אשר תור</button>
-                                        <button class="btn btn-danger" onclick="cancelAppointment(${appointment.id})">❌ בטל תור</button>
-                                    ` : ''}
-                                    ${appointment.status === 'confirmed' ? `
-                                        <button class="btn btn-info" onclick="markCompleted(${appointment.id})">✅ סמן כהושלם</button>
-                                        <button class="btn btn-warning" onclick="markNoShow(${appointment.id})">🚫 לא הגיע</button>
-                                        <button class="btn btn-danger" onclick="cancelAppointment(${appointment.id})">❌ בטל</button>
-                                    ` : ''}
-                                    <button class="btn" onclick="editAppointment(${appointment.id})">✏️ ערוך</button>
-                                    <button class="btn btn-info" onclick="sendReminder(${appointment.id})">📱 תזכורת</button>
-                                    <button class="btn" onclick="viewCustomer(${appointment.customerId})">👤 פרטי לקוח</button>
+
+                                <div class="form-group">
+                                    <label>טלפון</label>
+                                    <input type="tel" name="phone" required>
                                 </div>
-                            </div>
-                        `).join('')}
+
+                                <div class="form-group">
+                                    <label>סוג שירות</label>
+                                    <select name="service" required>
+                                        <option value="">בחר שירות</option>
+                                        ${services.map(service => `<option value="${service.name}">${service.name}</option>`).join('')}
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>תאריך</label>
+                                    <input type="date" name="date" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>שעה</label>
+                                    <input type="time" name="time" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>הערות</label>
+                                    <textarea name="notes" rows="3" placeholder="הערות נוספות..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn" style="width: 100%;">💾 שמור תור</button>
+                            </form>
+                        </div>
+
+                        <div class="filters">
+                            <h3>🎯 סינון מהיר</h3>
+                            <button class="btn" onclick="showTodayAppointments()" style="width: 100%; margin-bottom: 10px;">📅 תורים היום</button>
+                            <button class="btn" onclick="showPendingAppointments()" style="width: 100%; margin-bottom: 10px;">⏰ ממתינים לאישור</button>
+                            <button class="btn" onclick="showUpcomingAppointments()" style="width: 100%; margin-bottom: 10px;">📆 תורים קרובים</button>
+                            <button class="btn" onclick="showCompletedAppointments()" style="width: 100%;">✅ תורים שהושלמו</button>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Modal for editing appointments -->
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                    <h2>✏️ עריכת תור</h2>
+                    <form id="editAppointmentForm">
+                        <input type="hidden" id="editId">
+                        <div class="form-group">
+                            <label>שם הלקוח</label>
+                            <input type="text" id="editCustomerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="editPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>שירות</label>
+                            <select id="editService" required>
+                                <option value="">בחר שירות</option>
+                                ${services.map(service => `<option value="${service.name}">${service.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>תאריך</label>
+                            <input type="date" id="editDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>שעה</label>
+                            <input type="time" id="editTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>הערות</label>
+                            <textarea id="editNotes" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">💾 שמור שינויים</button>
+                    </form>
+                </div>
+            </div>
+
             <script>
-                let currentDate = new Date();
-                let calendarVisible = false;
-                
-                function formatDate(dateStr) {
-                    const date = new Date(dateStr);
-                    return date.toLocaleDateString('he-IL');
-                }
-                
-                function formatTime(timeStr) {
-                    return timeStr.slice(0, 5);
-                }
-                
-                function toggleNewAppointmentForm() {
-                    const form = document.getElementById('newAppointmentForm');
-                    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-                }
-                
-                function updateServiceDetails(select) {
-                    const option = select.options[select.selectedIndex];
-                    if (option.value) {
-                        document.querySelector('input[name="duration"]').value = option.dataset.duration;
-                        document.querySelector('input[name="price"]').value = option.dataset.price;
-                    }
-                }
-                
+                const appointmentsData = ${JSON.stringify(appointments)}; // Make appointments data available in JS
+
                 function addAppointment(event) {
                     event.preventDefault();
                     const formData = new FormData(event.target);
                     const appointmentData = Object.fromEntries(formData);
-                    
-                    // Validate appointment time availability
-                    if (isTimeSlotAvailable(appointmentData.date, appointmentData.time)) {
-                        alert('התור נקבע בהצלחה! תזכורת תישלח אוטומטית 24 שעות לפני.');
-                        toggleNewAppointmentForm();
-                        event.target.reset();
-                        // Here we would send data to server
-                    } else {
-                        alert('השעה תפוסה! אנא בחר שעה אחרת.');
-                    }
-                }
-                
-                function isTimeSlotAvailable(date, time) {
-                    const existingAppointments = ${JSON.stringify(appointments)};
-                    return !existingAppointments.some(app => 
-                        app.date === date && 
-                        app.time === time && 
-                        app.status !== 'cancelled'
-                    );
-                }
-                
-                function confirmAppointment(id) {
-                    if (confirm('לאשר את התור?')) {
-                        alert('התור אושר בהצלחה! הודעת אישור תישלח ללקוח.');
-                        location.reload();
-                    }
-                }
-                
-                function cancelAppointment(id) {
-                    const reason = prompt('סיבת ביטול התור:');
-                    if (reason !== null) {
-                        alert('התור בוטל בהצלחה! הודעת ביטול תישלח ללקוח.');
-                        location.reload();
-                    }
-                }
-                
-                function markCompleted(id) {
-                    if (confirm('לסמן תור כהושלם?')) {
-                        alert('התור סומן כהושלם! חשבונית נוצרה אוטומטית.');
-                        location.reload();
-                    }
-                }
-                
-                function markNoShow(id) {
-                    if (confirm('לסמן כ"לא הגיע"? זה ישלח הודעה ללקוח ויגבה דמי ביטול.')) {
-                        alert('התור סומן כ"לא הגיע". הודעה נשלחה ללקוח.');
-                        location.reload();
-                    }
-                }
-                
-                function editAppointment(id) {
-                    alert('עריכת תור #' + id + ' - בפיתוח מתקדם');
-                }
-                
-                function sendReminder(id) {
-                    alert('תזכורת נשלחה ללקוח בהצלחה!');
-                }
-                
-                function viewCustomer(customerId) {
-                    window.open('/api/customers', '_blank');
-                }
-                
-                function showTodaySchedule() {
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('dateFilter').value = today;
-                    filterAppointments();
-                    alert('מוצגים תורי היום בלבד');
-                }
-                
-                function sendReminders() {
-                    alert('תזכורות נשלחו לכל הלקוחות עם תורים מחר!');
-                }
-                
-                function exportSchedule() {
-                    alert('לוח הזמנים יוצא לקובץ Excel בהצלחה!');
-                }
-                
-                function refreshAppointments() {
-                    location.reload();
-                }
-                
-                function filterAppointments() {
-                    const search = document.getElementById('searchAppointments').value.toLowerCase();
-                    const dateFilter = document.getElementById('dateFilter').value;
-                    const statusFilter = document.getElementById('statusFilter').value;
-                    const cards = document.querySelectorAll('.appointment-card');
-                    
-                    cards.forEach(card => {
-                        const appointment = JSON.parse(card.dataset.appointment);
-                        const matchesSearch = appointment.customerName.toLowerCase().includes(search) || 
-                                             appointment.service.toLowerCase().includes(search) ||
-                                             appointment.phone.includes(search);
-                        const matchesDate = !dateFilter || appointment.date === dateFilter;
-                        const matchesStatus = !statusFilter || appointment.status === statusFilter;
-                        
-                        card.style.display = matchesSearch && matchesDate && matchesStatus ? 'block' : 'none';
-                    });
-                }
-                
-                function sortAppointments() {
-                    const sortBy = document.getElementById('sortBy').value;
-                    const grid = document.getElementById('appointmentsGrid');
-                    const cards = Array.from(grid.querySelectorAll('.appointment-card'));
-                    
-                    cards.sort((a, b) => {
-                        const appointmentA = JSON.parse(a.dataset.appointment);
-                        const appointmentB = JSON.parse(b.dataset.appointment);
-                        
-                        switch(sortBy) {
-                            case 'date':
-                                return new Date(appointmentA.date + ' ' + appointmentA.time) - 
-                                       new Date(appointmentB.date + ' ' + appointmentB.time);
-                            case 'time':
-                                return appointmentA.time.localeCompare(appointmentB.time);
-                            case 'customer':
-                                return appointmentA.customerName.localeCompare(appointmentB.customerName);
-                            case 'service':
-                                return appointmentA.service.localeCompare(appointmentB.service);
-                            default:
-                                return 0;
+
+                    fetch('/api/appointments/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(appointmentData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✅ ' + data.message);
+                            event.target.reset();
+                            location.reload();
+                        } else {
+                            alert('❌ שגיאה: ' + data.error);
                         }
+                    })
+                    .catch(error => {
+                        alert('❌ שגיאה בשמירת התור');
+                        console.error(error);
                     });
-                    
-                    cards.forEach(card => grid.appendChild(card));
                 }
-                
-                function toggleCalendarView() {
-                    const calendar = document.getElementById('calendarView');
-                    calendarVisible = !calendarVisible;
-                    calendar.style.display = calendarVisible ? 'block' : 'none';
-                    
-                    if (calendarVisible) {
-                        generateCalendar();
+
+                function openEditModal(id) {
+                    const modal = document.getElementById('editModal');
+                    modal.style.display = 'block';
+
+                    const appointment = appointmentsData.find(app => app.id.toString() === id.toString());
+
+                    document.getElementById('editId').value = appointment.id;
+                    document.getElementById('editCustomerName').value = appointment.customerName;
+                    document.getElementById('editPhone').value = appointment.phone;
+                    document.getElementById('editService').value = appointment.service;
+                    document.getElementById('editDate').value = appointment.date;
+                    document.getElementById('editTime').value = appointment.time;
+                    document.getElementById('editNotes').value = appointment.notes;
+                }
+
+                function closeEditModal() {
+                    document.getElementById('editModal').style.display = 'none';
+                }
+
+                function confirmAppointment(id) {
+                    updateAppointmentStatus(id, 'confirmed', 'התור אושר בהצלחה!');
+                }
+
+                function completeAppointment(id) {
+                    updateAppointmentStatus(id, 'completed', 'התור הושלם בהצלחה!');
+                }
+
+                function cancelAppointment(id) {
+                    if (confirm('האם אתה בטוח שברצונך לבטל את התור?')) {
+                        updateAppointmentStatus(id, 'cancelled', 'התור בוטל בהצלחה!');
                     }
                 }
-                
-                function generateCalendar() {
-                    const grid = document.getElementById('calendarGrid');
-                    const year = currentDate.getFullYear();
-                    const month = currentDate.getMonth();
-                    
-                    // Days of week headers
-                    const daysOfWeek = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
-                    
-                    let calendarHTML = '';
-                    daysOfWeek.forEach(day => {
-                        calendarHTML += '<div style="font-weight: bold; text-align: center; padding: 10px;">' + day + '</div>';
+
+                function updateAppointmentStatus(id, status, message) {
+                    fetch('/api/appointments/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ appointmentId: id, status: status })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✅ ' + message);
+                            location.reload();
+                        } else {
+                            alert('❌ שגיאה: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        alert('❌ שגיאה בעדכון הסטטוס');
+                        console.error(error);
                     });
-                    
-                    const firstDay = new Date(year, month, 1).getDay();
-                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                }
+
+                function sendReminder(id) {
+                    alert('📱 תזכורת נשלחה ללקוח בהצלחה!');
+                }
+
+                function filterAppointments() {
+                    const date = document.getElementById('filterDate').value;
+                    const status = document.getElementById('filterStatus').value;
+                    const search = document.getElementById('searchCustomer').value.toLowerCase();
+
+                    const appointments = document.querySelectorAll('.appointment-item');
+
+                    appointments.forEach(appointment => {
+                        let show = true;
+                        const appointmentStatus = appointment.dataset.status;
+                        const appointmentText = appointment.textContent.toLowerCase();
+
+                        if (date && !appointment.querySelector('.appointment-time').textContent.includes(date)) {
+                            show = false;
+                        }
+
+                        if (status && appointmentStatus !== status) {
+                            show = false;
+                        }
+
+                        if (search && !appointmentText.includes(search)) {
+                            show = false;
+                        }
+
+                        appointment.style.display = show ? 'flex' : 'none';
+                    });
+                }
+
+                function showTodayAppointments() {
                     const today = new Date().toISOString().split('T')[0];
-                    
-                    // Empty cells for days before month starts
-                    for (let i = 0; i < firstDay; i++) {
-                        calendarHTML += '<div class="calendar-day"></div>';
-                    }
-                    
-                    // Days of the month
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-                        const dayAppointments = ${JSON.stringify(appointments)}.filter(app => app.date === dateStr);
-                        const isToday = dateStr === today;
-                        
-                        let classes = 'calendar-day';
-                        if (dayAppointments.length > 0) classes += ' has-appointments';
-                        if (isToday) classes += ' today';
-                        
-                        calendarHTML += '<div class="' + classes + '" onclick="selectDate(\'' + dateStr + '\')">';
-                        calendarHTML += '<div>' + day + '</div>';
-                        
-                        dayAppointments.forEach(app => {
-                            calendarHTML += '<div class="appointment-dot dot-' + app.status + '"></div>';
-                        });
-                        
-                        calendarHTML += '</div>';
-                    }
-                    
-                    grid.innerHTML = calendarHTML;
-                }
-                
-                function selectDate(dateStr) {
-                    document.getElementById('dateFilter').value = dateStr;
+                    document.getElementById('filterDate').value = today;
                     filterAppointments();
-                    alert('מוצגים תורים לתאריך ' + formatDate(dateStr));
                 }
-                
-                function previousMonth() {
-                    currentDate.setMonth(currentDate.getMonth() - 1);
-                    generateCalendar();
+
+                function showPendingAppointments() {
+                    document.getElementById('filterStatus').value = 'pending';
+                    filterAppointments();
                 }
-                
-                function nextMonth() {
-                    currentDate.setMonth(currentDate.getMonth() + 1);
-                    generateCalendar();
+
+                function showUpcomingAppointments() {
+                    document.getElementById('filterDate').value = ''; // Clear date filter
+                    document.getElementById('filterStatus').value = 'confirmed'; // Show confirmed appointments
+                    filterAppointments();
                 }
+
+                function showCompletedAppointments() {
+                    document.getElementById('filterStatus').value = 'completed';
+                    filterAppointments();
+                }
+
+                function exportAppointments() {
+                    alert('📊 ייצוא נתונים יתבצע בקרוב!');
+                }
+
+                function showAddAppointmentModal() {
+                    alert('📝 טופס הוספת תור נמצא בסרגל הצדדי');
+                }
+
+                // Set minimum date to today for new appointment form
+                document.addEventListener('DOMContentLoaded', function() {
+                    const today = new Date().toISOString().split('T')[0];
+                    document.querySelector('input[name="date"]').min = today;
+                    // For edit modal, set min date when modal is opened or dynamically
+                    // document.getElementById('editDate').min = today; // This would be better inside openEditModal
+                });
             </script>
         </body>
         </html>
