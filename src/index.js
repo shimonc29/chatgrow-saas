@@ -414,6 +414,7 @@ app.get('/api/reports', (req, res) => {
         </html>
     `);
 });
+/*
 // WhatsApp management page  
 app.get('/api/whatsapp', (req, res) => {
     res.send(`
@@ -502,6 +503,7 @@ app.get('/api/whatsapp', (req, res) => {
         </html>
     `);
 });
+*/
 
 app.use('/api/queue', (req, res) => {
     const QueueService = require('./services/queueService');
