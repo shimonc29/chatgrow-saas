@@ -256,6 +256,44 @@ router.get('/', async (req, res) => {
         .demo-notice p {
             color: #34495e;
         }
+
+        .section {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2 .feature-icon {
+            margin-left: 10px;
+            font-size: 1.8em;
+        }
+
+        .section p {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -296,7 +334,7 @@ router.get('/', async (req, res) => {
                     <div class="stat-number">4.8</div>
                     <div class="stat-label">דירוג ממוצע</div>
                 </div>
-                
+
                 <div class="stat-card">
                         <div class="stat-number">${stats.whatsapp.active || 0}</div>
                         <div>חיבורי WhatsApp פעילים</div>
@@ -399,6 +437,26 @@ router.get('/', async (req, res) => {
                     <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
                 </div>
             </div>
+
+            <div class="section">
+                        <h2>🏪 ניהול ספקי שירות</h2>
+                        <p>כאן תוכל לנהל את כל ספקי השירות ברשת שלך</p>
+                        <div class="action-buttons">
+                            <a href="/auth/register" class="btn">הוספת ספק חדש</a>
+                            <a href="/provider/dashboard" class="btn">דאשבורד ספקים</a>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>🎯 ניהול מנויים</h2>
+                        <p>ניהול מנויים, תוכניות מנוי ואנליטיקות</p>
+                        <div class="action-buttons">
+                            <a href="/subscribers/register" class="btn">הרשמת מנוי חדש</a>
+                            <a href="/subscribers/login" class="btn">כניסת מנויים</a>
+                            <a href="/subscribers/dashboard" class="btn">דאשבורד מנויים</a>
+                            <a href="/subscribers/stats" class="btn" onclick="loadSubscriberStats()">סטטיסטיקות מנויים</a>
+                        </div>
+                    </div>
 
             <div class="quick-actions">
                 <h2>🚀 פעולות מהירות</h2>

@@ -561,6 +561,17 @@ try {
     providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
 }
 
+// Load subscriber routes
+let subscriberRoutes;
+try {
+    subscriberRoutes = require('./routes/subscribers');
+    console.log('✅ Subscriber routes loaded successfully');
+} catch (error) {
+    console.error('❌ Subscriber routes failed to load:', error.message);
+    subscriberRoutes = express.Router();
+    subscriberRoutes.get('/', (req, res) => res.json({ message: 'Subscriber service not available' }));
+}
+
 // Apply routes with error handling
 try {
     app.use('/auth', authRoutes);
@@ -568,6 +579,9 @@ try {
     
     app.use('/provider', providerRoutes);
     console.log('✅ Provider routes applied');
+    
+    app.use('/subscribers', subscriberRoutes);
+    console.log('✅ Subscriber routes applied');
     
     app.use('/dashboard', dashboardRoutes);
     console.log('✅ Dashboard routes applied');
