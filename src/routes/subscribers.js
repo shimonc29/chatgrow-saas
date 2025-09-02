@@ -1,9 +1,97 @@
 
 const express = require('express');
 const router = express.Router();
-const Subscriber = require('../models/Subscriber');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+
+// Fallback in-memory storage when MongoDB is not available
+const subscribersStorage = new Map();
+
+// Fallback Subscriber class
+class SubscriberFallback {
+    constructor(data) {
+        this._id = 'sub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        this.email = data.email;
+        this.password = data.password;
+        this.profile = data.profile || {};
+        this.subscription = data.subscription || { plan: 'free' };
+        this.referral = data.referral || { referrals: [] };
+        this.analytics = data.analytics || {};
+        this.registrations = [];
+        this.connectedProviders = [];
+        this.isEmailVerified = false;
+        this.emailVerificationToken = null;
+        this.createdAt = new Date();
+    }
+
+    get fullName() {
+        return `${this.profile.firstName || ''} ${this.profile.lastName || ''}`.trim();
+    }
+
+    async save() {
+        if (!this.password.startsWith('$2a$')) {
+            this.password = await bcrypt.hash(this.password, 12);
+        }
+        subscribersStorage.set(this.email, this);
+        return this;
+    }
+
+    async comparePassword(candidatePassword) {
+        return await bcrypt.compare(candidatePassword, this.password);
+    }
+
+    static async findByEmail(email) {
+        return subscribersStorage.get(email.toLowerCase()) || null;
+    }
+
+    static async findById(id) {
+        for (const subscriber of subscribersStorage.values()) {
+            if (subscriber._id === id) {
+                return subscriber;
+            }
+        }
+        return null;
+    }
+
+    static async findByReferralCode(code) {
+        for (const subscriber of subscribersStorage.values()) {
+            if (subscriber.referral.referralCode === code) {
+                return subscriber;
+            }
+        }
+        return null;
+    }
+
+    static async getSubscriptionStats() {
+        const stats = {};
+        for (const subscriber of subscribersStorage.values()) {
+            const plan = subscriber.subscription.plan;
+            if (!stats[plan]) {
+                stats[plan] = { count: 0, activeCount: 0 };
+            }
+            stats[plan].count++;
+            if (subscriber.subscription.status === 'active') {
+                stats[plan].activeCount++;
+            }
+        }
+        return Object.entries(stats).map(([plan, data]) => ({
+            _id: plan,
+            count: data.count,
+            activeCount: data.activeCount
+        }));
+    }
+}
+
+// Try to use real Subscriber model, fallback to in-memory
+let Subscriber;
+try {
+    Subscriber = require('../models/Subscriber');
+    console.log('✅ Using MongoDB Subscriber model');
+} catch (error) {
+    Subscriber = SubscriberFallback;
+    console.log('⚠️ Using fallback in-memory subscriber storage');
+}
 
 // Subscriber registration page
 router.get('/register', (req, res) => {
@@ -456,7 +544,7 @@ router.post('/register', async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { subscriberId: subscriber._id, email }, 
-            'your-secret-key', 
+            process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024', 
             { expiresIn: '30d' }
         );
         
@@ -663,7 +751,7 @@ router.post('/login', async (req, res) => {
         
         const token = jwt.sign(
             { subscriberId: subscriber._id, email }, 
-            'your-secret-key', 
+            process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024', 
             { expiresIn: '30d' }
         );
         
@@ -967,7 +1055,7 @@ router.get('/me', async (req, res) => {
             return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
         }
         
-        const decoded = jwt.verify(token, 'your-secret-key');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024');
         const subscriber = await Subscriber.findById(decoded.subscriberId);
         
         if (!subscriber) {
