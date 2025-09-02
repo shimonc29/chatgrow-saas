@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const { Pool } = require('pg');
 const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
@@ -138,11 +138,21 @@ app.get('/api', (req, res) => {
 // Health check endpoint
 app.get('/health', async (req, res) => {
     try {
+        let dbStatus = 'fallback';
+        try {
+            const client = await pool.connect();
+            await client.query('SELECT 1');
+            client.release();
+            dbStatus = 'operational';
+        } catch (error) {
+            dbStatus = 'fallback';
+        }
+
         const health = {
             status: 'healthy',
             timestamp: new Date(),
             services: {
-                database: mongoose.connection.readyState === 1 ? 'operational' : 'fallback',
+                database: dbStatus,
                 queue: 'operational',
                 logging: 'operational',
                 rateLimiting: 'operational'
@@ -780,26 +790,30 @@ app.use('*', (req, res) => {
     });
 });
 
-// Connect to MongoDB
+// PostgreSQL connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+// Connect to PostgreSQL
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/chatgrow';
-
-    // Set mongoose to not buffer commands when disconnected
-    mongoose.set('bufferCommands', false);
-    mongoose.set('bufferMaxEntries', 0);
-
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
-      socketTimeoutMS: 30000,
-      connectTimeoutMS: 10000
-    });
-    logInfo('Connected to MongoDB Atlas successfully');
+    const client = await pool.connect();
+    await client.query('SELECT NOW()');
+    client.release();
+    
+    // Initialize subscriber table
+    const Subscriber = require('./models/Subscriber');
+    await Subscriber.createTable();
+    
+    logInfo('Connected to PostgreSQL successfully');
     return true;
   } catch (error) {
-    logWarning('MongoDB not available, running in fallback mode:', error.message);
+    logWarning('PostgreSQL not available, running in fallback mode:', error.message);
     return false;
   }
 }
@@ -808,8 +822,8 @@ async function connectToDatabase() {
 async function gracefulShutdown(signal, server) {
     console.log(`Received ${signal}. Starting graceful shutdown...`);
     try {
-        if (mongoose.connection.readyState === 1) {
-            await mongoose.connection.close();
+        if (pool) {
+            await pool.end();
         }
         if (server) {
             server.close(() => process.exit(0));
