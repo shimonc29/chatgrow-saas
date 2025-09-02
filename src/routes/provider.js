@@ -788,3 +788,107 @@ router.get('/customers', (req, res) => {
 });
 
 module.exports = router;
+const express = require('express');
+const router = express.Router();
+const { logInfo, logError } = require('../utils/logger');
+
+// Get all providers
+router.get('/', async (req, res) => {
+    try {
+        const providers = [
+            {
+                id: 'whatsapp-web',
+                name: 'WhatsApp Web',
+                type: 'messaging',
+                status: 'active',
+                features: ['text', 'media', 'groups'],
+                description: 'WhatsApp Web integration for messaging'
+            },
+            {
+                id: 'telegram-bot',
+                name: 'Telegram Bot',
+                type: 'messaging', 
+                status: 'planned',
+                features: ['text', 'media', 'channels'],
+                description: 'Telegram Bot API integration'
+            }
+        ];
+
+        res.json({
+            success: true,
+            data: { providers },
+            message: 'Providers retrieved successfully'
+        });
+
+        logInfo('Providers list requested', { count: providers.length });
+
+    } catch (error) {
+        logError('Failed to get providers', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to retrieve providers',
+            message: error.message
+        });
+    }
+});
+
+// Get specific provider
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Mock provider data - in real implementation would fetch from database
+        const provider = {
+            id,
+            name: id === 'whatsapp-web' ? 'WhatsApp Web' : 'Unknown Provider',
+            type: 'messaging',
+            status: id === 'whatsapp-web' ? 'active' : 'inactive',
+            config: {
+                maxConnections: 10,
+                rateLimit: '50/minute',
+                features: ['text', 'media']
+            }
+        };
+
+        res.json({
+            success: true,
+            data: { provider },
+            message: 'Provider details retrieved successfully'
+        });
+
+    } catch (error) {
+        logError('Failed to get provider details', error, { providerId: req.params.id });
+        res.status(500).json({
+            success: false,
+            error: 'Failed to retrieve provider details',
+            message: error.message
+        });
+    }
+});
+
+// Update provider configuration
+router.put('/:id/config', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const config = req.body;
+
+        // In real implementation, would update database
+        logInfo('Provider config updated', { providerId: id, config });
+
+        res.json({
+            success: true,
+            data: { providerId: id, config },
+            message: 'Provider configuration updated successfully'
+        });
+
+    } catch (error) {
+        logError('Failed to update provider config', error, { providerId: req.params.id });
+        res.status(500).json({
+            success: false,
+            error: 'Failed to update provider configuration',
+            message: error.message
+        });
+    }
+});
+
+module.exports = router;

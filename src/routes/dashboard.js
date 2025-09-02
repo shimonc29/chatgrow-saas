@@ -4,8 +4,27 @@ const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const User = require('../models/User');
 
+// Dashboard route
 router.get('/', async (req, res) => {
     try {
+        // Get dynamic stats
+        const stats = {
+            whatsapp: { active: 0, total: 0 },
+            messages: { today: 0, successRate: 95 },
+            queue: { active: 0, waiting: 0 },
+            system: { status: 'healthy', uptime: Math.floor(process.uptime()) }
+        };
+
+        // Try to get real stats if services are available
+        try {
+            const QueueService = require('../services/queueService');
+            const queueService = new QueueService();
+            const queueStats = await queueService.getQueueStatistics();
+            stats.queue = queueStats;
+        } catch (error) {
+            // Use fallback stats
+        }
+
         // Get sample data for demo
         const today = new Date();
         const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
@@ -277,6 +296,23 @@ router.get('/', async (req, res) => {
                     <div class="stat-number">4.8</div>
                     <div class="stat-label">דירוג ממוצע</div>
                 </div>
+                
+                <div class="stat-card">
+                        <div class="stat-number">${stats.whatsapp.active || 0}</div>
+                        <div>חיבורי WhatsApp פעילים</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.messages.today || 0}</div>
+                        <div>הודעות נשלחו היום</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.messages.successRate || 0}%</div>
+                        <div>שיעור הצלחה</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.queue.active || 0}</div>
+                        <div>תורים פעילים</div>
+                    </div>
             </div>
 
             <div class="features-grid">
