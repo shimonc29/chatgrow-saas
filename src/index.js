@@ -550,30 +550,67 @@ try {
     });
 }
 
-// Load additional routes for multi-provider system
-const providerRoutes = require('./routes/provider');
+// Load additional routes for multi-provider system with error handling
+let providerRoutes;
+try {
+    providerRoutes = require('./routes/provider');
+    console.log('✅ Provider routes loaded successfully');
+} catch (error) {
+    console.error('❌ Provider routes failed to load:', error.message);
+    providerRoutes = express.Router();
+    providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
+}
 
-// Apply routes
-app.use('/auth', authRoutes);
-app.use('/provider', providerRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/health', healthRoutes);
-if (logsRoutes) app.use('/logs', logsRoutes);
+// Apply routes with error handling
+try {
+    app.use('/auth', authRoutes);
+    console.log('✅ Auth routes applied');
+    
+    app.use('/provider', providerRoutes);
+    console.log('✅ Provider routes applied');
+    
+    app.use('/dashboard', dashboardRoutes);
+    console.log('✅ Dashboard routes applied');
+    
+    app.use('/health', healthRoutes);
+    console.log('✅ Health routes applied');
+    
+    if (logsRoutes) {
+        app.use('/logs', logsRoutes);
+        console.log('✅ Logs routes applied');
+    }
+} catch (error) {
+    console.error('❌ Error applying routes:', error.message);
+    console.error(error.stack);
+}
 
-// Rate limiting routes (with error handling)
-let rateLimiter; // Declare rateLimiter here
-if (RateLimiterMiddleware) {
-    rateLimiter = new RateLimiterMiddleware();
-    if (typeof rateLimiter.createRouter === 'function') {
-        app.use('/api/rate-limit', rateLimiter.createRouter());
+// Rate limiting routes (with comprehensive error handling)
+let rateLimiter;
+try {
+    if (RateLimiterMiddleware) {
+        console.log('⚙️ Initializing rate limiter...');
+        rateLimiter = new RateLimiterMiddleware();
+        
+        if (typeof rateLimiter.createRouter === 'function') {
+            app.use('/api/rate-limit', rateLimiter.createRouter());
+            console.log('✅ Rate limiter routes created successfully');
+        } else {
+            app.use('/api/rate-limit', (req, res) => {
+                res.json({ message: 'Rate limiting not available in fallback mode' });
+            });
+            console.log('⚠️ Rate limiter using fallback mode (no createRouter method)');
+        }
     } else {
         app.use('/api/rate-limit', (req, res) => {
             res.json({ message: 'Rate limiting not available in fallback mode' });
         });
+        console.log('⚠️ Rate limiter using fallback mode (middleware not available)');
     }
-} else {
+} catch (error) {
+    console.error('❌ Rate limiter initialization failed:', error.message);
+    console.error(error.stack);
     app.use('/api/rate-limit', (req, res) => {
-        res.json({ message: 'Rate limiting not available in fallback mode' });
+        res.json({ message: 'Rate limiting failed to initialize', error: error.message });
     });
 }
 
@@ -778,15 +815,28 @@ if (require.main === module) {
     const PORT = process.env.PORT || 5000;
     const HOST = process.env.HOST || '0.0.0.0';
 
-    // Add global error handlers before starting server
+    // Add detailed global error handlers before starting server
     process.on('uncaughtException', (error) => {
-        console.error('Uncaught Exception:', error.message);
+        console.error('🚨 UNCAUGHT EXCEPTION - THIS CRASHES THE APP:');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Location:', error.fileName, error.lineNumber);
         // Don't exit in development - just log
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-        console.error('Unhandled Rejection:', reason);
+        console.error('🚨 UNHANDLED PROMISE REJECTION - THIS CRASHES THE APP:');
+        console.error('Reason:', reason);
+        console.error('Promise:', promise);
+        if (reason && reason.stack) {
+            console.error('Stack:', reason.stack);
+        }
         // Don't exit in development - just log
+    });
+
+    // Add warning for deprecated warnings
+    process.on('warning', (warning) => {
+        console.warn('⚠️ Warning:', warning.name, warning.message);
     });
 
     // Simple server startup without complex error handling
