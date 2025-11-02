@@ -799,8 +799,12 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
+// Import database configurations
+const { connectMongoDB, isMongoDBConnected } = require('./config/database');
+const { connectRedis, isRedisConnected } = require('./config/redis');
+
 // Connect to PostgreSQL
-async function connectToDatabase() {
+async function connectToPostgreSQL() {
   try {
     const client = await pool.connect();
     await client.query('SELECT NOW()');
@@ -816,6 +820,23 @@ async function connectToDatabase() {
     logWarning('PostgreSQL not available, running in fallback mode:', error.message);
     return false;
   }
+}
+
+// Connect to all databases
+async function connectToDatabase() {
+  const results = await Promise.allSettled([
+    connectToPostgreSQL(),
+    connectMongoDB(),
+    connectRedis()
+  ]);
+
+  logInfo('Database connections initialized', {
+    postgresql: results[0].status === 'fulfilled' && results[0].value,
+    mongodb: results[1].status === 'fulfilled' && isMongoDBConnected(),
+    redis: results[2].status === 'fulfilled' && isRedisConnected()
+  });
+
+  return true;
 }
 
 // Simplified graceful shutdown
