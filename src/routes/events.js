@@ -10,7 +10,7 @@ const { logApiRequest } = require('../utils/logger');
 const eventService = new EventService();
 
 // Get all events for business
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -38,7 +38,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // Create new event
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -64,7 +64,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // Get specific event
-router.get('/:eventId', authMiddleware, async (req, res) => {
+router.get('/:eventId', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -98,7 +98,7 @@ router.get('/:eventId', authMiddleware, async (req, res) => {
 });
 
 // Update event
-router.put('/:eventId', authMiddleware, async (req, res) => {
+router.put('/:eventId', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -134,7 +134,7 @@ router.put('/:eventId', authMiddleware, async (req, res) => {
 });
 
 // Delete event
-router.delete('/:eventId', authMiddleware, async (req, res) => {
+router.delete('/:eventId', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -181,7 +181,7 @@ router.delete('/:eventId', authMiddleware, async (req, res) => {
 });
 
 // Get event registrations
-router.get('/:eventId/registrations', authMiddleware, async (req, res) => {
+router.get('/:eventId/registrations', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -203,7 +203,7 @@ router.get('/:eventId/registrations', authMiddleware, async (req, res) => {
 });
 
 // Send reminders
-router.post('/:eventId/reminders', authMiddleware, async (req, res) => {
+router.post('/:eventId/reminders', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -257,7 +257,7 @@ router.post('/:eventId/register', async (req, res) => {
 });
 
 // Cancel registration
-router.delete('/registrations/:registrationId', authMiddleware, async (req, res) => {
+router.delete('/registrations/:registrationId', authMiddleware.authenticate(), async (req, res) => {
     const startTime = Date.now();
     
     try {

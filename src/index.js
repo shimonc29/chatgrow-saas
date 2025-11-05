@@ -9,34 +9,36 @@ const helmet = require('helmet');
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
-// Import routes with error handling (excluding WhatsApp for now)
-let logsRoutes, authRoutes, healthRoutes, eventsRoutes;
+// Import routes with error handling (including WhatsApp)
+let logsRoutes, authRoutes, healthRoutes, eventsRoutes, whatsAppRoutes;
 try {
     logsRoutes = require('./routes/logs');
     authRoutes = require('./routes/auth');
     healthRoutes = require('./routes/health');
     eventsRoutes = require('./routes/events');
+    whatsAppRoutes = require('./routes/whatsapp');
+    console.log('✅ All routes loaded successfully including WhatsApp');
 } catch (error) {
     console.warn('Some routes not available, using fallback');
+    console.error('Route loading error:', error.message);
+    console.error(error.stack);
     // Create minimal fallback routes
     logsRoutes = express.Router();
     authRoutes = express.Router();
     healthRoutes = express.Router();
     eventsRoutes = express.Router();
+    whatsAppRoutes = express.Router();
 
     // Add basic responses
     logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
     authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
     healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
     eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
+    whatsAppRoutes.get('/', (req, res) => res.json({ 
+        message: 'WhatsApp service in development - בפיתוח עתידי',
+        status: 'coming_soon'
+    }));
 }
-
-// Create simple WhatsApp fallback
-const whatsAppRoutes = express.Router();
-whatsAppRoutes.get('/', (req, res) => res.json({ 
-    message: 'WhatsApp service in development - בפיתוח עתידי',
-    status: 'coming_soon'
-}));
 
 // Import middleware (with error handling)
 let RateLimiterMiddleware, authMiddleware, securityMiddleware;
@@ -107,10 +109,35 @@ try {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Basic middleware (simplified for stable startup)
+// Trust proxy - required for Replit environment and rate limiting
+app.set('trust proxy', 1);
+
+// Security middleware - MUST be first
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
+
+// Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || true,
+    credentials: true
+}));
+
+// Rate limiting middleware
+const rateLimit = require('express-rate-limit');
+const apiLimiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Apply rate limiting to all /api routes
+app.use('/api', apiLimiter);
 
 // Basic root route
 app.get('/', (req, res) => {
