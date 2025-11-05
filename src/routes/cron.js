@@ -5,10 +5,10 @@ const { logInfo, logError } = require('../utils/logger');
 const { authenticateToken } = require('../middleware/auth');
 
 /**
- * Get CRON service status
+ * Get CRON service status (public - no auth required)
  * GET /api/cron/status
  */
-router.get('/status', authenticateToken, async (req, res) => {
+router.get('/status', async (req, res) => {
     try {
         const status = cronService.getStatus();
         
@@ -106,10 +106,10 @@ router.post('/trigger/:jobName', authenticateToken, async (req, res) => {
 });
 
 /**
- * Get CRON job schedule information
+ * Get CRON job schedule information (public - no auth required)
  * GET /api/cron/schedule
  */
-router.get('/schedule', authenticateToken, async (req, res) => {
+router.get('/schedule', async (req, res) => {
     try {
         const schedule = {
             eventReminders: {

@@ -25,6 +25,11 @@ The system includes a provider dashboard with an HTML UI for service providers t
     - Supports multiple Israeli payment providers (Cardcom, Meshulam, Tranzila) through a flexible provider pattern.
     - Generates Hebrew PDF invoices using PDFKit.
     - Automates the payment-to-invoice-to-email workflow.
+- **CRON Automation**:
+    - A `CronService` powered by node-cron handles automated scheduled tasks.
+    - **6 Automated Jobs**: Event reminders (hourly), appointment reminders (hourly), automatic payments (daily 10:00), weekly reports (Sunday 20:00), monthly reports (1st 08:00), data cleanup (daily 02:00).
+    - Exposed via `/api/cron` endpoints for monitoring job status, viewing schedules, and manual execution.
+    - Integrated with NotificationService for automated reminder delivery.
 - **Queue System**: Currently uses an in-memory queue with basic queuing and retry logic, with an option to integrate Redis for persistence and enhanced capabilities.
 - **Logging**: Implemented with Winston, providing console and file logging, daily rotation, and structured JSON logs.
 - **Security**: Incorporates JWT authentication, password hashing (bcrypt), rate limiting, Helmet security headers, CORS protection, and input validation (Joi).
