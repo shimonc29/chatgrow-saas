@@ -1,20 +1,20 @@
-# ChatGrow - מערכת ניהול עסקית עם אינטגרציית WhatsApp
+# ChatGrow - מערכת SaaS לניהול עסקים קטנים-בינוניים
 
 ## 📋 סקירה כללית
 
-ChatGrow היא מערכת backend מקיפה לניהול עסקים עם אינטגרציה מתקדמת של WhatsApp. המערכת מאפשרת ניהול תורים, לקוחות, אירועים, הודעות אוטומטיות דרך WhatsApp, אנליטיקה ותמיכה ב-multi-provider.
+ChatGrow היא מערכת backend מקיפה לניהול עסקים עם יכולות תקשורת מתקדמות. המערכת מאפשרת ניהול לקוחות, אירועים, תורים, תשלומים, חשבוניות, ומערכת הודעות אוטומטיות דרך Email ו-SMS.
 
 ## 🏗️ ארכיטקטורת המערכת
 
 ### מסדי נתונים
 - **PostgreSQL (Neon)** - נתוני Subscribers ומשתמשים
-- **MongoDB Atlas** - נתוני WhatsApp, Events, Customers, Analytics
-- **Redis (Optional)** - Queue System למנגנון התורים (כרגע: In-Memory Queue)
+- **MongoDB Atlas** - נתוני Events, Customers, Appointments, Analytics
+- **Redis (Optional)** - Caching & background jobs (לא חובה)
 
 ### טכנולוגיות עיקריות
 - **Backend**: Node.js + Express.js
 - **Authentication**: JWT
-- **WhatsApp**: whatsapp-web.js + Puppeteer
+- **Notifications**: NotificationService (Email: Nodemailer/SendGrid, SMS: Twilio)
 - **Logging**: Winston
 - **Security**: Helmet, CORS, Rate Limiting
 - **Database**: Mongoose (MongoDB), pg (PostgreSQL)
@@ -23,40 +23,47 @@ ChatGrow היא מערכת backend מקיפה לניהול עסקים עם אי�
 
 ```
 src/
-├── config/           # קבצי קונפיגורציה
-│   ├── database.js   # MongoDB connection
-│   └── redis.js      # Redis connection
-├── models/          # Data models
+├── config/              # קבצי קונפיגורציה
+│   ├── database.js      # MongoDB connection
+│   └── redis.js         # Redis connection
+├── models/             # Data models
 │   ├── User.js
 │   ├── Event.js
 │   ├── Customer.js
 │   ├── Subscriber.js
-│   ├── WhatsAppConnection.js
 │   ├── Appointment.js
 │   └── MessageLog.js
-├── routes/          # API routes
+├── routes/             # API routes
 │   ├── auth.js
 │   ├── provider.js
 │   ├── subscribers.js
 │   ├── customers.js
 │   ├── events.js
 │   ├── appointments.js
-│   ├── whatsapp.js
+│   ├── notifications.js
 │   ├── health.js
 │   ├── logs.js
 │   └── dashboard.js
-├── services/        # Business logic
-│   ├── whatsappService.js
-│   ├── queueService.js
+├── services/           # Business logic
+│   ├── notificationService.js
+│   ├── eventService.js
 │   ├── logService.js
 │   └── healthService.js
-├── middleware/      # Express middleware
+├── providers/          # Notification providers
+│   ├── EmailProvider.js
+│   ├── SMSProvider.js
+│   ├── email/
+│   │   ├── NodemailerProvider.js
+│   │   └── SendGridProvider.js
+│   └── sms/
+│       └── TwilioProvider.js
+├── middleware/         # Express middleware
 │   ├── auth.js
 │   ├── security.js
 │   └── rateLimiter.js
-├── utils/          # Utilities
+├── utils/             # Utilities
 │   └── logger.js
-└── index.js        # Main server file
+└── index.js           # Main server file
 ```
 
 ## 🚀 התחלה מהירה
@@ -64,8 +71,12 @@ src/
 ### סודות נדרשים (Secrets)
 הוסף ב-Replit Secrets:
 - `MONGODB_URI` - MongoDB Atlas connection string
-- `REDIS_URL` - Upstash Redis URL (אופציונלי)
 - `JWT_SECRET` - Secret key ל-JWT authentication
+- `SENDGRID_API_KEY` - SendGrid API key (אופציונלי)
+- `TWILIO_ACCOUNT_SID` - Twilio Account SID (אופציונלי)
+- `TWILIO_AUTH_TOKEN` - Twilio Auth Token (אופציונלי)
+- `TWILIO_PHONE_NUMBER` - Twilio Phone Number (אופציונלי)
+- `REDIS_URL` - Upstash Redis URL (אופציונלי)
 
 ### הרצת השרת
 המערכת מתחילה אוטומטית דרך workflow:
@@ -92,11 +103,10 @@ npm run dev
 - `POST /api/subscribers` - יצירת מנוי חדש
 - `GET /api/subscribers/:id` - פרטי מנוי
 
-### WhatsApp
-- `POST /api/whatsapp/connections` - יצירת חיבור WhatsApp
-- `GET /api/whatsapp/connections/:id/qr` - קבלת QR Code
-- `POST /api/whatsapp/send` - שליחת הודעה
-- `GET /api/whatsapp/connections/:id/status` - סטטוס חיבור
+### Notifications
+- `POST /api/notifications/send` - שליחת הודעה (Email/SMS)
+- `GET /api/notifications/providers` - רשימת providers זמינים
+- `GET /api/notifications/history` - היסטוריית הודעות
 
 ### Health & Monitoring
 - `GET /health` - Health check
@@ -120,9 +130,14 @@ REDIS_URL=redis://...
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 
-# WhatsApp
-WHATSAPP_SESSION_PATH=./sessions
-WHATSAPP_MAX_CONNECTIONS=10
+# Notifications
+EMAIL_PROVIDER=nodemailer # nodemailer or sendgrid
+SMS_PROVIDER=mock # twilio or mock
+EMAIL_FROM=noreply@chatgrow.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
 
 # Logging
 LOG_LEVEL=info
@@ -327,24 +342,45 @@ curl -X GET http://localhost:5000/health -H "Content-Type: application/json"
 
 ## 🔄 שינויים אחרונים (נובמבר 5, 2025)
 
-### תיקוני אבטחה וארכיטקטורה
-- ✅ הוספת `helmet()` middleware לאבטחה מוגברת
-- ✅ הפעלת `trust proxy` ל-Replit environment
-- ✅ Rate limiting על כל /api routes
-- ✅ CORS configuration עודכן ל-`origin: true` לתמיכה ב-credentialed requests
-- ✅ תיקון WhatsApp routes - נטענו ועובדים תקין
-- ✅ תיקון auth middleware - הסרת duplicate code
-- ✅ תיקון events routes - כל ה-endpoints עם authentication תקין
+### שלב 0 הושלם: פירוק WhatsApp והחלפה ב-NotificationService ✅
+#### מה בוצע:
+1. **הוסר לחלוטין WhatsApp Integration**:
+   - הושבתו כל WhatsApp routes, services, controllers
+   - הושבת queueService (whatsapp-web.js, puppeteer)
+   - הוסרו endpoints של `/api/whatsapp` ו-`/api/queue`
+   - קבצים הושבתו: `whatsappService.js.disabled`, `queueService.js.disabled`, `whatsapp.js.disabled`
 
-### סטטוס נוכחי
+2. **נוצר NotificationService חדש**:
+   - ממשק גנרי לשליחת הודעות דרך Email ו-SMS
+   - Provider pattern עם תמיכה ב:
+     - **Email**: Nodemailer (SMTP), SendGrid (API)
+     - **SMS**: Twilio (API), Mock (לבדיקות)
+   - פונקציות מובנות: `sendEventConfirmation()`, `sendEventReminder()`, `sendAppointmentConfirmation()`
+
+3. **עדכונים ב-EventService**:
+   - שימוש ב-`NotificationService` במקום `queueService`
+   - כל אירועים ותזכורות משתמשים במערכת החדשה
+
+4. **עדכון index.js**:
+   - הוסרו כל ה-routes הקשורים ל-WhatsApp/Queue
+   - נוספו routes חדשים: `/api/notifications`
+   - נשארו רק: Auth, Subscribers, Provider, Events, Customers, Appointments, Health, Logs, Dashboard
+
+#### סטטוס נוכחי:
 - ✅ PostgreSQL: מחובר ועובד
 - ✅ MongoDB Atlas: מחובר ועובד
-- ✅ WhatsApp Service: מאותחל ומוכן לשימוש
-- ✅ Security: Helmet + Rate Limiting פעילים
-- ⚠️ Redis: לא מחובר (In-Memory Queue fallback)
+- ✅ NotificationService: מאותחל ופעיל
+- ✅ Security: Helmet + Rate Limiting + CORS
+- ✅ All Routes: נטענו בהצלחה ללא שגיאות
+- ⚠️ Redis: לא מחובר (In-Memory fallback - מקובל)
+
+#### הבא: שלב 1 - תשלומים + חשבוניות
+- אינטגרציית ספקי תשלומים ישראליים: Cardcom, Grow-Meshulam, Tranzila
+- מודול חשבוניות PDF
+- מודל Payment ו-Invoice
 
 ---
 
 **Last Updated**: November 5, 2025
-**Version**: 1.0.1
-**Status**: ✅ Production Ready (with In-Memory Queue)
+**Version**: 2.0.0 (Post WhatsApp Removal)
+**Status**: ✅ שלב 0 הושלם בהצלחה - מוכן לשלב 1
