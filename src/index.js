@@ -220,6 +220,7 @@ try {
     app.use('/api/analytics', require('./routes/analytics'));
     app.use('/api/payments', require('./routes/payments'));
     app.use('/api/invoices', require('./routes/invoices'));
+    app.use('/api/cron', require('./routes/cron'));
     console.log('All business management routes loaded successfully');
 } catch (error) {
     console.warn('Some business routes not available, creating fallback routes');
@@ -227,7 +228,8 @@ try {
     app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
     app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
     app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
-    app.get('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
+    app.use('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
+    app.get('/api/cron', (req, res) => res.json({ message: 'CRON service not available' }));
 }
 
 // Add missing routes for dashboard links

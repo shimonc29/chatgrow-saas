@@ -438,7 +438,62 @@ router.get('/', async (req, res) => {
                     <a href="/api/invoices" class="btn">נהל חשבוניות</a>
                     <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">חשבונית חדשה</button>
                 </div>
+
+                <!-- Automated Tasks (CRON) -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-title">משימות אוטומטיות</div>
+                    </div>
+                    <div class="feature-description">
+                        תזכורות אוטומטיות לאירועים ותורים, חיובים מתוזמנים, דוחות שבועיים/חודשיים וניקוי אוטומטי.
+                    </div>
+                    <button class="btn" onclick="viewCronJobs()">צפה במשימות</button>
+                    <button class="btn btn-info" onclick="viewCronSchedule()">לוח זמנים</button>
+                </div>
             </div>
+
+            <script>
+                async function viewCronJobs() {
+                    try {
+                        const response = await fetch('/api/cron/status');
+                        const data = await response.json();
+                        if (data.success) {
+                            let statusText = 'סטטוס משימות אוטומטיות:' + String.fromCharCode(10) + String.fromCharCode(10);
+                            statusText += 'מערכת אותחלה: ' + (data.data.initialized ? 'כן' : 'לא') + String.fromCharCode(10);
+                            statusText += 'מספר משימות פעילות: ' + data.data.jobsCount + String.fromCharCode(10) + String.fromCharCode(10);
+                            statusText += 'משימות:' + String.fromCharCode(10);
+                            statusText += JSON.stringify(data.data.jobs, null, 2);
+                            alert(statusText);
+                        } else {
+                            alert('שגיאה בטעינת סטטוס CRON');
+                        }
+                    } catch (error) {
+                        alert('שגיאה: ' + error.message + String.fromCharCode(10) + String.fromCharCode(10) + 'אנא התחבר תחילה');
+                    }
+                }
+
+                async function viewCronSchedule() {
+                    try {
+                        const response = await fetch('/api/cron/schedule');
+                        const data = await response.json();
+                        if (data.success) {
+                            let scheduleText = 'לוח זמנים של משימות אוטומטיות:' + String.fromCharCode(10) + String.fromCharCode(10);
+                            for (const key in data.data) {
+                                const job = data.data[key];
+                                scheduleText += job.name + ':' + String.fromCharCode(10);
+                                scheduleText += '  זמן: ' + job.schedule + String.fromCharCode(10);
+                                scheduleText += '  תיאור: ' + job.description + String.fromCharCode(10) + String.fromCharCode(10);
+                            }
+                            alert(scheduleText);
+                        } else {
+                            alert('שגיאה בטעינת לוח זמנים');
+                        }
+                    } catch (error) {
+                        alert('שגיאה: ' + error.message + String.fromCharCode(10) + String.fromCharCode(10) + 'אנא התחבר תחילה');
+                    }
+                }
+            </script>
 
             <div class="section">
                         <h2>🏪 ניהול ספקי שירות</h2>
