@@ -1,12 +1,12 @@
 
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
-const QueueService = require('./queueService');
+const notificationService = require('./notificationService');
 const { logInfo, logError } = require('../utils/logger');
 
 class EventService {
     constructor() {
-        this.queueService = new QueueService();
+        this.notificationService = notificationService;
     }
 
     /**
@@ -103,8 +103,8 @@ class EventService {
                 await event.incrementParticipants();
             }
 
-            // Send confirmation message
-            await this.sendConfirmationMessage(registration, event);
+            // Send confirmation notification
+            await this.notificationService.sendEventConfirmation(registration, event);
 
             logInfo('Participant registered successfully', {
                 eventId,
@@ -131,96 +131,28 @@ class EventService {
         }
     }
 
-    /**
-     * Send confirmation message via WhatsApp
-     */
-    async sendConfirmationMessage(registration, event) {
-        try {
-            if (!event.notifications.sendConfirmation) return;
-
-            const message = event.notifications.customMessages.confirmation || 
-                `שלום ${registration.participant.firstName}! 
-                
-✅ נרשמת בהצלחה לאירוע: ${event.name}
-
-📅 תאריך: ${event.startDateTime.toLocaleDateString('he-IL')}
-🕐 שעה: ${event.startDateTime.toLocaleTimeString('he-IL')}
-📍 מקום: ${event.location.address?.street || event.location.onlineLink || 'יפורסם בהמשך'}
-
-מספר הרשמה: ${registration.registrationNumber}
-
-נתראה באירוע! 🎉`;
-
-            // Add to WhatsApp queue
-            const result = await this.queueService.addMessage(
-                'default', // connection ID - should be business specific
-                message,
-                registration.participant.phone,
-                'normal'
-            );
-
-            if (result.success) {
-                await registration.addCommunication(
-                    'confirmation',
-                    'whatsapp',
-                    message,
-                    result.jobId
-                );
-
-                logInfo('Confirmation message queued', {
-                    registrationId: registration._id,
-                    jobId: result.jobId
-                });
-            }
-
-        } catch (error) {
-            logError('Failed to send confirmation message', error, {
-                registrationId: registration._id
-            });
-        }
-    }
+    // Removed - using NotificationService.sendEventConfirmation() instead
 
     /**
-     * Send reminder messages
+     * Send reminder messages for an event
      */
     async sendReminders(eventId, reminderType = '24h') {
         try {
             const event = await Event.findById(eventId).populate('businessId');
-            if (!event || !event.notifications.sendReminders) return;
+            if (!event) {
+                return {
+                    success: false,
+                    error: 'Event not found'
+                };
+            }
 
             const registrations = await Registration.find({
                 eventId,
                 status: 'confirmed'
             });
 
-            const reminderMessage = event.notifications.customMessages.reminder ||
-                `היי ${registration.participant.firstName}! 
-                
-🔔 תזכורת לאירוע: ${event.name}
-📅 מחר ב-${event.startDateTime.toLocaleTimeString('he-IL')}
-📍 ${event.location.address?.street || event.location.onlineLink}
-
-מספר הרשמה: ${registration.registrationNumber}
-מחכים לך! 😊`;
-
             const promises = registrations.map(async (registration) => {
-                const personalizedMessage = reminderMessage.replace(/\$\{registration\.participant\.firstName\}/g, registration.participant.firstName);
-                
-                const result = await this.queueService.addMessage(
-                    'default',
-                    personalizedMessage,
-                    registration.participant.phone,
-                    'normal'
-                );
-
-                if (result.success) {
-                    await registration.addCommunication(
-                        'reminder',
-                        'whatsapp',
-                        personalizedMessage,
-                        result.jobId
-                    );
-                }
+                return await this.notificationService.sendEventReminder(registration, event);
             });
 
             await Promise.all(promises);

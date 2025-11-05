@@ -9,15 +9,14 @@ const helmet = require('helmet');
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
-// Import routes with error handling (including WhatsApp)
-let logsRoutes, authRoutes, healthRoutes, eventsRoutes, whatsAppRoutes;
+// Import routes with error handling
+let logsRoutes, authRoutes, healthRoutes, eventsRoutes;
 try {
     logsRoutes = require('./routes/logs');
     authRoutes = require('./routes/auth');
     healthRoutes = require('./routes/health');
     eventsRoutes = require('./routes/events');
-    whatsAppRoutes = require('./routes/whatsapp');
-    console.log('✅ All routes loaded successfully including WhatsApp');
+    console.log('✅ All routes loaded successfully');
 } catch (error) {
     console.warn('Some routes not available, using fallback');
     console.error('Route loading error:', error.message);
@@ -27,17 +26,12 @@ try {
     authRoutes = express.Router();
     healthRoutes = express.Router();
     eventsRoutes = express.Router();
-    whatsAppRoutes = express.Router();
 
     // Add basic responses
     logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
     authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
     healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
     eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
-    whatsAppRoutes.get('/', (req, res) => res.json({ 
-        message: 'WhatsApp service in development - בפיתוח עתידי',
-        status: 'coming_soon'
-    }));
 }
 
 // Import middleware (with error handling)
@@ -50,48 +44,35 @@ try {
     console.warn('Some middleware modules not available, using fallback');
 }
 
-// Import queue system with error handling
-let messageQueue;
-try {
-    messageQueue = require('./queues/messageQueue').messageQueue;
-} catch (error) {
-    console.warn('Message queue not available, using fallback');
-    messageQueue = null;
-}
-
 // Import services with error handling
-let QueueService, LogService;
+let LogService;
 try {
-    QueueService = require('./services/queueService');
     LogService = require('./services/logService');
 } catch (error) {
     console.warn('Some services not available, using fallback');
 }
 
-// Skip WhatsApp service import completely for now
-// const whatsAppService = require('./services/whatsappService');
+// Initialize NotificationService (replaces WhatsApp)
+let notificationService;
+try {
+    notificationService = require('./services/notificationService');
+    console.log('NotificationService initialized successfully');
+} catch (error) {
+    console.warn('NotificationService not available:', error.message);
+}
 
 // Initialize services safely with try-catch
 console.log('Initializing services in safe mode...');
 
-let queueService, logService;
+let logService;
 try {
     // Try to initialize real services
-    const QueueServiceClass = require('./services/queueService');
     const LogServiceClass = require('./services/logService');
-    queueService = new QueueServiceClass();
     logService = new LogServiceClass();
     console.log('Real services initialized successfully');
 } catch (error) {
     console.warn('Using fallback mock services due to:', error.message);
     // Fallback to mock services
-    queueService = {
-        addMessage: () => Promise.resolve({ id: 'mock-' + Date.now() }),
-        getQueueStatus: () => Promise.resolve({ status: 'mock', waiting: 0, active: 0 }),
-        pauseQueue: () => Promise.resolve(),
-        resumeQueue: () => Promise.resolve(),
-        getQueueStatistics: () => Promise.resolve({ total: 0, processed: 0, failed: 0 })
-    };
     logService = {
         logMessage: (data) => {
             console.log('Mock log:', data);
@@ -156,9 +137,8 @@ app.get('/api', (req, res) => {
             health: '/health',
             auth: '/api/auth',
             logs: '/api/logs',
-            whatsapp: '/api/whatsapp',
+            notifications: '/api/notifications',
             healthMonitoring: '/api/health',
-            queue: '/api/queue',
             rateLimit: '/api/rate-limit'
         }
     });
@@ -182,7 +162,6 @@ app.get('/health', async (req, res) => {
             timestamp: new Date(),
             services: {
                 database: dbStatus,
-                queue: 'operational',
                 logging: 'operational',
                 rateLimiting: 'operational'
             },
@@ -214,8 +193,7 @@ if (eventsRoutes) app.use('/api/events', eventsRoutes);
 if (logsRoutes) app.use('/api/logs', logsRoutes);
 if (healthRoutes) app.use('/api/health', healthRoutes);
 
-// Add simple WhatsApp API
-app.use('/api/whatsapp', whatsAppRoutes);
+// WhatsApp API removed - using NotificationService instead
 
 // Load appointments and customers routes with error handling
 try {
@@ -462,120 +440,7 @@ app.get('/api/reports', (req, res) => {
         </html>
     `);
 });
-/*
-// WhatsApp management page  
-app.get('/api/whatsapp', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="he" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title>הגדרות WhatsApp - BusinessFlow</title>
-            <style>
-                body { font-family: Arial; padding: 20px; direction: rtl; background: #f5f5f5; }
-                .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-                .btn { background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none; margin: 5px; }
-                .btn-success { background: #27ae60; }
-                .btn-warning { background: #f39c12; }
-                .settings-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0; }
-                .status-connected { color: #27ae60; font-weight: bold; }
-                .status-disconnected { color: #e74c3c; font-weight: bold; }
-                .qr-placeholder { width: 200px; height: 200px; background: #e9ecef; border: 2px dashed #666; display: flex; align-items: center; justify-content: center; margin: 20px auto; color: #666; }
-                .message-template { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin: 10px 0; }
-                input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin: 5px 0; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>📱 הגדרות WhatsApp</h1>
-                <p>ניהול חיבור WhatsApp ותזכורות אוטומטיות</p>
 
-                <div>
-                    <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
-                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">🔗 חבר WhatsApp</button>
-                </div>
-
-                <div class="settings-section">
-                    <h3>סטטוס חיבור</h3>
-                    <p class="status-disconnected">❌ לא מחובר ל-WhatsApp</p>
-                    <div class="qr-placeholder">
-                        QR Code יוצג כאן לחיבור
-                    </div>
-                    <button class="btn" onclick="alert('בהמתנה לפיתוח')">🔄 רענן QR</button>
-                </div>
-
-                <div class="settings-section">
-                    <h3>⚙️ הגדרות תזכורות</h3>
-                    <label>
-                        <input type="checkbox" checked> שלח תזכורת 24 שעות לפני
-                    </label><br>
-                    <label>
-                        <input type="checkbox" checked> שלח תזכורת שעה לפני
-                    </label><br>
-                    <label>
-                        <input type="checkbox"> שלח תזכורת אחרי הפגישה
-                    </label>
-                </div>
-
-                <div class="settings-section">
-                    <h3>📝 תבניות הודעות</h3>
-
-                    <div class="message-template">
-                        <h4>תזכורת 24 שעות</h4>
-                        <textarea rows="3" placeholder="שלום {name}, יש לך תור מחר בשעה {time} ל{service}. נשמח לראותך!">שלום {name}, יש לך תור מחר בשעה {time} ל{service}. נשמח לראותך!</textarea>
-                        <button class="btn btn-warning">💾 שמור תבנית</button>
-                    </div>
-
-                    <div class="message-template">
-                        <h4>תזכורת שעה לפני</h4>
-                        <textarea rows="3" placeholder="היי {name}, התור שלך מתחיל בעוד שעה. מחכים לך! 😊">היי {name}, התור שלך מתחיל בעוד שעה. מחכים לך! 😊</textarea>
-                        <button class="btn btn-warning">💾 שמור תבנית</button>
-                    </div>
-
-                    <div class="message-template">
-                        <h4>הודעת תודה</h4>
-                        <textarea rows="3" placeholder="תודה על הביקור {name}! נשמח לראותך שוב ✨">תודה על הביקור {name}! נשמח לראותך שוב ✨</textarea>
-                        <button class="btn btn-warning">💾 שמור תבנית</button>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <h3>📊 סטטיסטיקות הודעות</h3>
-                    <p>📤 הודעות נשלחו היום: 0</p>
-                    <p>✅ הודעות נמסרו: 0</p>
-                    <p>👁️ הודעות נקראו: 0</p>
-                    <p>❌ הודעות נכשלו: 0</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `);
-});
-*/
-
-app.use('/api/queue', (req, res) => {
-    const QueueService = require('./services/queueService');
-    const queueService = new QueueService();
-
-    if (req.path === '/status') {
-        queueService.getQueueStatus(req.query.connectionId || 'default')
-            .then(result => res.json(result))
-            .catch(err => res.status(500).json({ error: err.message }));
-    } else if (req.path === '/stats') {
-        queueService.getQueueStatistics()
-            .then(result => res.json(result))
-            .catch(err => res.status(500).json({ error: err.message }));
-    } else {
-        res.json({
-            success: true,
-            message: 'Queue API is available',
-            endpoints: {
-                status: '/api/queue/status?connectionId=YOUR_ID',
-                stats: '/api/queue/stats'
-            }
-        });
-    }
-});
 // Dashboard route with error handling
 let dashboardRoutes;
 try {
@@ -668,132 +533,7 @@ try {
 }
 
 
-// Message queue endpoints
-app.post('/api/queue/message', async (req, res) => {
-    try {
-        const { connectionId, message, recipients, priority = 'normal' } = req.body;
-
-        if (!connectionId || !message || !recipients) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing required fields: connectionId, message, recipients'
-            });
-        }
-
-        // Add message to queue
-        const job = await queueService.addMessage(connectionId, message, recipients, priority);
-
-        // Log the message
-        const messageData = {
-            messageId: job.id.toString(),
-            connectionId,
-            recipient: Array.isArray(recipients) ? recipients[0] : recipients,
-            messageContent: message,
-            messageType: 'text',
-            status: 'pending',
-            queueJobId: job.id.toString(),
-            userId: req.user?.id,
-            metadata: { priority, recipients }
-        };
-
-        await logService.logMessage(messageData);
-
-        res.json({
-            success: true,
-            data: {
-                jobId: job.id,
-                messageId: job.id.toString(),
-                status: 'queued'
-            },
-            message: 'Message added to queue successfully'
-        });
-
-    } catch (error) {
-        logError('Failed to add message to queue', error, {
-            body: req.body,
-            operation: 'POST /api/queue/message'
-        });
-
-        res.status(500).json({
-            success: false,
-            error: 'Failed to add message to queue',
-            message: error.message
-        });
-    }
-});
-
-app.get('/api/queue/status/:connectionId', async (req, res) => {
-    try {
-        const { connectionId } = req.params;
-        const status = await queueService.getQueueStatus(connectionId);
-
-        res.json({
-            success: true,
-            data: status,
-            message: 'Queue status retrieved successfully'
-        });
-
-    } catch (error) {
-        logError('Failed to get queue status', error, {
-            connectionId: req.params.connectionId,
-            operation: 'GET /api/queue/status/:connectionId'
-        });
-
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get queue status',
-            message: error.message
-        });
-    }
-});
-
-app.post('/api/queue/pause/:connectionId', async (req, res) => {
-    try {
-        const { connectionId } = req.params;
-        await queueService.pauseQueue(connectionId);
-
-        res.json({
-            success: true,
-            message: 'Queue paused successfully'
-        });
-
-    } catch (error) {
-        logError('Failed to pause queue', error, {
-            connectionId: req.params.connectionId,
-            operation: 'POST /api/queue/pause/:connectionId'
-        });
-
-        res.status(500).json({
-            success: false,
-            error: 'Failed to pause queue',
-            message: error.message
-        });
-    }
-});
-
-app.post('/api/queue/resume/:connectionId', async (req, res) => {
-    try {
-        const { connectionId } = req.params;
-        await queueService.resumeQueue(connectionId);
-
-        res.json({
-            success: true,
-            message: 'Queue resumed successfully'
-        });
-
-    } catch (error) {
-        logError('Failed to resume queue', error, {
-            connectionId: req.params.connectionId,
-            operation: 'POST /api/queue/resume/:connectionId'
-        });
-
-        res.status(500).json({
-            success: false,
-            error: 'Failed to resume queue',
-            message: error.message
-        });
-    }
-});
+// Queue endpoints removed - using NotificationService instead
 
 // Error handling middleware
 app.use((error, req, res, next) => {
