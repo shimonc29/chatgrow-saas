@@ -9,18 +9,16 @@ router.get('/', async (req, res) => {
     try {
         // Get dynamic stats
         const stats = {
-            whatsapp: { active: 0, total: 0 },
+            notifications: { email: 0, sms: 0, successRate: 95 },
             messages: { today: 0, successRate: 95 },
-            queue: { active: 0, waiting: 0 },
+            payments: { today: 0, total: 0 },
             system: { status: 'healthy', uptime: Math.floor(process.uptime()) }
         };
 
         // Try to get real stats if services are available
         try {
-            const QueueService = require('../services/queueService');
-            const queueService = new QueueService();
-            const queueStats = await queueService.getQueueStatistics();
-            stats.queue = queueStats;
+            // Get notification stats if available
+            // stats.notifications can be populated from NotificationService
         } catch (error) {
             // Use fallback stats
         }
@@ -336,20 +334,24 @@ router.get('/', async (req, res) => {
                 </div>
 
                 <div class="stat-card">
-                        <div class="stat-number">${stats.whatsapp.active || 0}</div>
-                        <div>חיבורי WhatsApp פעילים</div>
+                        <div class="stat-icon">📧</div>
+                        <div class="stat-number">${stats.notifications.email || 0}</div>
+                        <div>הודעות Email</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${stats.messages.today || 0}</div>
-                        <div>הודעות נשלחו היום</div>
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-number">${stats.notifications.sms || 0}</div>
+                        <div>הודעות SMS</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">${stats.messages.successRate || 0}%</div>
+                        <div class="stat-icon">💳</div>
+                        <div class="stat-number">₪${stats.payments.today || 0}</div>
+                        <div>תשלומים היום</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number">${stats.notifications.successRate || 0}%</div>
                         <div>שיעור הצלחה</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${stats.queue.active || 0}</div>
-                        <div>תורים פעילים</div>
                     </div>
             </div>
 
@@ -411,30 +413,30 @@ router.get('/', async (req, res) => {
                             <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
                         </a>
 
-                <!-- WhatsApp Reminders -->
+                <!-- Notifications -->
                 <div class="feature-card">
                     <div class="feature-header">
-                        <div class="feature-icon">📱</div>
-                        <div class="feature-title">תזכורות WhatsApp</div>
+                        <div class="feature-icon">📧</div>
+                        <div class="feature-title">תזכורות ושליחת הודעות</div>
                     </div>
                     <div class="feature-description">
-                        שליחת תזכורות אוטומטיות ללקוחות דרך WhatsApp, SMS ואימייל עם הודעות מותאמות אישית.
+                        שליחת תזכורות אוטומטיות ללקוחות דרך Email ו-SMS עם הודעות מותאמות אישית.
                     </div>
-                    <a href="/api/whatsapp" class="btn">הגדרות WhatsApp</a>
+                    <a href="/api/notifications" class="btn">הגדרות הודעות</a>
                     <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">בדוק תזכורות</button>
                 </div>
 
-                <!-- Reports & Analytics -->
+                <!-- Invoices -->
                 <div class="feature-card">
                     <div class="feature-header">
-                        <div class="feature-icon">📊</div>
-                        <div class="feature-title">דוחות ואנליטיקה</div>
+                        <div class="feature-icon">📄</div>
+                        <div class="feature-title">חשבוניות</div>
                     </div>
                     <div class="feature-description">
-                        דוחות מפורטים על הכנסות, נוכחות לקוחות, שעות עבודה ומדדי ביצועים עסקיים.
+                        יצירת חשבוניות מס בעברית, שליחה אוטומטית באימייל וניהול מלא של כל החשבוניות.
                     </div>
-                    <a href="/api/reports" class="btn">צפה בדוחות</a>
-                    <button class="btn btn-secondary" onclick="alert('בהמתנה לפיתוח')">יצא דוח</button>
+                    <a href="/api/invoices" class="btn">נהל חשבוניות</a>
+                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">חשבונית חדשה</button>
                 </div>
             </div>
 
