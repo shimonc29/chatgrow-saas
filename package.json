@@ -31,6 +31,7 @@
     "mongodb": "^6.19.0",
     "mongoose": "^7.6.3",
     "nodemailer": "^6.9.7",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "puppeteer": "^24.15.0",
     "qrcode": "^1.5.3",

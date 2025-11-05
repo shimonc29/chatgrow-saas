@@ -10,12 +10,15 @@ const helmet = require('helmet');
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
 // Import routes with error handling
-let logsRoutes, authRoutes, healthRoutes, eventsRoutes;
+let logsRoutes, authRoutes, healthRoutes, eventsRoutes, dashboardRoutes, providerRoutes, subscriberRoutes;
 try {
     logsRoutes = require('./routes/logs');
     authRoutes = require('./routes/auth');
     healthRoutes = require('./routes/health');
     eventsRoutes = require('./routes/events');
+    dashboardRoutes = require('./routes/dashboard');
+    providerRoutes = require('./routes/provider');
+    subscriberRoutes = require('./routes/subscribers');
     console.log('✅ All routes loaded successfully');
 } catch (error) {
     console.warn('Some routes not available, using fallback');
@@ -26,12 +29,18 @@ try {
     authRoutes = express.Router();
     healthRoutes = express.Router();
     eventsRoutes = express.Router();
+    dashboardRoutes = express.Router();
+    providerRoutes = express.Router();
+    subscriberRoutes = express.Router();
 
     // Add basic responses
     logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
     authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
     healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
     eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
+    dashboardRoutes.get('/', (req, res) => res.json({ message: 'Dashboard service not available' }));
+    providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
+    subscriberRoutes.get('/', (req, res) => res.json({ message: 'Subscriber service not available' }));
 }
 
 // Import middleware (with error handling)
@@ -201,6 +210,7 @@ try {
     app.use('/api/customers', require('./routes/customers'));
     app.use('/api/analytics', require('./routes/analytics'));
     app.use('/api/payments', require('./routes/payments'));
+    app.use('/api/invoices', require('./routes/invoices'));
     console.log('All business management routes loaded successfully');
 } catch (error) {
     console.warn('Some business routes not available, creating fallback routes');
@@ -208,6 +218,7 @@ try {
     app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
     app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
     app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
+    app.get('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
 }
 
 // Add missing routes for dashboard links
@@ -274,209 +285,6 @@ app.get('/api/calendar', (req, res) => {
     `);
 });
 
-app.get('/api/payments', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="he" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title>ניהול תשלומים - BusinessFlow</title>
-            <style>
-                body { font-family: Arial; padding: 20px; direction: rtl; background: #f5f5f5; }
-                .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-                .btn { background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none; margin: 5px; }
-                .btn-success { background: #27ae60; }
-                .btn-warning { background: #f39c12; }
-                .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
-                .stat-card { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; }
-                .stat-number { font-size: 2em; font-weight: bold; color: #667eea; }
-                .payments-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .payments-table th, .payments-table td { border: 1px solid #ddd; padding: 12px; text-align: right; }
-                .payments-table th { background: #667eea; color: white; }
-                .status-paid { background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 15px; font-size: 0.8em; }
-                .status-pending { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 15px; font-size: 0.8em; }
-                .status-overdue { background: #f8d7da; color: #721c24; padding: 5px 10px; border-radius: 15px; font-size: 0.8em; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>💳 ניהול תשלומים</h1>
-                <p>מעקב אחר תשלומים, חשבוניות ודוחות פיננסיים</p>
-
-                <div>
-                    <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
-                    <button class="btn btn-success" onclick="alert('בהמתנה לפיתוח')">➕ חשבונית חדשה</button>
-                    <button class="btn btn-warning" onclick="alert('בהמתנה לפיתוח')">📊 דוח חודשי</button>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">₪12,450</div>
-                        <div>הכנסות החודש</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">₪2,300</div>
-                        <div>ממתין לתשלום</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">15</div>
-                        <div>חשבוניות פתוחות</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">₪850</div>
-                        <div>חובות פגי תוקף</div>
-                    </div>
-                </div>
-
-                <h3>חשבוניות אחרונות</h3>
-                <table class="payments-table">
-                    <thead>
-                        <tr>
-                            <th>מספר</th>
-                            <th>לקוח</th>
-                            <th>סכום</th>
-                            <th>תאריך</th>
-                            <th>סטטוס</th>
-                            <th>פעולות</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>INV-001</td>
-                            <td>יוסי כהן</td>
-                            <td>₪250</td>
-                            <td>28/08/2024</td>
-                            <td><span class="status-paid">שולם</span></td>
-                            <td><button class="btn">הדפס</button></td>
-                        </tr>
-                        <tr>
-                            <td>INV-002</td>
-                            <td>רחל לוי</td>
-                            <td>₪400</td>
-                            <td>27/08/2024</td>
-                            <td><span class="status-pending">ממתין</span></td>
-                            <td><button class="btn btn-warning">שלח תזכורת</button></td>
-                        </tr>
-                        <tr>
-                            <td>INV-003</td>
-                            <td>דוד אברהם</td>
-                            <td>₪180</td>
-                            <td>25/08/2024</td>
-                            <td><span class="status-overdue">פגי תוקף</span></td>
-                            <td><button class="btn btn-warning">צור קשר</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </body>
-        </html>
-    `);
-});
-
-app.get('/api/reports', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="he" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title>דוחות ואנליטיקה - BusinessFlow</title>
-            <style>
-                body { font-family: Arial; padding: 20px; direction: rtl; background: #f5f5f5; }
-                .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-                .btn { background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none; margin: 5px; }
-                .reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
-                .report-card { background: #f8f9fa; padding: 20px; border-radius: 10px; border-right: 5px solid #667eea; }
-                .chart-placeholder { height: 200px; background: #e9ecef; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #666; margin: 15px 0; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>📊 דוחות ואנליטיקה</h1>
-                <p>ניתוח מפורט של הביצועים העסקיים שלך</p>
-
-                <div>
-                    <a href="/dashboard" class="btn">🏠 חזרה לדאשבורד</a>
-                    <button class="btn" onclick="alert('בהמתנה לפיתוח')">📈 דוח מותאם</button>
-                    <button class="btn" onclick="alert('בהמתנה לפיתוח')">💾 יצא לאקסל</button>
-                </div>
-
-                <div class="reports-grid">
-                    <div class="report-card">
-                        <h3>📈 הכנסות חודשיות</h3>
-                        <div class="chart-placeholder">גרף הכנסות יוצג כאן</div>
-                        <p>עלייה של 15% לעומת החודש הקודם</p>
-                    </div>
-
-                    <div class="report-card">
-                        <h3>👥 ניתוח לקוחות</h3>
-                        <div class="chart-placeholder">גרף פילוח לקוחות יוצג כאן</div>
-                        <p>85% לקוחות חוזרים, 15% לקוחות חדשים</p>
-                    </div>
-
-                    <div class="report-card">
-                        <h3>⏰ שעות פעילות</h3>
-                        <div class="chart-placeholder">גרף שעות יוצג כאן</div>
-                        <p>שעות השיא: 14:00-18:00</p>
-                    </div>
-
-                    <div class="report-card">
-                        <h3>🎯 שביעות רצון</h3>
-                        <div class="chart-placeholder">גרף שביעות רצון יוצג כאן</div>
-                        <p>דירוג ממוצע: 4.8/5</p>
-                    </div>
-                </div>
-
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 30px;">
-                    <h3>💡 תובנות עסקיות</h3>
-                    <ul>
-                        <li>השירות הפופולרי ביותר: קרמיקה למתחילים (35%)</li>
-                        <li>יום השבוע הטוב ביותר: יום חמישי</li>
-                        <li>זמן ממוצע בין תורים: 3.2 שבועות</li>
-                        <li>אחוז ביטולים: 8% (נמוך מהממוצע)</li>
-                    </ul>
-                </div>
-            </div>
-        </body>
-        </html>
-    `);
-});
-
-// Dashboard route with error handling
-let dashboardRoutes;
-try {
-    dashboardRoutes = require('./routes/dashboard');
-    console.log('Dashboard route loaded successfully');
-} catch (error) {
-    console.warn('Dashboard route file not available, using built-in dashboard');
-    dashboardRoutes = express.Router();
-    dashboardRoutes.get('/', (req, res) => {
-        res.send('<h1>Dashboard not available</h1><a href="/auth/login">Login</a>');
-    });
-}
-
-// Load additional routes for multi-provider system with error handling
-let providerRoutes;
-try {
-    providerRoutes = require('./routes/provider');
-    console.log('✅ Provider routes loaded successfully');
-} catch (error) {
-    console.error('❌ Provider routes failed to load:', error.message);
-    providerRoutes = express.Router();
-    providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
-}
-
-// Load subscriber routes
-let subscriberRoutes;
-try {
-    subscriberRoutes = require('./routes/subscribers');
-    console.log('✅ Subscriber routes loaded successfully');
-} catch (error) {
-    console.error('❌ Subscriber routes failed to load:', error.message);
-    subscriberRoutes = express.Router();
-    subscriberRoutes.get('/', (req, res) => res.json({ message: 'Subscriber service not available' }));
-}
-
-// Apply routes with error handling
 try {
     app.use('/auth', authRoutes);
     console.log('✅ Auth routes applied');
