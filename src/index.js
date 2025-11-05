@@ -70,6 +70,15 @@ try {
     console.warn('NotificationService not available:', error.message);
 }
 
+// Initialize CronService for automated tasks
+let cronService;
+try {
+    cronService = require('./services/cronService');
+    console.log('CronService loaded successfully');
+} catch (error) {
+    console.warn('CronService not available:', error.message);
+}
+
 // Initialize services safely with try-catch
 console.log('Initializing services in safe mode...');
 
@@ -413,6 +422,16 @@ async function connectToDatabase() {
     redis: results[2].status === 'fulfilled' && isRedisConnected()
   });
 
+  // Initialize CronService after database connections
+  if (cronService && isMongoDBConnected()) {
+    try {
+      cronService.initialize();
+      logInfo('CronService initialized - automated tasks scheduled');
+    } catch (error) {
+      logWarning('Failed to initialize CronService', { error: error.message });
+    }
+  }
+
   return true;
 }
 
@@ -420,6 +439,12 @@ async function connectToDatabase() {
 async function gracefulShutdown(signal, server) {
     console.log(`Received ${signal}. Starting graceful shutdown...`);
     try {
+        // Stop CronService
+        if (cronService) {
+            cronService.stopAll();
+            console.log('CronService stopped');
+        }
+        
         if (pool) {
             await pool.end();
         }

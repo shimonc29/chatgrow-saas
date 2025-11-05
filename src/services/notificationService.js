@@ -319,36 +319,125 @@ class NotificationService {
 
     /**
      * Send event reminder notification
-     * @param {Object} registration - Registration object
      * @param {Object} event - Event object
+     * @param {string} timeframe - '24h' or '1h'
      */
-    async sendEventReminder(registration, event) {
-        const { participant } = registration;
+    async sendEventReminder(event, timeframe = '24h') {
+        const timeText = timeframe === '24h' ? 'מחר' : 'בעוד שעה';
+        const emoji = timeframe === '24h' ? '📅' : '⏰';
+        
+        // Send to business owner
+        const businessEmail = event.businessId?.email || event.business?.email;
+        const businessName = event.businessId?.profile?.businessName || event.business?.name || 'ספק';
+
+        if (businessEmail) {
+            const emailHtml = `
+                <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #667eea;">${emoji} תזכורת לאירוע ${timeText}</h2>
+                    <p>שלום ${businessName},</p>
+                    <p>זו תזכורת שהאירוע מתקיים ${timeText}: <strong>${event.title || event.name}</strong></p>
+                    
+                    <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">פרטי האירוע:</h3>
+                        <p><strong>📅 תאריך:</strong> ${new Date(event.startDate || event.startDateTime).toLocaleDateString('he-IL')}</p>
+                        <p><strong>🕐 שעה:</strong> ${new Date(event.startDate || event.startDateTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p><strong>📍 מיקום:</strong> ${event.location?.address?.city || event.location?.city || 'לא צוין'}</p>
+                        <p><strong>👥 משתתפים:</strong> ${event.participants || 0}</p>
+                    </div>
+                    
+                    <p>בהצלחה! 🎉</p>
+                    <p style="color: #666; font-size: 12px;">צוות ChatGrow</p>
+                </div>
+            `;
+
+            const smsMessage = `${emoji} תזכורת: ${timeText} ${event.title || event.name}\n📅 ${new Date(event.startDate || event.startDateTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`;
+
+            return await this.sendMultiChannel({
+                email: businessEmail,
+                phone: event.businessId?.profile?.phone,
+                subject: `תזכורת - ${event.title || event.name} ${timeText}`,
+                emailHtml,
+                smsMessage
+            });
+        }
+    }
+
+    /**
+     * Send appointment confirmation
+     * @param {Object} appointment - Appointment object
+     */
+    async sendAppointmentConfirmation(appointment) {
+        const customer = appointment.customerId || appointment.customer;
+        const customerName = `${customer.firstName} ${customer.lastName}`;
         
         const emailHtml = `
             <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #667eea;">⏰ תזכורת לאירוע מחר!</h2>
-                <p>שלום ${participant.firstName},</p>
-                <p>זו תזכורת ידידותית שמחר מתקיים האירוע: <strong>${event.name}</strong></p>
+                <h2 style="color: #667eea;">✅ אישור תור</h2>
+                <p>שלום ${customerName},</p>
+                <p>תורך אושר בהצלחה!</p>
                 
-                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="margin-top: 0;">פרטי האירוע:</h3>
-                    <p><strong>📅 תאריך:</strong> ${new Date(event.startDateTime).toLocaleDateString('he-IL')}</p>
-                    <p><strong>🕐 שעה:</strong> ${new Date(event.startDateTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
-                    <p><strong>📍 מיקום:</strong> ${event.location?.address?.city || 'אונליין'}</p>
-                    ${event.location?.onlineLink ? `<p><strong>🔗 קישור:</strong> <a href="${event.location.onlineLink}">${event.location.onlineLink}</a></p>` : ''}
+                <div style="background: #f5f7fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">פרטי התור:</h3>
+                    <p><strong>📅 תאריך:</strong> ${new Date(appointment.appointmentDate).toLocaleDateString('he-IL')}</p>
+                    <p><strong>🕐 שעה:</strong> ${new Date(appointment.appointmentDate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p><strong>⏱️ משך:</strong> ${appointment.duration || 30} דקות</p>
+                    ${appointment.service ? `<p><strong>🎯 שירות:</strong> ${appointment.service}</p>` : ''}
+                    ${appointment.notes ? `<p><strong>📝 הערות:</strong> ${appointment.notes}</p>` : ''}
                 </div>
                 
-                <p>מצפים לראותך! 🎉</p>
+                <p>נתראה בתור! 📆</p>
+                <p style="color: #666; font-size: 12px;">צוות ChatGrow</p>
             </div>
         `;
 
-        const smsMessage = `⏰ תזכורת: מחר ${event.name}\n📅 ${new Date(event.startDateTime).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}\n${event.location?.address?.city || 'אונליין'}`;
+        const smsMessage = `✅ תור אושר!\n📅 ${new Date(appointment.appointmentDate).toLocaleDateString('he-IL')} ${new Date(appointment.appointmentDate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}\n⏱️ ${appointment.duration || 30} דקות`;
 
         return await this.sendMultiChannel({
-            email: participant.email,
-            phone: participant.phone,
-            subject: `תזכורת - ${event.name} מחר!`,
+            email: customer.email,
+            phone: customer.phone,
+            subject: 'אישור תור',
+            emailHtml,
+            smsMessage
+        });
+    }
+
+    /**
+     * Send appointment reminder
+     * @param {Object} appointment - Appointment object
+     * @param {string} timeframe - '24h' or '1h'
+     */
+    async sendAppointmentReminder(appointment, timeframe = '24h') {
+        const timeText = timeframe === '24h' ? 'מחר' : 'בעוד שעה';
+        const emoji = timeframe === '24h' ? '📅' : '⏰';
+        
+        const customer = appointment.customerId || appointment.customer;
+        const customerName = `${customer.firstName} ${customer.lastName}`;
+        
+        const emailHtml = `
+            <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #667eea;">${emoji} תזכורת לתור ${timeText}</h2>
+                <p>שלום ${customerName},</p>
+                <p>זו תזכורת שיש לך תור ${timeText}!</p>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-top: 0;">פרטי התור:</h3>
+                    <p><strong>📅 תאריך:</strong> ${new Date(appointment.appointmentDate).toLocaleDateString('he-IL')}</p>
+                    <p><strong>🕐 שעה:</strong> ${new Date(appointment.appointmentDate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p><strong>⏱️ משך:</strong> ${appointment.duration || 30} דקות</p>
+                    ${appointment.service ? `<p><strong>🎯 שירות:</strong> ${appointment.service}</p>` : ''}
+                </div>
+                
+                <p>מצפים לראותך! ⏰</p>
+                <p style="color: #666; font-size: 12px;">צוות ChatGrow</p>
+            </div>
+        `;
+
+        const smsMessage = `${emoji} תזכורת: תור ${timeText}\n📅 ${new Date(appointment.appointmentDate).toLocaleDateString('he-IL')} ${new Date(appointment.appointmentDate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}\n⏱️ ${appointment.duration || 30} דקות`;
+
+        return await this.sendMultiChannel({
+            email: customer.email,
+            phone: customer.phone,
+            subject: `תזכורת - תור ${timeText}`,
             emailHtml,
             smsMessage
         });
