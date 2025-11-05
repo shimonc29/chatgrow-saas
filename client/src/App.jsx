@@ -1,35 +1,14 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import PrivateRoute from './components/Layout/PrivateRoute';
-
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import Dashboard from './pages/admin/Dashboard';
+import { Box, Heading, Text } from '@chakra-ui/react';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          <Route 
-            path="/dashboard" 
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } 
-          />
-          
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <Box minH="100vh" bgGradient="linear(to-br, purple.500, pink.500)" display="flex" alignItems="center" justifyContent="center">
+      <Box textAlign="center" color="white" p={8}>
+        <Heading size="2xl" mb={4}>🎉 ChatGrow Frontend</Heading>
+        <Text fontSize="xl">React + Chakra UI + RTL Support</Text>
+        <Text mt={4}>המערכת מוכנה לעבודה!</Text>
+      </Box>
+    </Box>
   );
 }
 

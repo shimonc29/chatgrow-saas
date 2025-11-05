@@ -18,39 +18,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "backend"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "fullstack"
-
-[[workflows.workflow]]
-name = "server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow]]
-name = "backend"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node src/index.js"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[workflows.workflow]]
 name = "fullstack"
@@ -71,6 +39,10 @@ externalPort = 3000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 36711
+externalPort = 3001
 
 [agent]
 expertMode = true
