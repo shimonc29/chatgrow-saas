@@ -7,7 +7,12 @@ const connectMongoDB = async () => {
     try {
         const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chatgrow';
         
-        if (!mongoURI || mongoURI === 'mongodb://localhost:27017/chatgrow') {
+        logInfo('Attempting to connect to MongoDB', {
+            hasURI: !!process.env.MONGODB_URI,
+            uriType: mongoURI.startsWith('mongodb+srv') ? 'Atlas' : 'Local'
+        });
+        
+        if (!process.env.MONGODB_URI || mongoURI === 'mongodb://localhost:27017/chatgrow') {
             logWarning('MongoDB URI not configured, using local MongoDB (may not be available)');
         }
 

@@ -1,8 +1,10 @@
+// MUST load environment variables FIRST before any other modules
+require('dotenv').config();
+
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const helmet = require('helmet');
-require('dotenv').config();
 
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
