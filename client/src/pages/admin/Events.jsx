@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
+import { eventsAPI } from '../../services/api';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,26 +17,85 @@ const Events = () => {
     price: '',
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newEvent = {
-      id: Date.now(),
-      ...formData,
-      participants: 0,
-      status: 'active',
-    };
-    setEvents([...events, newEvent]);
-    setFormData({
-      title: '',
-      description: '',
-      date: '',
-      time: '',
-      location: '',
-      maxParticipants: '',
-      price: '',
-    });
-    setShowModal(false);
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await eventsAPI.getAll();
+      setEvents(response.data.events || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching events:', err);
+      setError('שגיאה בטעינת אירועים');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const eventData = {
+        name: formData.title,
+        description: formData.description,
+        date: formData.date,
+        startTime: formData.time,
+        location: formData.location,
+        maxParticipants: parseInt(formData.maxParticipants),
+        price: parseFloat(formData.price),
+        status: 'active',
+      };
+
+      const response = await eventsAPI.create(eventData);
+      setEvents([response.data.event, ...events]);
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        maxParticipants: '',
+        price: '',
+      });
+      setShowModal(false);
+    } catch (err) {
+      console.error('Error creating event:', err);
+      alert('שגיאה ביצירת אירוע: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleDelete = async (eventId) => {
+    if (!window.confirm('האם אתה בטוח שברצונך לבטל אירוע זה?')) return;
+    
+    try {
+      await eventsAPI.delete(eventId);
+      setEvents(events.filter(e => e._id !== eventId));
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      alert('שגיאה בביטול אירוע');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('he-IL');
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="p-8 flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⏳</div>
+            <p className="text-gray-600">טוען אירועים...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -53,22 +115,30 @@ const Events = () => {
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+
         {/* Events Grid */}
         {events.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <div key={event.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div key={event._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">{event.title}</h3>
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    פעיל
+                  <h3 className="text-xl font-bold text-gray-800">{event.name}</h3>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {event.status === 'active' ? 'פעיל' : event.status === 'cancelled' ? 'בוטל' : event.status}
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm mb-4">{event.description}</p>
                 <div className="space-y-2 text-sm text-gray-500">
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>📅</span>
-                    <span>{event.date} בשעה {event.time}</span>
+                    <span>{formatDate(event.date)} בשעה {event.startTime}</span>
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>📍</span>
@@ -76,7 +146,7 @@ const Events = () => {
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>👥</span>
-                    <span>{event.participants}/{event.maxParticipants} משתתפים</span>
+                    <span>{event.registeredCount || 0}/{event.maxParticipants} משתתפים</span>
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>💰</span>
@@ -84,11 +154,11 @@ const Events = () => {
                   </div>
                 </div>
                 <div className="mt-4 flex space-x-reverse space-x-2">
-                  <button className="flex-1 bg-brand-50 text-brand-600 py-2 rounded-lg hover:bg-brand-100 transition-colors">
-                    עריכה
-                  </button>
-                  <button className="flex-1 bg-gray-50 text-gray-600 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    צפייה
+                  <button 
+                    onClick={() => handleDelete(event._id)}
+                    className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    ביטול
                   </button>
                 </div>
               </div>

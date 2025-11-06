@@ -63,4 +63,21 @@ export const paymentsAPI = {
   getByRegistration: (registrationId) => api.get(`/payments/registration/${registrationId}`),
 };
 
+export const customersAPI = {
+  getAll: (params) => api.get('/customers', { params }),
+  getById: (id) => api.get(`/customers/${id}`),
+  create: (customerData) => api.post('/customers', customerData),
+  update: (id, customerData) => api.put(`/customers/${id}`, customerData),
+  delete: (id) => api.delete(`/customers/${id}`),
+};
+
+export const appointmentsAPI = {
+  getAll: (params) => api.get('/appointments', { params }),
+  getById: (id) => api.get(`/appointments/${id}`),
+  create: (appointmentData) => api.post('/appointments', appointmentData),
+  update: (id, appointmentData) => api.put(`/appointments/${id}`, appointmentData),
+  updateStatus: (id, status) => api.patch(`/appointments/${id}/status`, { status }),
+  delete: (id) => api.delete(`/appointments/${id}`),
+};
+
 export default api;

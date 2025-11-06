@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
+import { appointmentsAPI } from '../../services/api';
 
 const Appointments = () => {
   const [showModal, setShowModal] = useState(false);
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     customerName: '',
     service: '',
@@ -12,24 +15,69 @@ const Appointments = () => {
     notes: '',
   });
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const response = await appointmentsAPI.getAll();
+      setAppointments(response.data.appointments || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError('שגיאה בטעינת תורים');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newAppointment = {
-      id: Date.now(),
-      ...formData,
-      status: 'scheduled',
-    };
-    setAppointments([...appointments, newAppointment]);
-    setFormData({ customerName: '', service: '', date: '', time: '', notes: '' });
-    setShowModal(false);
+    try {
+      const response = await appointmentsAPI.create(formData);
+      setAppointments([response.data.appointment, ...appointments]);
+      setFormData({ customerName: '', service: '', date: '', time: '', notes: '' });
+      setShowModal(false);
+    } catch (err) {
+      console.error('Error creating appointment:', err);
+      alert('שגיאה ביצירת תור: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleStatusChange = async (appointmentId, newStatus) => {
+    try {
+      await appointmentsAPI.updateStatus(appointmentId, newStatus);
+      setAppointments(appointments.map(apt => 
+        apt._id === appointmentId ? { ...apt, status: newStatus } : apt
+      ));
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('שגיאה בעדכון סטטוס');
+    }
+  };
+
+  const handleDelete = async (appointmentId) => {
+    if (!window.confirm('האם אתה בטוח שברצונך לבטל תור זה?')) return;
+    
+    try {
+      await appointmentsAPI.delete(appointmentId);
+      setAppointments(appointments.filter(apt => apt._id !== appointmentId));
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
+      alert('שגיאה בביטול תור');
+    }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'scheduled':
         return 'bg-blue-100 text-blue-800';
-      case 'completed':
+      case 'confirmed':
         return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -41,6 +89,8 @@ const Appointments = () => {
     switch (status) {
       case 'scheduled':
         return 'מתוכנן';
+      case 'confirmed':
+        return 'מאושר';
       case 'completed':
         return 'הושלם';
       case 'cancelled':
@@ -49,6 +99,24 @@ const Appointments = () => {
         return status;
     }
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('he-IL');
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="p-8 flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⏳</div>
+            <p className="text-gray-600">טוען תורים...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -68,49 +136,75 @@ const Appointments = () => {
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+
         {/* Appointments List */}
         {appointments.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {appointments.map((appointment) => (
-              <div key={appointment.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">{appointment.customerName}</h3>
-                    <p className="text-sm text-gray-600">{appointment.service}</p>
-                  </div>
-                  <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getStatusColor(appointment.status)}`}>
-                    {getStatusText(appointment.status)}
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center space-x-reverse space-x-2">
-                    <span>📅</span>
-                    <span>{appointment.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-reverse space-x-2">
-                    <span>🕐</span>
-                    <span>{appointment.time}</span>
-                  </div>
-                  {appointment.notes && (
-                    <div className="flex items-start space-x-reverse space-x-2 mt-3">
-                      <span>📝</span>
-                      <span className="flex-1">{appointment.notes}</span>
+            {appointments.map((appointment) => {
+              const customerName = `${appointment.customer.firstName} ${appointment.customer.lastName}`;
+              return (
+                <div key={appointment._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">{customerName}</h3>
+                      <p className="text-sm text-gray-600">{appointment.serviceName}</p>
                     </div>
-                  )}
+                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getStatusColor(appointment.status)}`}>
+                      {getStatusText(appointment.status)}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center space-x-reverse space-x-2">
+                      <span>📅</span>
+                      <span>{formatDate(appointment.appointmentDate)}</span>
+                    </div>
+                    <div className="flex items-center space-x-reverse space-x-2">
+                      <span>🕐</span>
+                      <span>{appointment.startTime}</span>
+                    </div>
+                    <div className="flex items-center space-x-reverse space-x-2">
+                      <span>📞</span>
+                      <span>{appointment.customer.phone}</span>
+                    </div>
+                    {appointment.customer.notes && (
+                      <div className="flex items-start space-x-reverse space-x-2 mt-3">
+                        <span>📝</span>
+                        <span className="flex-1">{appointment.customer.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 flex space-x-reverse space-x-2">
+                    {appointment.status === 'scheduled' && (
+                      <button 
+                        onClick={() => handleStatusChange(appointment._id, 'confirmed')}
+                        className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm"
+                      >
+                        אשר
+                      </button>
+                    )}
+                    {appointment.status === 'confirmed' && (
+                      <button 
+                        onClick={() => handleStatusChange(appointment._id, 'completed')}
+                        className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                      >
+                        סיים
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleDelete(appointment._id)}
+                      className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                    >
+                      בטל
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-4 flex space-x-reverse space-x-2">
-                  <button className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm">
-                    סיים
-                  </button>
-                  <button className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm">
-                    בטל
-                  </button>
-                  <button className="flex-1 bg-brand-50 text-brand-600 py-2 rounded-lg hover:bg-brand-100 transition-colors text-sm">
-                    ערוך
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-md p-12 text-center">
