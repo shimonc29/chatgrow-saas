@@ -117,3 +117,11 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Authentication System** with Hebrew RTL login/register pages
 - **Protected Routes** with PrivateRoute component and AuthContext
 - **Vite Configuration** optimized for Replit with proxy and allowedHosts settings
+
+### Backend API Integration (November 6, 2025)
+- **Created MongoDB-backed API endpoints** for Customers and Appointments (replaced HTML-only routes)
+- **Full CRUD operations** implemented for both entities with authentication middleware
+- **Client-side API integration** - All admin pages now use axios with proper API calls
+- **Loading states and error handling** added to all pages (Events, Customers, Appointments)
+- **Data persistence verified** - All operations now save to MongoDB and persist across sessions
+- **API service layer** expanded in client/src/services/api.js with customersAPI and appointmentsAPI
