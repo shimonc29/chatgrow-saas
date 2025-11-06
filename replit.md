@@ -114,3 +114,11 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
   - Detailed modal with table showing all participants
   - Displays: name, email, phone, registration date, payment status
   - Empty state when no participants yet
+- **Fixed Payment Creation Error (500)**: Resolved validation error when creating manual payments
+  - Added required `relatedTo.type` field to payment form
+  - Defaults to 'other' for manual payments not linked to specific events/appointments
+  - Payment model now properly validates all required fields
+- **Fixed React Rendering Error**: Resolved "Objects are not valid as a React child" error
+  - Added `getLocation()` helper function to safely render location objects
+  - Handles both string locations and complex location objects with address/type
+  - Applied fix to Dashboard and Events pages
