@@ -185,3 +185,42 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
   - Templates define layout structure and default styling
   - Users customize content, colors, and images within template structure
   - Approach prioritizes speed-to-market over infinite customization
+
+### Marketing Home Page (November 6, 2025)
+- **Public Marketing Landing Page**: Professional marketing home page explaining ChatGrow's value proposition
+  - Route: `/` (public, no authentication required)
+  - Replaced default redirect to dashboard with engaging marketing page
+  - Designed to convert visitors into registered users
+- **Page Structure**: Multi-section layout with modern design
+  - **Navigation**: Sticky top bar with ChatGrow branding, Login and Register CTAs
+  - **Hero Section**: Large headline "נהל את העסק שלך בצורה חכמה ויעילה" with dual CTAs (Register & Learn More)
+  - **Stats Bar**: 4 key metrics (10,000+ customers, 99.9% uptime, 24/7 support, 50+ features)
+  - **Benefits Section**: 4 main value propositions (Save Time, Increase Revenue, Improve Customer Experience, Manage Anywhere)
+  - **Features Section**: 8 detailed feature cards (Events, Appointments, Customers, Payments, Notifications, Reports, Invoices, Landing Pages)
+  - **How It Works**: 4-step process (Register → Customize → Share → Grow)
+  - **Testimonials**: Social proof with 3 customer testimonials and 5-star ratings
+  - **Final CTA**: Strong call-to-action encouraging immediate registration
+  - **Footer**: Company info, feature links, contact details, legal pages
+- **Design & UX**: Modern, professional, conversion-optimized design
+  - Full RTL support for Hebrew content
+  - Gradient backgrounds (purple-pink-blue theme matching ChatGrow branding)
+  - Fully responsive (mobile-first): 1 column mobile → 2 columns tablet → 3-4 columns desktop
+  - Smooth scrolling, hover effects, transform animations
+  - Consistent color scheme using Tailwind gradients
+  - Clear visual hierarchy guiding users to registration
+- **Conversion Path**: Multiple touchpoints encouraging sign-up
+  - Header "הירשם חינם" button (always visible, sticky nav)
+  - Hero dual CTA: Primary "התחל עכשיו - חינם! 🚀" and secondary "למד עוד 📖"
+  - Final section "מוכן להתחיל לצמוח?" with prominent CTA
+  - Trust indicators: "✓ ללא כרטיס אשראי | ✓ ביטול בכל עת | ✓ תמיכה בעברית 24/7"
+- **Marketing Copy**: Clear, benefit-focused Hebrew messaging
+  - Emphasizes automation, time savings, revenue growth
+  - Highlights Israeli payment gateway integrations (GROW, Cardcom, Tranzila)
+  - Showcases all 8 core features with icons and descriptions
+  - Addresses SMB pain points: manual work, missed appointments, payment collection
+- **Technical Implementation**:
+  - Component: `client/src/pages/public/MarketingHome.jsx`
+  - No authentication required (public route)
+  - Uses React Router navigation for Login/Register redirects
+  - Smooth scroll behavior for "Learn More" CTA
+  - Tailwind CSS for responsive design with RTL support
