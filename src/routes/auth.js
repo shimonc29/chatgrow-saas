@@ -437,7 +437,7 @@ router.post('/register', async (req, res) => {
         
         const token = jwt.sign(
             { providerId: savedProvider.id, email: savedProvider.email, businessName: savedProvider.businessName }, 
-            'your-secret-key', 
+            process.env.JWT_SECRET, 
             { expiresIn: '24h' }
         );
         
@@ -471,7 +471,7 @@ router.post('/login', async (req, res) => {
         
         const token = jwt.sign(
             { providerId: provider.id, email: provider.email, businessName: provider.businessName }, 
-            'your-secret-key', 
+            process.env.JWT_SECRET, 
             { expiresIn: '24h' }
         );
         
@@ -497,7 +497,7 @@ const verifyProviderToken = (req, res, next) => {
     }
     
     try {
-        const decoded = jwt.verify(token, 'your-secret-key');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.provider = decoded;
         next();
     } catch (error) {
