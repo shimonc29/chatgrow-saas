@@ -17,15 +17,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getToken();
-    const savedUser = loadUser();
+    const initAuth = async () => {
+      const token = getToken();
+      const savedUser = loadUser();
+      
+      if (token && savedUser) {
+        try {
+          const response = await authAPI.me();
+          if (response.data.success && response.data.provider) {
+            setUser(response.data.provider);
+          } else {
+            console.warn('Token validation failed, clearing auth');
+            removeToken();
+            removeUser();
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Failed to validate token, clearing auth:', error);
+          removeToken();
+          removeUser();
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
     
-    if (token && savedUser) {
-      setUser(savedUser);
-      setLoading(false);
-    } else {
-      setLoading(false);
-    }
+    initAuth();
   }, []);
 
   const login = async (credentials) => {
