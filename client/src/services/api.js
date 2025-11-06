@@ -81,4 +81,8 @@ export const appointmentsAPI = {
   delete: (id) => api.delete(`/appointments/${id}`),
 };
 
+export const statsAPI = {
+  getDashboard: () => api.get('/stats'),
+};
+
 export default api;
