@@ -60,6 +60,44 @@ router.get('/', verifyProviderToken, async (req, res) => {
     }
 });
 
+// Get single payment by ID
+router.get('/:id', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const payment = await Payment.findOne({
+            _id: req.params.id,
+            businessId: req.provider.providerId
+        }).populate('customerId', 'firstName lastName phone email');
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId: req.provider.providerId,
+            paymentId: req.params.id
+        });
+        
+        res.json({
+            success: true,
+            payment
+        });
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // Create payment using paymentService
 router.post('/create', verifyProviderToken, async (req, res) => {
     try {
@@ -107,9 +145,169 @@ router.post('/create', verifyProviderToken, async (req, res) => {
     }
 });
 
+// Update payment
+router.put('/:id', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const payment = await Payment.findOne({
+            _id: req.params.id,
+            businessId: req.provider.providerId
+        });
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
+        const allowedUpdates = ['status', 'notes', 'metadata'];
+        const updates = {};
+        
+        Object.keys(req.body).forEach(key => {
+            if (allowedUpdates.includes(key)) {
+                updates[key] = req.body[key];
+            }
+        });
+        
+        const updatedPayment = await Payment.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true }
+        ).populate('customerId', 'firstName lastName phone email');
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId: req.provider.providerId,
+            paymentId: req.params.id
+        });
+        
+        res.json({
+            success: true,
+            payment: updatedPayment,
+            message: 'תשלום עודכן בהצלחה'
+        });
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Delete payment
+router.delete('/:id', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const payment = await Payment.findOneAndDelete({
+            _id: req.params.id,
+            businessId: req.provider.providerId
+        });
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId: req.provider.providerId,
+            paymentId: req.params.id
+        });
+        
+        res.json({
+            success: true,
+            message: 'תשלום נמחק בהצלחה'
+        });
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Complete payment (manual completion)
+router.post('/:id/complete', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const payment = await Payment.findOne({
+            _id: req.params.id,
+            businessId: req.provider.providerId
+        });
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
+        if (payment.status === 'completed') {
+            return res.status(400).json({
+                success: false,
+                message: 'תשלום כבר הושלם'
+            });
+        }
+        
+        payment.status = 'completed';
+        payment.metadata = {
+            ...payment.metadata,
+            completedAt: new Date(),
+            completedBy: req.provider.providerId,
+            completionMethod: 'manual',
+            ...(req.body.providerData || {})
+        };
+        
+        await payment.save();
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId: req.provider.providerId,
+            paymentId: req.params.id
+        });
+        
+        res.json({
+            success: true,
+            payment,
+            message: 'תשלום סומן כהושלם'
+        });
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 router.get('/:paymentId/status', verifyProviderToken, async (req, res) => {
     try {
-        const payment = await paymentService.getPaymentStatus(req.params.paymentId);
+        const payment = await Payment.findOne({
+            _id: req.params.paymentId,
+            businessId: req.provider.providerId
+        });
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
         res.json({ success: true, payment, status: payment.status });
     } catch (error) {
         logError('Failed to get payment status', error);
@@ -119,6 +317,18 @@ router.get('/:paymentId/status', verifyProviderToken, async (req, res) => {
 
 router.post('/:paymentId/refund', verifyProviderToken, async (req, res) => {
     try {
+        const payment = await Payment.findOne({
+            _id: req.params.paymentId,
+            businessId: req.provider.providerId
+        });
+        
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: 'תשלום לא נמצא'
+            });
+        }
+        
         const { amount, reason } = req.body;
         const result = await paymentService.refundPayment(req.params.paymentId, amount, reason);
         res.json({ success: true, payment: result.payment, refund: result.refund, message: 'התשלום זוכה בהצלחה' });
