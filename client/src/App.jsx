@@ -10,6 +10,7 @@ import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import RegistrationPages from './pages/admin/RegistrationPages';
+import PaymentSettings from './pages/admin/PaymentSettings';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -76,6 +77,15 @@ function App() {
             element={
               <PrivateRoute>
                 <RegistrationPages />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/payment-settings" 
+            element={
+              <PrivateRoute>
+                <PaymentSettings />
               </PrivateRoute>
             } 
           />

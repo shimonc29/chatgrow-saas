@@ -12,6 +12,7 @@ const Sidebar = () => {
     { path: '/appointments', icon: '📋', label: 'תורים' },
     { path: '/payments', icon: '💳', label: 'תשלומים' },
     { path: '/registration-pages', icon: '🔗', label: 'דפי הרשמה' },
+    { path: '/payment-settings', icon: '⚙️', label: 'הגדרות תשלום' },
   ];
 
   const isActive = (path) => location.pathname === path;
