@@ -234,19 +234,30 @@ router.post('/events/:id/register', async (req, res) => {
 
         // Send confirmation email and SMS
         try {
-            await notificationService.sendEventConfirmation(
-                existingCustomer.email,
-                existingCustomer.phone,
-                {
-                    eventTitle: event.title,
-                    eventDate: event.date,
-                    eventTime: event.time,
-                    eventLocation: event.location,
-                    customerName: `${customer.firstName} ${customer.lastName}`,
-                    paymentAmount: amount,
-                    paymentStatus: payment ? payment.status : 'free'
+            const registration = {
+                participant: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email,
+                    phone: customer.phone
                 }
-            );
+            };
+            
+            const eventForNotification = {
+                name: event.title,
+                startDateTime: new Date(`${event.date}T${event.time || '00:00'}`),
+                location: {
+                    address: {
+                        city: event.location
+                    }
+                },
+                pricing: {
+                    type: amount > 0 ? 'paid' : 'free',
+                    amount: amount
+                }
+            };
+            
+            await notificationService.sendEventConfirmation(registration, eventForNotification);
         } catch (notifError) {
             logError('Failed to send registration confirmation', notifError);
         }
@@ -511,17 +522,23 @@ router.post('/appointments/book', async (req, res) => {
 
         // Send confirmation notifications
         try {
-            await notificationService.sendAppointmentConfirmation(
-                existingCustomer.email,
-                existingCustomer.phone,
-                {
-                    serviceType,
-                    appointmentDate: appointment.dateTime,
-                    customerName: `${customer.firstName} ${customer.lastName}`,
-                    paymentAmount: amount,
-                    paymentStatus: payment ? payment.status : 'free'
+            const appointmentForNotification = {
+                ...appointment.toObject(),
+                customerId: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email,
+                    phone: customer.phone
+                },
+                customer: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email,
+                    phone: customer.phone
                 }
-            );
+            };
+            
+            await notificationService.sendAppointmentConfirmation(appointmentForNotification);
         } catch (notifError) {
             logError('Failed to send appointment confirmation', notifError);
         }

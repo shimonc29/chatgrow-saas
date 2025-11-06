@@ -10,6 +10,10 @@ import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 
+import EventRegistration from './pages/public/EventRegistration';
+import PaymentSuccess from './pages/public/PaymentSuccess';
+import PaymentError from './pages/public/PaymentError';
+
 function App() {
   return (
     <BrowserRouter>
@@ -64,6 +68,10 @@ function App() {
               </PrivateRoute>
             } 
           />
+          
+          <Route path="/events/:id/register" element={<EventRegistration />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/error" element={<PaymentError />} />
           
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
