@@ -3,9 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-// Mock database for service providers
-const serviceProviders = new Map();
+const ServiceProvider = require('../models/ServiceProvider');
 
 // Registration page for service providers
 router.get('/register', (req, res) => {
@@ -416,41 +414,29 @@ router.post('/register', async (req, res) => {
     try {
         const { fullName, businessName, email, password, phone, serviceType } = req.body;
         
-        // Check if provider already exists
-        if (serviceProviders.has(email)) {
+        const existingProvider = await ServiceProvider.findByEmail(email);
+        if (existingProvider) {
             return res.json({ success: false, message: 'ספק שירות עם אימייל זה כבר קיים' });
         }
         
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Create provider ID
-        const providerId = 'prov_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
-        // Save provider
-        const provider = {
-            id: providerId,
+        const newProvider = new ServiceProvider({
             fullName,
             businessName,
             email,
-            password: hashedPassword,
+            password,
             phone,
             serviceType,
-            createdAt: new Date(),
-            customers: [],
-            appointments: [],
             analytics: {
                 totalCustomers: 0,
                 totalAppointments: 0,
                 revenue: 0
             }
-        };
+        });
         
-        serviceProviders.set(email, provider);
+        const savedProvider = await newProvider.save();
         
-        // Generate JWT token
         const token = jwt.sign(
-            { providerId, email, businessName }, 
+            { providerId: savedProvider.id, email: savedProvider.email, businessName: savedProvider.businessName }, 
             'your-secret-key', 
             { expiresIn: '24h' }
         );
@@ -459,16 +445,11 @@ router.post('/register', async (req, res) => {
             success: true, 
             message: 'נרשמת בהצלחה!',
             token,
-            provider: {
-                id: providerId,
-                fullName,
-                businessName,
-                email,
-                serviceType
-            }
+            provider: savedProvider.toJSON()
         });
         
     } catch (error) {
+        console.error('Registration error:', error);
         res.json({ success: false, message: 'שגיאה בהרשמה: ' + error.message });
     }
 });
@@ -478,19 +459,18 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        const provider = serviceProviders.get(email);
+        const provider = await ServiceProvider.findByEmail(email);
         if (!provider) {
             return res.json({ success: false, message: 'אימייל או סיסמה שגויים' });
         }
         
-        const isValidPassword = await bcrypt.compare(password, provider.password);
+        const isValidPassword = await provider.comparePassword(password);
         if (!isValidPassword) {
             return res.json({ success: false, message: 'אימייל או סיסמה שגויים' });
         }
         
-        // Generate JWT token
         const token = jwt.sign(
-            { providerId: provider.id, email, businessName: provider.businessName }, 
+            { providerId: provider.id, email: provider.email, businessName: provider.businessName }, 
             'your-secret-key', 
             { expiresIn: '24h' }
         );
@@ -499,16 +479,11 @@ router.post('/login', async (req, res) => {
             success: true, 
             message: 'התחברת בהצלחה!',
             token,
-            provider: {
-                id: provider.id,
-                fullName: provider.fullName,
-                businessName: provider.businessName,
-                email: provider.email,
-                serviceType: provider.serviceType
-            }
+            provider: provider.toJSON()
         });
         
     } catch (error) {
+        console.error('Login error:', error);
         res.json({ success: false, message: 'שגיאה בהתחברות: ' + error.message });
     }
 });
@@ -531,23 +506,21 @@ const verifyProviderToken = (req, res, next) => {
 };
 
 // Get provider data
-router.get('/me', verifyProviderToken, (req, res) => {
-    const provider = serviceProviders.get(req.provider.email);
-    if (!provider) {
-        return res.json({ success: false, message: 'ספק שירות לא נמצא' });
-    }
-    
-    res.json({
-        success: true,
-        provider: {
-            id: provider.id,
-            fullName: provider.fullName,
-            businessName: provider.businessName,
-            email: provider.email,
-            serviceType: provider.serviceType,
-            analytics: provider.analytics
+router.get('/me', verifyProviderToken, async (req, res) => {
+    try {
+        const provider = await ServiceProvider.findByEmail(req.provider.email);
+        if (!provider) {
+            return res.json({ success: false, message: 'ספק שירות לא נמצא' });
         }
-    });
+        
+        res.json({
+            success: true,
+            provider: provider.toJSON()
+        });
+    } catch (error) {
+        console.error('Get provider error:', error);
+        res.status(500).json({ success: false, message: 'שגיאה בטעינת נתונים' });
+    }
 });
 
 // Export providers data for other routes

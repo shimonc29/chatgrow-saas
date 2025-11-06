@@ -398,9 +398,12 @@ async function connectToPostgreSQL() {
     await client.query('SELECT NOW()');
     client.release();
     
-    // Initialize subscriber table
+    // Initialize tables
     const Subscriber = require('./models/Subscriber');
+    const ServiceProvider = require('./models/ServiceProvider');
+    
     await Subscriber.createTable();
+    await ServiceProvider.createTable();
     
     logInfo('Connected to PostgreSQL successfully');
     return true;
