@@ -97,3 +97,20 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
   - Info box with detailed usage instructions for sharing links
   - Full Hebrew RTL support with modern, accessible design
   - Added to sidebar navigation with 🔗 icon
+
+### Bug Fixes & Participants View (November 6, 2025)
+- **Fixed Appointment Booking Errors**: Resolved 500 errors when booking appointments
+  - Added all required fields to Appointment model (serviceName, customer fields, appointmentDate, startTime, endTime)
+  - Server now properly validates and extracts date/time components
+  - Price and duration always validated from server-side service catalog (security)
+- **Fixed Event Status Validation**: Corrected enum validation errors
+  - Changed all 'active' references to 'published' to match Event model enum
+  - Public routes now correctly filter for published events only
+- **Added Participants Array to Event Model**: Events can now track registrations
+  - Stores: name, email, phone, registration date, payment status
+  - Enables atomic capacity checks to prevent overbooking
+- **Participants View UI**: New feature to view event registrations
+  - "👥 נרשמים" button on each event card
+  - Detailed modal with table showing all participants
+  - Displays: name, email, phone, registration date, payment status
+  - Empty state when no participants yet
