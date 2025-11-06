@@ -121,4 +121,5 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 - **Fixed React Rendering Error**: Resolved "Objects are not valid as a React child" error
   - Added `getLocation()` helper function to safely render location objects
   - Handles both string locations and complex location objects with address/type
-  - Applied fix to Dashboard and Events pages
+  - Applied fix to Dashboard, Events, and EventRegistration (public) pages
+  - Public event registration links now work without white screen errors
