@@ -205,6 +205,16 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
 });
 
+// Public API Routes (NO authentication required) - MUST be before authenticated routes
+try {
+    const publicRoutes = require('./routes/public');
+    app.use('/api/public', publicRoutes);
+    console.log('✅ Public routes loaded successfully');
+} catch (error) {
+    console.warn('Public routes not available:', error.message);
+    app.get('/api/public', (req, res) => res.json({ message: 'Public service not available' }));
+}
+
 // API Routes with error handling
 if (authRoutes) app.use('/api/auth', authRoutes);
 if (eventsRoutes) app.use('/api/events', eventsRoutes);
