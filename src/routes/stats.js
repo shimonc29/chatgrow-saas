@@ -3,25 +3,11 @@ const router = express.Router();
 const Event = require('../models/Event');
 const Customer = require('../models/Customer');
 const Appointment = require('../models/Appointment');
-const jwt = require('jsonwebtoken');
 const { logApiRequest } = require('../utils/logger');
 
-// Provider authentication middleware
-const verifyProviderToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-        return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
-    }
-    
-    try {
-        const decoded = jwt.verify(token, 'your-secret-key');
-        req.provider = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ success: false, message: 'טוקן לא חוקי' });
-    }
-};
+// Import the shared verifyProviderToken middleware from auth routes
+const authRouter = require('./auth');
+const verifyProviderToken = authRouter.verifyProviderToken;
 
 // Get dashboard statistics
 router.get('/', verifyProviderToken, async (req, res) => {
@@ -148,7 +134,7 @@ router.get('/', verifyProviderToken, async (req, res) => {
         });
         res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         });
     }
 });
