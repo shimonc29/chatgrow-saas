@@ -5,6 +5,9 @@ import PrivateRoute from './components/Layout/PrivateRoute';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/admin/Dashboard';
+import Events from './pages/admin/Events';
+import Customers from './pages/admin/Customers';
+import Appointments from './pages/admin/Appointments';
 
 function App() {
   return (
@@ -21,6 +24,33 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/events" 
+            element={
+              <PrivateRoute>
+                <Events />
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/customers" 
+            element={
+              <PrivateRoute>
+                <Customers />
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/appointments" 
+            element={
+              <PrivateRoute>
+                <Appointments />
               </PrivateRoute>
             } 
           />
