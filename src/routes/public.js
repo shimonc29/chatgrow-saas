@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const Customer = require('../models/Customer');
 const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
+const LandingPage = require('../models/LandingPage');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
 const { logInfo, logError, logApiRequest } = require('../utils/logger');
@@ -691,6 +692,95 @@ router.post('/appointments/book', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'שגיאה בקביעת התור: ' + error.message
+        });
+    }
+});
+
+// Public Landing Pages Routes
+// View landing page by slug
+router.get('/landing/:slug', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { slug } = req.params;
+        
+        const page = await LandingPage.findOne({ slug, status: 'published' });
+        
+        if (!page) {
+            return res.status(404).json({
+                success: false,
+                message: 'דף לא נמצא'
+            });
+        }
+        
+        // Track view
+        const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+        await page.trackView(ipAddress);
+        
+        // Get linked entity if exists
+        let linkedEntity = null;
+        if (page.linkedTo.type === 'event' && page.linkedTo.id) {
+            linkedEntity = await Event.findById(page.linkedTo.id);
+        }
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            slug,
+            pageId: page._id,
+            views: page.analytics.views
+        });
+        
+        res.json({
+            success: true,
+            page,
+            linkedEntity
+        });
+    } catch (error) {
+        logError('Failed to view landing page', error);
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת הדף'
+        });
+    }
+});
+
+// Track conversion on landing page
+router.post('/landing/:slug/convert', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { slug } = req.params;
+        
+        const page = await LandingPage.findOne({ slug, status: 'published' });
+        
+        if (!page) {
+            return res.status(404).json({
+                success: false,
+                message: 'דף לא נמצא'
+            });
+        }
+        
+        await page.trackConversion();
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            slug,
+            pageId: page._id,
+            conversions: page.analytics.conversions
+        });
+        
+        res.json({ 
+            success: true 
+        });
+    } catch (error) {
+        logError('Failed to track conversion', error);
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה במעקב המרה'
         });
     }
 });
