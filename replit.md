@@ -142,3 +142,12 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Automated notifications:** Event reminders, appointment reminders via CronService
 - **Multi-channel support:** Send via Email + SMS simultaneously
 - **Template system:** Hebrew RTL email templates for event confirmations and reminders
+
+### Dashboard Statistics & Security Improvements (November 6, 2025)
+- **Dashboard Statistics API** (/api/stats) created with real-time data from MongoDB
+- **Statistics displayed:** Total events, customers, appointments, revenue calculations
+- **Upcoming events & recent customers** shown on Dashboard with proper formatting
+- **JWT Security fix:** Replaced hardcoded 'your-secret-key' with process.env.JWT_SECRET across all routes
+- **Shared authentication middleware:** stats.js now uses verifyProviderToken from auth.js
+- **Error response standardization:** Changed error field from 'error' to 'message' for consistency
+- **Environment secrets:** JWT_SECRET now properly stored in Replit Secrets for security
