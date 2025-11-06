@@ -19,7 +19,7 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Styling**: Tailwind CSS v3 with full RTL (Right-to-Left) support for Hebrew interface
 - **Architecture**: Single Page Application (SPA) with protected routes
 - **Provider Dashboard**: Full-featured admin interface with sidebar navigation for service providers
-- **Admin Pages**: Dashboard, Events, Customers, Appointments, and Payments management
+- **Admin Pages**: Dashboard, Events, Customers, Appointments, Payments management with full CRUD operations
 - **Authentication UI**: Modern login/register pages with gradient backgrounds and responsive design
 - **Components**: Modular layout system with Sidebar, MainLayout, and PrivateRoute components
 
@@ -67,11 +67,18 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
     - Statistics overview (events, participants, revenue)
     - Quick action buttons for common tasks
     - Upcoming events display
+- **Payment Management**:
+    - Full CRUD interface with table view and status tracking
+    - Support for multiple payment methods and Israeli payment providers
+    - Multi-currency support (ILS, USD, EUR)
+    - Payment status management (pending, processing, completed, failed, refunded, cancelled)
+    - Customer integration with dropdown selection
+    - Provider selection (manual or gateway providers)
 - **Subscriber Management**: Capabilities for handling subscriber lists (Backend only)
 - **Health Monitoring**: Endpoints for checking system health and retrieving logs (Backend only)
 
 ### System Design Choices
-- **Database Strategy**: A hybrid approach using PostgreSQL for user and subscriber data, and MongoDB Atlas for event, customer, appointment, analytics, and WhatsApp connection data.
+- **Database Strategy**: A hybrid approach using PostgreSQL for user and subscriber data, and MongoDB Atlas for event, customer, appointment, payment, invoice, analytics, and WhatsApp connection data.
 - **Modularity**: 
     - Backend: Organized into `models`, `routes`, `services`, `providers`, and `middleware` directories
     - Frontend: Component-based architecture with `pages`, `components`, `contexts`, `services`, and `utils` directories
@@ -83,7 +90,7 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 ## External Dependencies
 
 - **PostgreSQL (Neon)**: Used for Subscribers and User data.
-- **MongoDB Atlas**: Used for Events, Customers, Appointments, Analytics, and WhatsApp connections.
+- **MongoDB Atlas**: Used for Events, Customers, Appointments, Payments, Invoices, Analytics, and WhatsApp connections.
 - **Redis (Optional)**: Can be integrated for caching and background jobs. If not connected, an in-memory queue is used.
 - **Nodemailer**: Email provider for `NotificationService`.
 - **SendGrid**: Email provider for `NotificationService`.
@@ -151,3 +158,18 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Shared authentication middleware:** stats.js now uses verifyProviderToken from auth.js
 - **Error response standardization:** Changed error field from 'error' to 'message' for consistency
 - **Environment secrets:** JWT_SECRET now properly stored in Replit Secrets for security
+
+### Payments Management System (November 6, 2025)
+- **Payments Routes Security Update**: Updated all payment routes to use verifyProviderToken middleware instead of old authenticate
+- **GET /api/payments**: List all payments with filtering by status, date range, and customer
+- **POST /api/payments/create**: Create new payment with customer info and payment method
+- **Complete Payment Flow**: Integration with PaymentService for Cardcom, Meshulam, Tranzila providers
+- **Payments UI Page**: Full-featured Payments.jsx with table view, status badges, and create modal
+- **Customer Integration**: Payment creation form includes customer dropdown from MongoDB
+- **Payment Methods**: Support for credit card, Bit, bank transfer, cash, and other methods
+- **Currency Support**: Multi-currency support (ILS ₪, USD $, EUR €) with proper formatting
+- **Status Management**: Track payment status (pending, processing, completed, failed, refunded, cancelled)
+- **Provider Selection**: Choose between manual entry or Israeli payment providers
+- **Sidebar Navigation**: Added Payments link with 💳 icon
+- **API Client**: Expanded paymentsAPI with getAll, create, delete, complete, refund methods
+- **MongoDB Integration**: Payment and Invoice models updated to use String businessId for consistency
