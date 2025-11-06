@@ -123,3 +123,18 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
   - Handles both string locations and complex location objects with address/type
   - Applied fix to Dashboard, Events, and EventRegistration (public) pages
   - Public event registration links now work without white screen errors
+
+### Payment Provider Settings Interface (November 6, 2025)
+- **Payment Settings Page**: New admin interface for configuring payment gateway credentials
+  - User-friendly UI for setting up GROW (Meshulam), Cardcom, and Tranzila API keys
+  - Toggle switches to enable/disable each payment provider
+  - Secure password fields for API credentials
+  - Settings stored in localStorage (can be upgraded to backend API storage)
+  - Comprehensive help section with links to official documentation (https://grow-il.readme.io/)
+  - Added "הגדרות תשלום" menu item to sidebar navigation (⚙️ icon)
+  - Protected route requiring authentication to access settings
+- **Supported Payment Providers**: System now supports three Israeli payment gateways:
+  - **GROW (Meshulam)**: Leading Israeli payment gateway with Bit support, installments, and recurring billing
+  - **Cardcom**: Credit card processing with multi-currency support
+  - **Tranzila**: Fast payment processing solution
+- **Payment Integration**: Business owners can now configure payment providers through UI instead of environment variables
