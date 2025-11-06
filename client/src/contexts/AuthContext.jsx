@@ -33,14 +33,14 @@ export const AuthProvider = ({ children }) => {
       console.log('AuthContext: calling login API');
       const response = await authAPI.login(credentials);
       console.log('AuthContext: login response:', response);
-      const { token, user } = response.data;
+      const { token, provider } = response.data;
       
-      console.log('AuthContext: saving token and user', { user });
+      console.log('AuthContext: saving token and user', { provider });
       setToken(token);
-      saveUser(user);
-      setUser(user);
+      saveUser(provider);
+      setUser(provider);
       
-      return { success: true, user };
+      return { success: true, user: provider };
     } catch (error) {
       console.error('AuthContext: login error:', error);
       return { 
@@ -53,13 +53,13 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { token, user } = response.data;
+      const { token, provider } = response.data;
       
       setToken(token);
-      saveUser(user);
-      setUser(user);
+      saveUser(provider);
+      setUser(provider);
       
-      return { success: true, user };
+      return { success: true, user: provider };
     } catch (error) {
       return { 
         success: false, 
