@@ -189,6 +189,36 @@ const eventSchema = new mongoose.Schema({
         contactEmail: String
     },
     
+    // Participants array - people who registered for the event
+    participants: [{
+        customerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Customer'
+        },
+        name: String,
+        email: String,
+        phone: String,
+        registeredAt: {
+            type: Date,
+            default: Date.now
+        },
+        paymentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Payment'
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['pending', 'paid', 'free', 'failed', 'refunded'],
+            default: 'pending'
+        },
+        status: {
+            type: String,
+            enum: ['registered', 'confirmed', 'cancelled', 'attended', 'no_show'],
+            default: 'registered'
+        },
+        notes: String
+    }],
+    
     // Statistics
     stats: {
         totalRegistrations: {

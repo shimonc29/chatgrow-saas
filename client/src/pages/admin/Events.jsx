@@ -4,6 +4,8 @@ import { eventsAPI } from '../../services/api';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
+  const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editEventId, setEditEventId] = useState(null);
   const [events, setEvents] = useState([]);
@@ -48,7 +50,7 @@ const Events = () => {
         location: formData.location,
         maxParticipants: parseInt(formData.maxParticipants),
         price: parseFloat(formData.price),
-        status: 'active',
+        status: 'published',
       };
 
       if (editMode && editEventId) {
@@ -119,6 +121,11 @@ const Events = () => {
       console.error('Error copying link:', err);
       alert('שגיאה בהעתקת הקישור');
     });
+  };
+
+  const handleShowParticipants = (event) => {
+    setSelectedEvent(event);
+    setShowParticipantsModal(true);
   };
 
   const handleDelete = async (eventId) => {
@@ -226,18 +233,24 @@ const Events = () => {
                   </div>
                 </div>
                 <div className="mt-4 flex flex-col space-y-2">
-                  <div className="flex space-x-reverse space-x-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button 
                       onClick={() => handleEdit(event)}
-                      className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
+                      className="bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
                     >
                       ✏️ ערוך
                     </button>
                     <button 
                       onClick={() => copyRegistrationLink(event._id)}
-                      className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors font-medium"
+                      className="bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors font-medium text-sm"
                     >
                       🔗 שתף
+                    </button>
+                    <button 
+                      onClick={() => handleShowParticipants(event)}
+                      className="bg-purple-50 text-purple-600 py-2 rounded-lg hover:bg-purple-100 transition-colors font-medium text-sm"
+                    >
+                      👥 נרשמים
                     </button>
                   </div>
                   <button 
@@ -368,6 +381,80 @@ const Events = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Participants Modal */}
+        {showParticipantsModal && selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">נרשמים לאירוע: {selectedEvent.name}</h2>
+                    <p className="text-gray-600 mt-1">
+                      {selectedEvent.participants?.length || 0} נרשמים מתוך {selectedEvent.maxParticipants} מקומות
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowParticipantsModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <span className="text-2xl">✕</span>
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                {selectedEvent.participants && selectedEvent.participants.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">#</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">שם</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">אימייל</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">טלפון</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">תאריך הרשמה</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">סטטוס תשלום</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedEvent.participants.map((participant, index) => (
+                          <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm">{index + 1}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{participant.name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{participant.email}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{participant.phone}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {participant.registeredAt ? new Date(participant.registeredAt).toLocaleDateString('he-IL') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                participant.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                participant.paymentStatus === 'free' ? 'bg-blue-100 text-blue-800' :
+                                participant.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {participant.paymentStatus === 'paid' ? 'שולם' :
+                                 participant.paymentStatus === 'free' ? 'חינם' :
+                                 participant.paymentStatus === 'pending' ? 'ממתין' :
+                                 participant.paymentStatus}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">👥</div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">אין נרשמים עדיין</h3>
+                    <p className="text-gray-600">כאשר אנשים ירשמו לאירוע, הם יופיעו כאן</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

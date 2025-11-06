@@ -23,8 +23,8 @@ router.get('/events/:id', async (req, res) => {
             });
         }
 
-        // Only show active events
-        if (event.status !== 'active') {
+        // Only show published events
+        if (event.status !== 'published') {
             return res.status(403).json({
                 success: false,
                 message: 'אירוע זה אינו פעיל כרגע'
@@ -93,7 +93,7 @@ router.post('/events/:id/register', async (req, res) => {
             });
         }
 
-        if (event.status !== 'active') {
+        if (event.status !== 'published') {
             return res.status(403).json({
                 success: false,
                 message: 'אירוע זה אינו פעיל כרגע'
@@ -512,13 +512,35 @@ router.post('/appointments/book', async (req, res) => {
         }
 
         // Create appointment with SERVER-VALIDATED duration
+        // Extract date and time components
+        const appointmentDate = new Date(appointmentStart);
+        appointmentDate.setHours(0, 0, 0, 0); // Reset time to midnight for date field
+        
+        const startTimeStr = `${appointmentStart.getHours().toString().padStart(2, '0')}:${appointmentStart.getMinutes().toString().padStart(2, '0')}`;
+        const endTimeStr = `${appointmentEnd.getHours().toString().padStart(2, '0')}:${appointmentEnd.getMinutes().toString().padStart(2, '0')}`;
+        
         const appointment = new Appointment({
             businessId,
-            customerId: existingCustomer._id,
             serviceType,
-            dateTime: appointmentStart,
-            duration: duration, // From server-side catalog
+            serviceName: serviceDetails.name, // Required field
+            customer: {
+                customerId: existingCustomer._id,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                phone: customer.phone,
+                email: customer.email,
+                notes: notes || ''
+            },
+            appointmentDate: appointmentDate, // Date only
+            startTime: startTimeStr, // Time as string "HH:MM"
+            endTime: endTimeStr, // Time as string "HH:MM"
+            duration: duration, // From server-side catalog (in minutes)
+            price: price, // From server-side catalog
+            currency: 'ILS',
+            paymentStatus: price > 0 ? 'pending' : 'paid',
+            paymentMethod: paymentMethod || (price > 0 ? 'credit_card' : null),
             status: 'scheduled',
+            source: 'web',
             notes: notes || `תור ל${serviceDetails.name}`
         });
 
