@@ -15,11 +15,15 @@ const Login = () => {
     setError('');
     setLoading(true);
 
+    console.log('Login attempt:', { email });
     const result = await login({ email, password });
+    console.log('Login result:', result);
 
     if (result.success) {
+      console.log('Login successful, navigating to dashboard');
       navigate('/dashboard');
     } else {
+      console.error('Login failed:', result.error);
       setError(result.error || 'שגיאה בהתחברות');
     }
 

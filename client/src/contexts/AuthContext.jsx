@@ -30,18 +30,22 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      console.log('AuthContext: calling login API');
       const response = await authAPI.login(credentials);
+      console.log('AuthContext: login response:', response);
       const { token, user } = response.data;
       
+      console.log('AuthContext: saving token and user', { user });
       setToken(token);
       saveUser(user);
       setUser(user);
       
       return { success: true, user };
     } catch (error) {
+      console.error('AuthContext: login error:', error);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Login failed'
+        error: error.response?.data?.message || error.message || 'Login failed'
       };
     }
   };
