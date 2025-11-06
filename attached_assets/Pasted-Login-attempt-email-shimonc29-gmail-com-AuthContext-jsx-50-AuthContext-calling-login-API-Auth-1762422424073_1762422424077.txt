@@ -1,0 +1,317 @@
+Login attempt: {email: 'shimonc29@gmail.com'}
+AuthContext.jsx:50 AuthContext: calling login API
+AuthContext.jsx:52 AuthContext: login response: {data: {…}, status: 200, statusText: 'OK', headers: AxiosHeaders, config: {…}, …}
+AuthContext.jsx:64 AuthContext: saving token and user {provider: {…}}
+Login.jsx:20 Login result: {success: true, user: {…}}
+Login.jsx:23 Login successful, navigating to dashboard
+api.js:76  GET https://225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/appointments 500 (Internal Server Error)
+dispatchXhrRequest @ axios.js?v=678aa89f:1672
+xhr @ axios.js?v=678aa89f:1552
+dispatchRequest @ axios.js?v=678aa89f:2027
+Promise.then
+_request @ axios.js?v=678aa89f:2230
+request @ axios.js?v=678aa89f:2139
+Axios.<computed> @ axios.js?v=678aa89f:2267
+wrap @ axios.js?v=678aa89f:8
+getAll @ api.js:76
+fetchAppointments @ Appointments.jsx:25
+(anonymous) @ Appointments.jsx:19
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18567
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+commitHookEffectListMount @ react-dom_client.js?v=678aa89f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=678aa89f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11066
+flushPassiveEffects @ react-dom_client.js?v=678aa89f:13150
+flushPendingEffects @ react-dom_client.js?v=678aa89f:13088
+flushSpawnedWork @ react-dom_client.js?v=678aa89f:13062
+commitRoot @ react-dom_client.js?v=678aa89f:12804
+commitRootWhenReady @ react-dom_client.js?v=678aa89f:12016
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Appointments>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:53
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this error
+Appointments.jsx:29 Error fetching appointments: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
+overrideMethod @ hook.js:608
+fetchAppointments @ Appointments.jsx:29
+await in fetchAppointments
+(anonymous) @ Appointments.jsx:19
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18567
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+commitHookEffectListMount @ react-dom_client.js?v=678aa89f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=678aa89f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11066
+flushPassiveEffects @ react-dom_client.js?v=678aa89f:13150
+flushPendingEffects @ react-dom_client.js?v=678aa89f:13088
+flushSpawnedWork @ react-dom_client.js?v=678aa89f:13062
+commitRoot @ react-dom_client.js?v=678aa89f:12804
+commitRootWhenReady @ react-dom_client.js?v=678aa89f:12016
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Appointments>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:53
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this error
+api.js:68  GET https://225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/customers 500 (Internal Server Error)
+dispatchXhrRequest @ axios.js?v=678aa89f:1672
+xhr @ axios.js?v=678aa89f:1552
+dispatchRequest @ axios.js?v=678aa89f:2027
+Promise.then
+_request @ axios.js?v=678aa89f:2230
+request @ axios.js?v=678aa89f:2139
+Axios.<computed> @ axios.js?v=678aa89f:2267
+wrap @ axios.js?v=678aa89f:8
+getAll @ api.js:68
+fetchCustomers @ Customers.jsx:24
+(anonymous) @ Customers.jsx:18
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18567
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+commitHookEffectListMount @ react-dom_client.js?v=678aa89f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=678aa89f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11066
+flushPassiveEffects @ react-dom_client.js?v=678aa89f:13150
+flushPendingEffects @ react-dom_client.js?v=678aa89f:13088
+flushSpawnedWork @ react-dom_client.js?v=678aa89f:13062
+commitRoot @ react-dom_client.js?v=678aa89f:12804
+commitRootWhenReady @ react-dom_client.js?v=678aa89f:12016
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Customers>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this error
+Customers.jsx:28 Error fetching customers: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
+overrideMethod @ hook.js:608
+fetchCustomers @ Customers.jsx:28
+await in fetchCustomers
+(anonymous) @ Customers.jsx:18
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18567
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+commitHookEffectListMount @ react-dom_client.js?v=678aa89f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=678aa89f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11066
+flushPassiveEffects @ react-dom_client.js?v=678aa89f:13150
+flushPendingEffects @ react-dom_client.js?v=678aa89f:13088
+flushSpawnedWork @ react-dom_client.js?v=678aa89f:13062
+commitRoot @ react-dom_client.js?v=678aa89f:12804
+commitRootWhenReady @ react-dom_client.js?v=678aa89f:12016
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Customers>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this error
+api.js:70  POST https://225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/customers 500 (Internal Server Error)
+dispatchXhrRequest @ axios.js?v=678aa89f:1672
+xhr @ axios.js?v=678aa89f:1552
+dispatchRequest @ axios.js?v=678aa89f:2027
+Promise.then
+_request @ axios.js?v=678aa89f:2230
+request @ axios.js?v=678aa89f:2139
+httpMethod @ axios.js?v=678aa89f:2277
+wrap @ axios.js?v=678aa89f:8
+create @ api.js:70
+handleSubmit @ Customers.jsx:38
+executeDispatch @ react-dom_client.js?v=678aa89f:13622
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+processDispatchQueue @ react-dom_client.js?v=678aa89f:13658
+(anonymous) @ react-dom_client.js?v=678aa89f:14071
+batchedUpdates$1 @ react-dom_client.js?v=678aa89f:2626
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=678aa89f:13763
+dispatchEvent @ react-dom_client.js?v=678aa89f:16784
+dispatchDiscreteEvent @ react-dom_client.js?v=678aa89f:16765
+<form>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+Customers @ Customers.jsx:180
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Customers>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this error
+Customers.jsx:43 Error creating customer: AxiosError {message: 'Request failed with status code 500', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}

@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 const eventSchema = new mongoose.Schema({
     // Basic event information
     businessId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
     },
     name: {

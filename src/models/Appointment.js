@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const appointmentSchema = new mongoose.Schema({
     // Business and service info
     businessId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
     },
     serviceType: {
