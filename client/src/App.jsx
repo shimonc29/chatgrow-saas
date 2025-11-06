@@ -11,11 +11,14 @@ import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import PaymentSettings from './pages/admin/PaymentSettings';
+import LandingPages from './pages/admin/LandingPages';
+import LandingPageEditor from './pages/admin/LandingPageEditor';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
 import PaymentSuccess from './pages/public/PaymentSuccess';
 import PaymentError from './pages/public/PaymentError';
+import LandingPageViewer from './pages/public/LandingPageViewer';
 
 function App() {
   return (
@@ -89,8 +92,27 @@ function App() {
               </PrivateRoute>
             } 
           />
+
+          <Route 
+            path="/landing-pages" 
+            element={
+              <PrivateRoute>
+                <LandingPages />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/landing-pages/:id" 
+            element={
+              <PrivateRoute>
+                <LandingPageEditor />
+              </PrivateRoute>
+            } 
+          />
           
           <Route path="/events/:id/register" element={<EventRegistration />} />
+          <Route path="/landing/:slug" element={<LandingPageViewer />} />
           <Route path="/appointments/book" element={<AppointmentBooking />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/error" element={<PaymentError />} />

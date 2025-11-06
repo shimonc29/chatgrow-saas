@@ -1,0 +1,569 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import MainLayout from '../../components/Layout/MainLayout';
+import axios from 'axios';
+
+const TEMPLATES = {
+  modern: {
+    name: 'מודרני',
+    preview: '🎨',
+    colors: { primary: '#8B5CF6', secondary: '#EC4899', bg: '#FFFFFF' }
+  },
+  classic: {
+    name: 'קלאסי',
+    preview: '📜',
+    colors: { primary: '#2563EB', secondary: '#1E40AF', bg: '#F9FAFB' }
+  },
+  colorful: {
+    name: 'צבעוני',
+    preview: '🌈',
+    colors: { primary: '#F59E0B', secondary: '#EF4444', bg: '#FEF3C7' }
+  },
+  minimal: {
+    name: 'מינימליסטי',
+    preview: '⚪',
+    colors: { primary: '#000000', secondary: '#6B7280', bg: '#FFFFFF' }
+  },
+  elegant: {
+    name: 'אלגנטי',
+    preview: '✨',
+    colors: { primary: '#9333EA', secondary: '#C026D3', bg: '#FAF5FF' }
+  }
+};
+
+const LandingPageEditor = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    template: 'modern',
+    content: {
+      hero: {
+        headline: 'ברוכים הבאים!',
+        subheadline: 'הצטרפו אלינו לחוויה בלתי נשכחת',
+        image: '',
+        ctaText: 'הירשם עכשיו',
+        ctaColor: '#8B5CF6'
+      },
+      about: {
+        title: 'אודות',
+        description: '',
+        image: ''
+      },
+      features: [
+        { icon: '✨', title: '', description: '' }
+      ],
+      testimonials: [],
+      footer: {
+        text: '© 2025 כל הזכויות שמורות',
+        links: []
+      }
+    },
+    styling: {
+      primaryColor: '#8B5CF6',
+      secondaryColor: '#EC4899',
+      backgroundColor: '#FFFFFF',
+      fontFamily: 'Heebo'
+    },
+    linkedTo: {
+      type: 'none',
+      id: null
+    },
+    seo: {
+      title: '',
+      description: '',
+      keywords: [],
+      ogImage: ''
+    },
+    status: 'draft'
+  });
+
+  useEffect(() => {
+    if (id && id !== 'new') {
+      fetchPage();
+    }
+    fetchEvents();
+  }, [id]);
+
+  const fetchPage = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/landing-pages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFormData(response.data);
+    } catch (err) {
+      console.error(err);
+      alert('שגיאה בטעינת הדף');
+      navigate('/landing-pages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/events', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEvents(response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('נא להזין שם לדף');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const token = localStorage.getItem('token');
+      
+      if (id && id !== 'new') {
+        await axios.put(`/api/landing-pages/${id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.post('/api/landing-pages/create', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      alert('✓ הדף נשמר בהצלחה!');
+      navigate('/landing-pages');
+    } catch (err) {
+      console.error(err);
+      alert('שגיאה בשמירת הדף');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateContent = (section, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        [section]: {
+          ...prev.content[section],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const updateStyling = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      styling: {
+        ...prev.styling,
+        [field]: value
+      }
+    }));
+  };
+
+  const selectTemplate = (templateKey) => {
+    const template = TEMPLATES[templateKey];
+    setFormData(prev => ({
+      ...prev,
+      template: templateKey,
+      styling: {
+        ...prev.styling,
+        primaryColor: template.colors.primary,
+        secondaryColor: template.colors.secondary,
+        backgroundColor: template.colors.bg
+      },
+      content: {
+        ...prev.content,
+        hero: {
+          ...prev.content.hero,
+          ctaColor: template.colors.primary
+        }
+      }
+    }));
+  };
+
+  const addFeature = () => {
+    setFormData(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        features: [
+          ...prev.content.features,
+          { icon: '✨', title: '', description: '' }
+        ]
+      }
+    }));
+  };
+
+  const updateFeature = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        features: prev.content.features.map((f, i) => 
+          i === index ? { ...f, [field]: value } : f
+        )
+      }
+    }));
+  };
+
+  const removeFeature = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        features: prev.content.features.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-xl text-gray-600">טוען...</div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  return (
+    <MainLayout>
+      <div className="p-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              {id && id !== 'new' ? '✏️ ערוך דף נחיתה' : '➕ צור דף נחיתה חדש'}
+            </h1>
+            <p className="text-gray-600 mt-2">עצב דף נחיתה מושך לשיווק האירועים והתורים שלך</p>
+          </div>
+          <div className="flex space-x-reverse space-x-3">
+            <button
+              onClick={() => navigate('/landing-pages')}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              ביטול
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors"
+            >
+              {saving ? '⏳ שומר...' : '💾 שמור'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Editor Panel */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Info */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">📝 פרטים בסיסיים</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">שם הדף</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="שם הדף (לניהול פנימי)"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">סטטוס</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  >
+                    <option value="draft">טיוטה</option>
+                    <option value="published">פורסם</option>
+                    <option value="archived">בארכיון</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">חבר לאירוע/תור</label>
+                  <select
+                    value={formData.linkedTo.type}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      linkedTo: { type: e.target.value, id: null }
+                    })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-2"
+                  >
+                    <option value="none">ללא חיבור</option>
+                    <option value="event">אירוע</option>
+                    <option value="appointment">תור</option>
+                  </select>
+
+                  {formData.linkedTo.type === 'event' && (
+                    <select
+                      value={formData.linkedTo.id || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        linkedTo: { ...formData.linkedTo, id: e.target.value }
+                      })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    >
+                      <option value="">בחר אירוע</option>
+                      {events.map(event => (
+                        <option key={event._id} value={event._id}>{event.title}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Template Selection */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🎨 בחר תבנית</h3>
+              
+              <div className="grid grid-cols-5 gap-4">
+                {Object.entries(TEMPLATES).map(([key, template]) => (
+                  <button
+                    key={key}
+                    onClick={() => selectTemplate(key)}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      formData.template === key
+                        ? 'border-brand-500 bg-brand-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-4xl mb-2">{template.preview}</div>
+                    <div className="text-sm font-medium text-gray-700">{template.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hero Section */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🎯 קטע גיבור (Hero)</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">כותרת ראשית</label>
+                  <input
+                    type="text"
+                    value={formData.content.hero.headline}
+                    onChange={(e) => updateContent('hero', 'headline', e.target.value)}
+                    placeholder="כותרת מושכת"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">כותרת משנה</label>
+                  <textarea
+                    value={formData.content.hero.subheadline}
+                    onChange={(e) => updateContent('hero', 'subheadline', e.target.value)}
+                    placeholder="תיאור קצר"
+                    rows="3"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">תמונת רקע (URL)</label>
+                  <input
+                    type="url"
+                    value={formData.content.hero.image}
+                    onChange={(e) => updateContent('hero', 'image', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">טקסט כפתור</label>
+                    <input
+                      type="text"
+                      value={formData.content.hero.ctaText}
+                      onChange={(e) => updateContent('hero', 'ctaText', e.target.value)}
+                      placeholder="הירשם עכשיו"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">צבע כפתור</label>
+                    <input
+                      type="color"
+                      value={formData.content.hero.ctaColor}
+                      onChange={(e) => updateContent('hero', 'ctaColor', e.target.value)}
+                      className="w-full h-10 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">⭐ תכונות / יתרונות</h3>
+                <button
+                  onClick={addFeature}
+                  className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  ➕ הוסף
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {formData.content.features.map((feature, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <input
+                        type="text"
+                        value={feature.icon}
+                        onChange={(e) => updateFeature(index, 'icon', e.target.value)}
+                        placeholder="אייקון (אימוג'י)"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-2xl text-center"
+                      />
+                      <button
+                        onClick={() => removeFeature(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={feature.title}
+                      onChange={(e) => updateFeature(index, 'title', e.target.value)}
+                      placeholder="כותרת התכונה"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2"
+                    />
+                    <textarea
+                      value={feature.description}
+                      onChange={(e) => updateFeature(index, 'description', e.target.value)}
+                      placeholder="תיאור התכונה"
+                      rows="2"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Styling */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🎨 עיצוב וצבעים</h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">צבע ראשי</label>
+                  <input
+                    type="color"
+                    value={formData.styling.primaryColor}
+                    onChange={(e) => updateStyling('primaryColor', e.target.value)}
+                    className="w-full h-10 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">צבע משני</label>
+                  <input
+                    type="color"
+                    value={formData.styling.secondaryColor}
+                    onChange={(e) => updateStyling('secondaryColor', e.target.value)}
+                    className="w-full h-10 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">צבע רקע</label>
+                  <input
+                    type="color"
+                    value={formData.styling.backgroundColor}
+                    onChange={(e) => updateStyling('backgroundColor', e.target.value)}
+                    className="w-full h-10 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Panel */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-md p-6 sticky top-8">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">👁️ תצוגה מקדימה</h3>
+              
+              <div 
+                className="border-2 border-gray-200 rounded-lg overflow-hidden"
+                style={{ backgroundColor: formData.styling.backgroundColor }}
+              >
+                {/* Hero Preview */}
+                <div 
+                  className="p-8 text-center"
+                  style={{ 
+                    backgroundColor: formData.styling.primaryColor + '20',
+                    backgroundImage: formData.content.hero.image ? `url(${formData.content.hero.image})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  <h1 
+                    className="text-2xl font-bold mb-2"
+                    style={{ color: formData.styling.primaryColor }}
+                  >
+                    {formData.content.hero.headline}
+                  </h1>
+                  <p className="text-sm text-gray-700 mb-4">
+                    {formData.content.hero.subheadline}
+                  </p>
+                  <button
+                    style={{ backgroundColor: formData.content.hero.ctaColor }}
+                    className="text-white px-6 py-2 rounded-lg text-sm font-semibold"
+                  >
+                    {formData.content.hero.ctaText}
+                  </button>
+                </div>
+
+                {/* Features Preview */}
+                {formData.content.features.length > 0 && (
+                  <div className="p-4">
+                    <div className="space-y-2">
+                      {formData.content.features.slice(0, 3).map((feature, index) => (
+                        <div key={index} className="flex items-start space-x-reverse space-x-2 text-right">
+                          <span className="text-xl">{feature.icon}</span>
+                          <div>
+                            <div className="text-xs font-bold text-gray-800">{feature.title || 'כותרת'}</div>
+                            <div className="text-xs text-gray-600">{feature.description?.substring(0, 30) || 'תיאור'}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 text-xs text-gray-500 text-center">
+                תצוגה מקדימה - הגרסה המלאה תהיה זמינה בדף הציבורי
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+};
+
+export default LandingPageEditor;
