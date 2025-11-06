@@ -7,6 +7,7 @@ const Payment = require('../models/Payment');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
 const { logInfo, logError, logApiRequest } = require('../utils/logger');
+const { getServiceDetails, isValidServiceType, getAllServices } = require('../config/serviceTypes');
 
 // Get public event details
 router.get('/events/:id', async (req, res) => {
@@ -99,7 +100,8 @@ router.post('/events/:id/register', async (req, res) => {
             });
         }
 
-        // Check if event is full
+        // Atomic check: ensure event is not full
+        // Using MongoDB's $where to atomically check capacity before adding participant
         const currentParticipants = event.participants ? event.participants.length : 0;
         if (currentParticipants >= event.maxParticipants) {
             return res.status(400).json({
@@ -107,6 +109,10 @@ router.post('/events/:id/register', async (req, res) => {
                 message: 'אירוע זה מלא, אין מקומות פנויים'
             });
         }
+
+        // Server-side price validation - NEVER trust client input!
+        // Always use the event's own price field
+        const amount = event.price || 0;
 
         // Create or update customer
         let existingCustomer = await Customer.findOne({
@@ -130,9 +136,19 @@ router.post('/events/:id/register', async (req, res) => {
             });
         }
 
-        // Create payment
+        // Prepare participant entry for atomic update
+        const participantEntry = {
+            customerId: existingCustomer._id,
+            name: `${customer.firstName} ${customer.lastName}`,
+            email: customer.email,
+            phone: customer.phone,
+            registeredAt: new Date(),
+            paymentId: null,
+            paymentStatus: amount > 0 ? 'pending' : 'free'
+        };
+
+        // Create payment BEFORE adding to event (to ensure payment exists)
         let payment;
-        const amount = event.price || 0;
 
         if (amount > 0) {
             // For manual payments (cash, bank transfer, Bit)
@@ -215,22 +231,41 @@ router.post('/events/:id/register', async (req, res) => {
             }
         }
 
-        // Add customer to event participants
-        if (!event.participants) {
-            event.participants = [];
+        // Update participant entry with payment ID
+        if (payment) {
+            participantEntry.paymentId = payment._id;
+            participantEntry.paymentStatus = payment.status;
         }
 
-        event.participants.push({
-            customerId: existingCustomer._id,
-            name: `${customer.firstName} ${customer.lastName}`,
-            email: customer.email,
-            phone: customer.phone,
-            registeredAt: new Date(),
-            paymentId: payment ? payment._id : null,
-            paymentStatus: payment ? payment.status : 'free'
-        });
+        // ATOMIC UPDATE: Add participant only if event hasn't reached max capacity
+        // This prevents race conditions where multiple users register simultaneously
+        const updateResult = await Event.findOneAndUpdate(
+            {
+                _id: event._id,
+                $expr: {
+                    $lt: [{ $size: { $ifNull: ['$participants', []] } }, event.maxParticipants]
+                }
+            },
+            {
+                $push: { participants: participantEntry }
+            },
+            { new: true }
+        );
 
-        await event.save();
+        if (!updateResult) {
+            // Event became full between our check and update
+            // Rollback payment if created
+            if (payment) {
+                await Payment.findByIdAndUpdate(payment._id, { status: 'cancelled' });
+            }
+            
+            return res.status(400).json({
+                success: false,
+                message: 'האירוע התמלא ברגע האחרון. אנא נסה אירוע אחר.'
+            });
+        }
+
+        event = updateResult;
 
         // Send confirmation email and SMS
         try {
@@ -303,6 +338,24 @@ router.post('/events/:id/register', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'שגיאה בהרשמה לאירוע: ' + error.message
+        });
+    }
+});
+
+// Get available services catalog
+router.get('/services', async (req, res) => {
+    try {
+        const services = getAllServices();
+        
+        res.json({
+            success: true,
+            services
+        });
+    } catch (error) {
+        logError('Failed to get services catalog', error);
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת רשימת השירותים'
         });
     }
 });
@@ -381,7 +434,7 @@ router.post('/appointments/book', async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const { businessId, customer, serviceType, dateTime, duration, notes, price, paymentMethod, provider } = req.body;
+        const { businessId, customer, serviceType, dateTime, notes, paymentMethod, provider } = req.body;
 
         if (!businessId || !customer || !customer.firstName || !customer.lastName || !customer.email || !customer.phone || !serviceType || !dateTime) {
             return res.status(400).json({
@@ -390,17 +443,49 @@ router.post('/appointments/book', async (req, res) => {
             });
         }
 
-        // Check if time slot is available
-        const existingAppointment = await Appointment.findOne({
-            businessId,
-            dateTime: new Date(dateTime),
-            status: { $in: ['scheduled', 'confirmed'] }
-        });
-
-        if (existingAppointment) {
+        // SECURITY: Validate service type and get SERVER-SIDE price/duration
+        // NEVER trust client-supplied price or duration!
+        if (!isValidServiceType(serviceType)) {
             return res.status(400).json({
                 success: false,
-                message: 'תור זה כבר תפוס, נא לבחור שעה אחרת'
+                message: 'סוג שירות לא חוקי'
+            });
+        }
+
+        const serviceDetails = getServiceDetails(serviceType);
+        const price = serviceDetails.price;
+        const duration = serviceDetails.duration;
+
+        // Calculate appointment end time based on SERVER-SIDE duration
+        const appointmentStart = new Date(dateTime);
+        const appointmentEnd = new Date(appointmentStart.getTime() + duration * 60000);
+
+        // Check for overlapping appointments (atomic check with duration)
+        const overlappingAppointment = await Appointment.findOne({
+            businessId,
+            status: { $in: ['scheduled', 'confirmed'] },
+            $or: [
+                // New appointment starts during existing appointment
+                {
+                    dateTime: { $lte: appointmentStart },
+                    $expr: {
+                        $gte: [
+                            { $add: ['$dateTime', { $multiply: ['$duration', 60000] }] },
+                            appointmentStart
+                        ]
+                    }
+                },
+                // New appointment ends during existing appointment
+                {
+                    dateTime: { $gte: appointmentStart, $lt: appointmentEnd }
+                }
+            ]
+        });
+
+        if (overlappingAppointment) {
+            return res.status(400).json({
+                success: false,
+                message: 'זמן זה כבר תפוס, נא לבחור שעה אחרת'
             });
         }
 
@@ -426,22 +511,22 @@ router.post('/appointments/book', async (req, res) => {
             });
         }
 
-        // Create appointment
+        // Create appointment with SERVER-VALIDATED duration
         const appointment = new Appointment({
             businessId,
             customerId: existingCustomer._id,
             serviceType,
-            dateTime: new Date(dateTime),
-            duration: duration || 60,
+            dateTime: appointmentStart,
+            duration: duration, // From server-side catalog
             status: 'scheduled',
-            notes: notes || `תור ל${serviceType}`
+            notes: notes || `תור ל${serviceDetails.name}`
         });
 
         await appointment.save();
 
-        // Create payment if price is provided
+        // Create payment using SERVER-VALIDATED price
         let payment;
-        const amount = price || 0;
+        const amount = price; // From server-side catalog, not client input!
 
         if (amount > 0) {
             if (!provider || provider === 'manual') {
