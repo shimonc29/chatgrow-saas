@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
     businessId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subscriber',
+        type: String,
         required: true,
         index: true
     },
