@@ -138,3 +138,50 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
   - **Cardcom**: Credit card processing with multi-currency support
   - **Tranzila**: Fast payment processing solution
 - **Payment Integration**: Business owners can now configure payment providers through UI instead of environment variables
+
+### Landing Page Builder System (November 6, 2025)
+- **Template-Based Builder**: Create professional marketing landing pages for events and appointments
+  - 5 pre-designed templates: Modern (🎨), Classic (📜), Colorful (🌈), Minimal (⚪), Elegant (✨)
+  - Each template includes customizable color schemes and styling
+  - Live preview panel shows changes in real-time during editing
+- **Landing Pages Management**: New admin interface (/landing-pages) for managing all landing pages
+  - Dashboard with overview statistics: total pages, published pages, total views, total conversions
+  - Grid layout with thumbnail previews of each landing page
+  - Quick actions: Edit (✏️), Copy Link (🔗), Preview (👁️), Duplicate (📋), Delete (🗑️)
+  - Status badges: Published (green), Draft (yellow), Archived (gray)
+  - Analytics per page: views, conversions, conversion rate percentage
+- **Landing Page Editor**: Full-featured editor (/landing-pages/:id) with sections
+  - **Basic Info**: Page name, status (draft/published/archived), link to event or appointment
+  - **Template Selection**: Quick template switcher with one-click theme changes
+  - **Hero Section**: Headline, subheadline, background image, CTA button text and color
+  - **Features Section**: Add/remove unlimited feature cards with icon (emoji), title, description
+  - **Styling**: Color picker for primary, secondary, and background colors
+  - **Preview Panel**: Sticky live preview showing hero and features as you edit
+- **Public Landing Pages**: Dedicated public route (/landing/:slug) for viewing published pages
+  - Fully responsive, RTL-supported design with Hebrew text
+  - Hero section with full-screen background image or gradient
+  - Linked entity display (shows event or appointment details with date, price)
+  - Features section in 3-column grid layout
+  - Testimonials section (configurable via API)
+  - Final CTA section with primary color background
+  - Footer with custom text and links
+  - Conversion tracking on CTA button clicks
+- **Analytics & Tracking**: Built-in analytics system
+  - Automatic view tracking with IP address deduplication (24-hour window)
+  - Conversion tracking when users click CTA buttons
+  - Conversion rate calculation displayed in management interface
+  - All analytics data stored in MongoDB LandingPage model
+- **MongoDB Model**: LandingPage schema with comprehensive fields
+  - Fields: businessId, name, slug (unique), template (enum), content (hero, about, features, testimonials, footer), styling (colors, fonts), linkedTo (type, id), seo (title, description, keywords, ogImage), status, analytics (views, conversions, uniqueViewers)
+  - Methods: generateSlug(), trackView(ipAddress), trackConversion()
+  - Automatic slug generation from page name with uniqueness validation
+- **API Routes**: Full CRUD operations for landing pages
+  - Admin routes: GET /api/landing-pages, POST /api/landing-pages/create, GET /api/landing-pages/:id, PUT /api/landing-pages/:id, DELETE /api/landing-pages/:id, POST /api/landing-pages/:id/duplicate
+  - Public routes: GET /api/public/landing/:slug (with view tracking), POST /api/public/landing/:slug/convert (conversion tracking)
+  - All admin routes protected with JWT authentication
+  - Public routes open for marketing campaigns
+- **Sidebar Navigation**: Added "🎨 דפי נחיתה" menu item for easy access to landing page builder
+- **Templates Architecture**: Template-based system (not full drag-and-drop) for faster deployment
+  - Templates define layout structure and default styling
+  - Users customize content, colors, and images within template structure
+  - Approach prioritizes speed-to-market over infinite customization
