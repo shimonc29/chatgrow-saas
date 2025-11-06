@@ -11,6 +11,7 @@ import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 
 import EventRegistration from './pages/public/EventRegistration';
+import AppointmentBooking from './pages/public/AppointmentBooking';
 import PaymentSuccess from './pages/public/PaymentSuccess';
 import PaymentError from './pages/public/PaymentError';
 
@@ -70,6 +71,7 @@ function App() {
           />
           
           <Route path="/events/:id/register" element={<EventRegistration />} />
+          <Route path="/appointments/book" element={<AppointmentBooking />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/error" element={<PaymentError />} />
           

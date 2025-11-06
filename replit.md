@@ -173,3 +173,20 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Sidebar Navigation**: Added Payments link with 💳 icon
 - **API Client**: Expanded paymentsAPI with getAll, create, delete, complete, refund methods
 - **MongoDB Integration**: Payment and Invoice models updated to use String businessId for consistency
+- **Manual Payment Support**: Added support for manual payments (cash, bank transfer, Bit) that bypass PaymentService
+- **Route Ordering Fix**: Fixed /providers route conflict by placing it before /:id parameterized route
+
+### Public Registration System (November 6, 2025)
+- **Public API Routes** (/api/public): Created authentication-free endpoints for public event registration and appointment booking
+- **GET /api/public/events/:id**: View public event details with availability information
+- **POST /api/public/events/:id/register**: Register for events with automatic customer creation and payment integration
+- **GET /api/public/appointments/available**: View available appointment time slots
+- **POST /api/public/appointments/book**: Book appointments with service selection and payment
+- **EventRegistration.jsx**: Full-featured public event registration page with Hebrew RTL, event details display, registration form, and integrated payment options
+- **AppointmentBooking.jsx**: Public appointment booking page with service type selection, date/time picker, and payment integration
+- **PaymentSuccess.jsx & PaymentError.jsx**: Confirmation pages with Hebrew messaging and next steps after payment
+- **Automated Notifications**: Integration with NotificationService for Email + SMS confirmations after successful registration/booking
+- **Participant Tracking**: Events now track participants with registration timestamps and payment status
+- **Multi-Channel Payment**: Support for both manual payments (immediate confirmation) and gateway payments (redirect to provider)
+- **Customer Auto-Creation**: System automatically creates or updates customer records from public registrations
+- **Public Routes**: All public pages accessible without authentication at /events/:id/register, /appointments/book, /payment/success, /payment/error
