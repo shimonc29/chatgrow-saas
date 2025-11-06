@@ -1,106 +1,117 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Heading,
-  FormControl,
-  FormLabel,
-  Input,
-  Button,
-  VStack,
-  Text,
-  Link,
-  useToast,
-} from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
 
     const result = await login({ email, password });
 
     if (result.success) {
-      toast({
-        title: 'התחברת בהצלחה!',
-        status: 'success',
-        duration: 3000,
-      });
       navigate('/dashboard');
     } else {
-      toast({
-        title: 'שגיאה בהתחברות',
-        description: result.error,
-        status: 'error',
-        duration: 5000,
-      });
+      setError(result.error || 'שגיאה בהתחברות');
     }
 
     setLoading(false);
   };
 
   return (
-    <Box minH="100vh" bgGradient="linear(to-br, brand.500, purple.600)" display="flex" alignItems="center">
-      <Container maxW="md">
-        <Box bg="white" p={8} borderRadius="lg" shadow="xl">
-          <VStack spacing={6}>
-            <Heading size="xl">התחברות</Heading>
-            <Text color="gray.600">ברוכים הבאים ל-ChatGrow</Text>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-brand-500 to-pink-500 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            🎉 ChatGrow
+          </h1>
+          <p className="text-purple-100">מערכת ניהול אירועים ועסקים</p>
+        </div>
 
-            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-              <VStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>אימייל</FormLabel>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@mail.com"
-                  />
-                </FormControl>
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="mb-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">התחברות</h2>
+            <p className="text-gray-600">ברוכים הבאים בחזרה!</p>
+          </div>
 
-                <FormControl isRequired>
-                  <FormLabel>סיסמה</FormLabel>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </FormControl>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
 
-                <Button
-                  type="submit"
-                  colorScheme="brand"
-                  width="full"
-                  size="lg"
-                  isLoading={loading}
-                  loadingText="מתחבר..."
-                >
-                  התחבר
-                </Button>
-              </VStack>
-            </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                אימייל
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="example@mail.com"
+                dir="ltr"
+              />
+            </div>
 
-            <Text fontSize="sm">
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                סיסמה
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="••••••••"
+                dir="ltr"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-brand-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-brand-600 hover:to-purple-700 focus:ring-4 focus:ring-brand-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'מתחבר...' : 'התחבר'}
+            </button>
+          </form>
+
+          {/* Register Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
               עדיין אין לך חשבון?{' '}
-              <Link color="brand.500" fontWeight="bold" onClick={() => navigate('/register')}>
+              <Link to="/register" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors">
                 הירשם עכשיו
               </Link>
-            </Text>
-          </VStack>
-        </Box>
-      </Container>
-    </Box>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center text-purple-100 text-sm">
+          <p>© 2025 ChatGrow. כל הזכויות שמורות.</p>
+        </div>
+      </div>
+    </div>
   );
 };
 

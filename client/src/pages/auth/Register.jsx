@@ -1,127 +1,182 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Heading,
-  FormControl,
-  FormLabel,
-  Input,
-  Button,
-  VStack,
-  Text,
-  Link,
-  useToast,
-} from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    name: '',
+  });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { register } = useAuth();
-  const toast = useToast();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
-    if (password !== confirmPassword) {
-      toast({
-        title: 'הסיסמאות לא תואמות',
-        status: 'error',
-        duration: 3000,
-      });
+    if (formData.password !== formData.confirmPassword) {
+      setError('הסיסמאות אינן תואמות');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('הסיסמה חייבת להיות לפחות 6 תווים');
       return;
     }
 
     setLoading(true);
 
-    const result = await register({ email, password });
+    const result = await register({
+      email: formData.email,
+      password: formData.password,
+      profile: { name: formData.name },
+    });
 
     if (result.success) {
-      toast({
-        title: 'נרשמת בהצלחה!',
-        status: 'success',
-        duration: 3000,
-      });
       navigate('/dashboard');
     } else {
-      toast({
-        title: 'שגיאה ברישום',
-        description: result.error,
-        status: 'error',
-        duration: 5000,
-      });
+      setError(result.error || 'שגיאה ברישום');
     }
 
     setLoading(false);
   };
 
   return (
-    <Box minH="100vh" bgGradient="linear(to-br, brand.500, purple.600)" display="flex" alignItems="center">
-      <Container maxW="md">
-        <Box bg="white" p={8} borderRadius="lg" shadow="xl">
-          <VStack spacing={6}>
-            <Heading size="xl">הרשמה</Heading>
-            <Text color="gray.600">צור חשבון חדש ב-ChatGrow</Text>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-brand-500 to-pink-500 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            🎉 ChatGrow
+          </h1>
+          <p className="text-purple-100">מערכת ניהול אירועים ועסקים</p>
+        </div>
 
-            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-              <VStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>אימייל</FormLabel>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@mail.com"
-                  />
-                </FormControl>
+        {/* Register Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="mb-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">הרשמה</h2>
+            <p className="text-gray-600">הצטרף אלינו עכשיו!</p>
+          </div>
 
-                <FormControl isRequired>
-                  <FormLabel>סיסמה</FormLabel>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </FormControl>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
 
-                <FormControl isRequired>
-                  <FormLabel>אימות סיסמה</FormLabel>
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                </FormControl>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                שם מלא
+              </label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="שם מלא"
+              />
+            </div>
 
-                <Button
-                  type="submit"
-                  colorScheme="brand"
-                  width="full"
-                  size="lg"
-                  isLoading={loading}
-                  loadingText="נרשם..."
-                >
-                  הירשם
-                </Button>
-              </VStack>
-            </form>
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                אימייל
+              </label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="example@mail.com"
+                dir="ltr"
+              />
+            </div>
 
-            <Text fontSize="sm">
-              יש לך כבר חשבון?{' '}
-              <Link color="brand.500" fontWeight="bold" onClick={() => navigate('/login')}>
-                התחבר עכשיו
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                סיסמה
+              </label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="••••••••"
+                dir="ltr"
+              />
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                אימות סיסמה
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all outline-none"
+                placeholder="••••••••"
+                dir="ltr"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-brand-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-brand-600 hover:to-purple-700 focus:ring-4 focus:ring-brand-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+            >
+              {loading ? 'נרשם...' : 'הירשם'}
+            </button>
+          </form>
+
+          {/* Login Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              כבר יש לך חשבון?{' '}
+              <Link to="/login" className="text-brand-500 font-semibold hover:text-brand-600 transition-colors">
+                התחבר
               </Link>
-            </Text>
-          </VStack>
-        </Box>
-      </Container>
-    </Box>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center text-purple-100 text-sm">
+          <p>© 2025 ChatGrow. כל הזכויות שמורות.</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
