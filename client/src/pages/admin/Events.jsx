@@ -84,6 +84,24 @@ const Events = () => {
     return new Date(dateString).toLocaleDateString('he-IL');
   };
 
+  const formatTime = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getLocation = (location) => {
+    if (!location) return 'לא צוין';
+    if (typeof location === 'string') return location;
+    if (location.address?.street) return location.address.street;
+    return 'לא צוין';
+  };
+
+  const getPrice = (pricing) => {
+    if (!pricing) return 0;
+    if (typeof pricing === 'number') return pricing;
+    return pricing.amount || 0;
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -129,28 +147,28 @@ const Events = () => {
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-xl font-bold text-gray-800">{event.name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    event.status === 'published' || event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {event.status === 'active' ? 'פעיל' : event.status === 'cancelled' ? 'בוטל' : event.status}
+                    {event.status === 'published' || event.status === 'active' ? 'פעיל' : event.status === 'cancelled' ? 'בוטל' : event.status}
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm mb-4">{event.description}</p>
                 <div className="space-y-2 text-sm text-gray-500">
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>📅</span>
-                    <span>{formatDate(event.date)} בשעה {event.startTime}</span>
+                    <span>{formatDate(event.startDateTime || event.date)} בשעה {formatTime(event.startDateTime) || event.startTime}</span>
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>📍</span>
-                    <span>{event.location}</span>
+                    <span>{getLocation(event.location)}</span>
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>👥</span>
-                    <span>{event.registeredCount || 0}/{event.maxParticipants} משתתפים</span>
+                    <span>{event.currentParticipants || event.registeredCount || 0}/{event.maxParticipants} משתתפים</span>
                   </div>
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>💰</span>
-                    <span>₪{event.price}</span>
+                    <span>₪{getPrice(event.pricing || event.price)}</span>
                   </div>
                 </div>
                 <div className="mt-4 flex space-x-reverse space-x-2">
