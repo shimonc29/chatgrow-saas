@@ -1,25 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Customer = require('../models/Customer');
-const jwt = require('jsonwebtoken');
 const { logApiRequest } = require('../utils/logger');
 
-// Provider authentication middleware
-const verifyProviderToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-        return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
-    }
-    
-    try {
-        const decoded = jwt.verify(token, 'your-secret-key');
-        req.provider = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ success: false, message: 'טוקן לא חוקי' });
-    }
-};
+// Import the shared verifyProviderToken middleware from auth routes
+const authRouter = require('./auth');
+const verifyProviderToken = authRouter.verifyProviderToken;
 
 // Get all customers for business
 router.get('/', verifyProviderToken, async (req, res) => {
