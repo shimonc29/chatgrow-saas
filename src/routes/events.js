@@ -59,12 +59,40 @@ router.post('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const result = await eventService.createEvent(req.provider.providerId, req.body);
+        // Transform frontend data to match Event model
+        const { name, description, date, startTime: time, location, maxParticipants, price, status } = req.body;
+        
+        // Combine date and time to create DateTime objects
+        const startDateTime = new Date(`${date}T${time || '09:00'}:00`);
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setHours(endDateTime.getHours() + 2); // Default 2 hours duration
+        
+        const eventData = {
+            name,
+            description: description || '',
+            category: 'workshop', // Default category
+            startDateTime,
+            endDateTime,
+            duration: 120, // Default 2 hours in minutes
+            maxParticipants: parseInt(maxParticipants) || 50,
+            location: {
+                type: 'physical',
+                address: { street: location || 'לא צוין' }
+            },
+            pricing: {
+                type: price && parseFloat(price) > 0 ? 'paid' : 'free',
+                amount: parseFloat(price) || 0,
+                currency: 'ILS'
+            },
+            status: status === 'active' ? 'published' : 'draft'
+        };
+        
+        const result = await eventService.createEvent(req.provider.providerId, eventData);
         
         const statusCode = result.success ? 201 : 400;
         logApiRequest(req.method, req.originalUrl, statusCode, Date.now() - startTime, {
             businessId: req.provider.providerId,
-            eventName: req.body.name
+            eventName: name
         });
         
         res.status(statusCode).json(result);
