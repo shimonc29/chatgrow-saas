@@ -1,6 +1,4 @@
-import { extendTheme } from '@chakra-ui/react';
-
-const theme = extendTheme({
+const theme = {
   direction: 'rtl',
   fonts: {
     heading: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif`,
@@ -39,6 +37,6 @@ const theme = extendTheme({
       },
     },
   },
-});
+};
 
 export default theme;
