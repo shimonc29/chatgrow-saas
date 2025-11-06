@@ -18,6 +18,7 @@ const Payments = () => {
     paymentMethod: 'credit_card',
     provider: 'manual',
     notes: '',
+    relatedToType: 'other',
   });
 
   useEffect(() => {
@@ -75,6 +76,9 @@ const Payments = () => {
           name: `${customer.firstName} ${customer.lastName}`,
           email: customer.email,
           phone: customer.phone
+        },
+        relatedTo: {
+          type: formData.relatedToType || 'other'
         }
       };
 
@@ -93,6 +97,7 @@ const Payments = () => {
         paymentMethod: 'credit_card',
         provider: 'manual',
         notes: '',
+        relatedToType: 'other',
       });
       setShowModal(false);
       setEditMode(false);
@@ -111,6 +116,7 @@ const Payments = () => {
       paymentMethod: payment.paymentMethod,
       provider: payment.provider?.id || payment.provider || 'manual',
       notes: payment.notes || '',
+      relatedToType: payment.relatedTo?.type || 'other',
     });
     setEditPaymentId(payment._id);
     setEditMode(true);
@@ -123,6 +129,7 @@ const Payments = () => {
       amount: '',
       currency: 'ILS',
       paymentMethod: 'credit_card',
+      relatedToType: 'other',
       provider: 'manual',
       notes: '',
     });

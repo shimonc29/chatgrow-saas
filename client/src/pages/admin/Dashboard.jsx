@@ -39,6 +39,14 @@ const Dashboard = () => {
     return new Date(dateString).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getLocation = (location) => {
+    if (!location) return 'לא צוין';
+    if (typeof location === 'string') return location;
+    if (location.address?.street) return location.address.street;
+    if (location.address) return 'כתובת זמינה';
+    return 'לא צוין';
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -161,7 +169,7 @@ const Dashboard = () => {
                         <span>{formatTime(event.startDateTime)}</span>
                       </div>
                       <div className="flex items-center space-x-reverse space-x-2 mt-1 text-xs text-gray-400">
-                        <span>📍 {event.location}</span>
+                        <span>📍 {getLocation(event.location)}</span>
                         <span>•</span>
                         <span>👥 {event.participants}</span>
                       </div>
