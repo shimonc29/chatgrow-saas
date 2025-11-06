@@ -19,10 +19,12 @@ const LandingPages = () => {
       const response = await axios.get('/api/landing-pages', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setPages(response.data);
+      // Ensure response.data is an array
+      setPages(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       setError('שגיאה בטעינת הדפים');
-      console.error(err);
+      console.error('Error fetching pages:', err);
+      setPages([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -97,19 +99,19 @@ const LandingPages = () => {
 
   return (
     <MainLayout>
-      <div className="p-8">
+      <div className="p-4 sm:p-6 md:p-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">🎨 דפי נחיתה</h1>
-            <p className="text-gray-600 mt-2">בנה דפים מרשימים לשיווק האירועים והתורים שלך</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">🎨 דפי נחיתה</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-2">בנה דפים מרשימים לשיווק האירועים והתורים שלך</p>
           </div>
           <button
             onClick={() => navigate('/landing-pages/new')}
-            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-reverse space-x-2"
+            className="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-reverse space-x-2"
           >
             <span>➕</span>
-            <span>צור דף נחיתה חדש</span>
+            <span className="whitespace-nowrap">צור דף נחיתה חדש</span>
           </button>
         </div>
 
@@ -121,57 +123,57 @@ const LandingPages = () => {
 
         {/* Stats Overview */}
         {pages.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">סה"כ דפים</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{pages.length}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">סה"כ דפים</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1">{pages.length}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">📄</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl">📄</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">דפים פורסמו</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">
+                  <p className="text-gray-500 text-xs sm:text-sm">דפים פורסמו</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-1">
                     {pages.filter(p => p.status === 'published').length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">✓</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl">✓</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">סה"כ צפיות</p>
-                  <p className="text-3xl font-bold text-blue-600 mt-1">
+                  <p className="text-gray-500 text-xs sm:text-sm">סה"כ צפיות</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-1">
                     {pages.reduce((sum, p) => sum + (p.analytics?.views || 0), 0)}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">👁️</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl">👁️</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">סה"כ המרות</p>
-                  <p className="text-3xl font-bold text-orange-600 mt-1">
+                  <p className="text-gray-500 text-xs sm:text-sm">סה"כ המרות</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-orange-600 mt-1">
                     {pages.reduce((sum, p) => sum + (p.analytics?.conversions || 0), 0)}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🎯</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl">🎯</span>
                 </div>
               </div>
             </div>
@@ -180,10 +182,10 @@ const LandingPages = () => {
 
         {/* Pages List */}
         {pages.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
-            <div className="text-6xl mb-4">🎨</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">אין עדיין דפי נחיתה</h3>
-            <p className="text-gray-600 mb-6">צור את דף הנחיתה הראשון שלך ותתחיל לשווק!</p>
+          <div className="bg-white rounded-xl shadow-md p-8 sm:p-12 text-center">
+            <div className="text-4xl sm:text-6xl mb-4">🎨</div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">אין עדיין דפי נחיתה</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-6">צור את דף הנחיתה הראשון שלך ותתחיל לשווק!</p>
             <button
               onClick={() => navigate('/landing-pages/new')}
               className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
@@ -192,7 +194,7 @@ const LandingPages = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {pages.map((page) => (
               <div key={page._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 {/* Thumbnail Preview */}
@@ -210,10 +212,10 @@ const LandingPages = () => {
                 </div>
 
                 {/* Page Info */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 truncate">{page.name}</h3>
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 truncate">{page.name}</h3>
                   
-                  <div className="flex items-center space-x-reverse space-x-2 text-sm text-gray-500 mb-4">
+                  <div className="flex items-center flex-wrap space-x-reverse space-x-2 text-xs sm:text-sm text-gray-500 mb-4 gap-2">
                     <span className="px-2 py-1 bg-gray-100 rounded">
                       {page.template}
                     </span>
@@ -228,57 +230,59 @@ const LandingPages = () => {
                   <div className="grid grid-cols-3 gap-2 mb-4">
                     <div className="text-center p-2 bg-gray-50 rounded">
                       <div className="text-xs text-gray-500">צפיות</div>
-                      <div className="text-lg font-bold text-gray-800">{page.analytics?.views || 0}</div>
+                      <div className="text-base sm:text-lg font-bold text-gray-800">{page.analytics?.views || 0}</div>
                     </div>
                     <div className="text-center p-2 bg-gray-50 rounded">
                       <div className="text-xs text-gray-500">המרות</div>
-                      <div className="text-lg font-bold text-green-600">{page.analytics?.conversions || 0}</div>
+                      <div className="text-base sm:text-lg font-bold text-green-600">{page.analytics?.conversions || 0}</div>
                     </div>
                     <div className="text-center p-2 bg-gray-50 rounded">
                       <div className="text-xs text-gray-500">שיעור</div>
-                      <div className="text-lg font-bold text-blue-600">
+                      <div className="text-base sm:text-lg font-bold text-blue-600">
                         {getConversionRate(page.analytics?.views || 0, page.analytics?.conversions || 0)}
                       </div>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                     <button
                       onClick={() => navigate(`/landing-pages/edit/${page._id}`)}
-                      className="flex-1 bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                      className="flex-1 sm:flex-none bg-brand-500 hover:bg-brand-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
                     >
                       ✏️ ערוך
                     </button>
-                    <button
-                      onClick={() => copyLink(page.slug)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      title="העתק קישור"
-                    >
-                      🔗
-                    </button>
-                    <button
-                      onClick={() => window.open(`/landing/${page.slug}`, '_blank')}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      title="צפייה"
-                      disabled={page.status !== 'published'}
-                    >
-                      👁️
-                    </button>
-                    <button
-                      onClick={() => handleDuplicate(page._id)}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      title="שכפל"
-                    >
-                      📋
-                    </button>
-                    <button
-                      onClick={() => handleDelete(page._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      title="מחק"
-                    >
-                      🗑️
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => copyLink(page.slug)}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                        title="העתק קישור"
+                      >
+                        🔗
+                      </button>
+                      <button
+                        onClick={() => window.open(`/landing/${page.slug}`, '_blank')}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50"
+                        title="צפייה"
+                        disabled={page.status !== 'published'}
+                      >
+                        👁️
+                      </button>
+                      <button
+                        onClick={() => handleDuplicate(page._id)}
+                        className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                        title="שכפל"
+                      >
+                        📋
+                      </button>
+                      <button
+                        onClick={() => handleDelete(page._id)}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                        title="מחק"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
