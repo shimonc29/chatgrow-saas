@@ -8,6 +8,7 @@ import Dashboard from './pages/admin/Dashboard';
 import Events from './pages/admin/Events';
 import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
+import Payments from './pages/admin/Payments';
 
 function App() {
   return (
@@ -51,6 +52,15 @@ function App() {
             element={
               <PrivateRoute>
                 <Appointments />
+              </PrivateRoute>
+            } 
+          />
+          
+          <Route 
+            path="/payments" 
+            element={
+              <PrivateRoute>
+                <Payments />
               </PrivateRoute>
             } 
           />

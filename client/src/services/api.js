@@ -59,9 +59,15 @@ export const registrationsAPI = {
 };
 
 export const paymentsAPI = {
-  initiate: (registrationId) => api.post(`/payments/initiate`, { registrationId }),
-  verify: (paymentId) => api.get(`/payments/${paymentId}/verify`),
-  getByRegistration: (registrationId) => api.get(`/payments/registration/${registrationId}`),
+  getAll: (params) => api.get('/payments', { params }),
+  getById: (id) => api.get(`/payments/${id}`),
+  create: (paymentData) => api.post('/payments/create', paymentData),
+  update: (id, paymentData) => api.put(`/payments/${id}`, paymentData),
+  delete: (id) => api.delete(`/payments/${id}`),
+  complete: (id, providerData) => api.post(`/payments/${id}/complete`, { providerData }),
+  refund: (id, amount, reason) => api.post(`/payments/${id}/refund`, { amount, reason }),
+  getRevenue: (params) => api.get('/payments/revenue', { params }),
+  getProviders: () => api.get('/payments/providers'),
 };
 
 export const customersAPI = {

@@ -10,6 +10,7 @@ const Sidebar = () => {
     { path: '/events', icon: '📅', label: 'אירועים' },
     { path: '/customers', icon: '👥', label: 'לקוחות' },
     { path: '/appointments', icon: '📋', label: 'תורים' },
+    { path: '/payments', icon: '💳', label: 'תשלומים' },
   ];
 
   const isActive = (path) => location.pathname === path;
