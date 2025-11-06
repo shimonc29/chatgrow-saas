@@ -132,6 +132,8 @@ ChatGrow is built with a Node.js and Express.js backend. It leverages a microser
 - **Created service_providers table** in PostgreSQL with proper indexes
 - **Updated auth.js routes** to use database instead of temporary storage
 - **Verified functionality** - Registration and login now persist across server restarts
+- **Fixed JWT middleware mismatch** - Replaced authMiddleware.authenticate() with verifyProviderToken in appointments.js, customers.js, and events.js to use correct JWT secret and token structure
+- **Token structure aligned** - All routes now expect {providerId, email, businessName} instead of {userId, sessionId}
 
 ### Email/SMS Notification System (Already Implemented)
 - **NotificationService** fully operational with multiple provider support

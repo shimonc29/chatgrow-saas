@@ -1,0 +1,78 @@
+Login attempt: [object Object]
+ AuthContext: calling login API
+ AuthContext: login response: [object Object]
+ AuthContext: saving token and user [object Object]
+ Login result: [object Object]
+ Login successful, navigating to dashboard
+225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/appointments:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/appointments:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+225190d8-6abb-41e3-b097-98d5090638c8-00-cn9bz5ka76wk.worf.replit.dev/api/appointments:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+ Unauthorized - clearing auth and redirecting to login
+(anonymous) @ injected.js:27
+Promise.then
+_request @ axios.js?v=678aa89f:2230
+request @ axios.js?v=678aa89f:2139
+Axios.<computed> @ axios.js?v=678aa89f:2267
+wrap @ axios.js?v=678aa89f:8
+getAll @ api.js:76
+fetchAppointments @ Appointments.jsx:40
+(anonymous) @ Appointments.jsx:35
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18567
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+commitHookEffectListMount @ react-dom_client.js?v=678aa89f:9411
+commitHookPassiveMountEffects @ react-dom_client.js?v=678aa89f:9465
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11040
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11201
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11033
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=678aa89f:11010
+commitPassiveMountOnFiber @ react-dom_client.js?v=678aa89f:11066
+flushPassiveEffects @ react-dom_client.js?v=678aa89f:13150
+flushPendingEffects @ react-dom_client.js?v=678aa89f:13088
+flushSpawnedWork @ react-dom_client.js?v=678aa89f:13062
+commitRoot @ react-dom_client.js?v=678aa89f:12804
+commitRootWhenReady @ react-dom_client.js?v=678aa89f:12016
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11950
+performSyncWorkOnRoot @ react-dom_client.js?v=678aa89f:13517
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=678aa89f:13414
+processRootScheduleInMicrotask @ react-dom_client.js?v=678aa89f:13437
+(anonymous) @ react-dom_client.js?v=678aa89f:13531
+<Appointments>
+(anonymous) @ injected.js:27
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+App @ App.jsx:128
+react_stack_bottom_frame @ react-dom_client.js?v=678aa89f:18509
+renderWithHooks @ react-dom_client.js?v=678aa89f:5654
+updateFunctionComponent @ react-dom_client.js?v=678aa89f:7475
+beginWork @ react-dom_client.js?v=678aa89f:8525
+runWithFiberInDEV @ react-dom_client.js?v=678aa89f:997
+performUnitOfWork @ react-dom_client.js?v=678aa89f:12561
+workLoopSync @ react-dom_client.js?v=678aa89f:12424
+renderRootSync @ react-dom_client.js?v=678aa89f:12408
+performWorkOnRoot @ react-dom_client.js?v=678aa89f:11766
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=678aa89f:13505
+performWorkUntilDeadline @ react-dom_client.js?v=678aa89f:36
+<App>
+(anonymous) @ injected.js:27
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=678aa89f:247
+(anonymous) @ main.jsx:5Understand this warning
+ Error fetching appointments: [object Object]

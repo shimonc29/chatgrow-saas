@@ -1,16 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const Appointment = require('../models/Appointment');
-const authMiddleware = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 const { logApiRequest } = require('../utils/logger');
 
+// Provider authentication middleware
+const verifyProviderToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, 'your-secret-key');
+        req.provider = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: 'טוקן לא חוקי' });
+    }
+};
+
 // Get all appointments for business
-router.get('/', authMiddleware.authenticate(), async (req, res) => {
+router.get('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const { status, date } = req.query;
-        const query = { businessId: req.user.id };
+        const query = { businessId: req.provider.providerId };
         
         if (status) {
             query.status = status;
@@ -26,7 +43,7 @@ router.get('/', authMiddleware.authenticate(), async (req, res) => {
         const appointments = await Appointment.find(query).sort({ appointmentDate: 1, startTime: 1 });
         
         logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             appointmentCount: appointments.length
         });
         
@@ -47,7 +64,7 @@ router.get('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Create new appointment
-router.post('/', authMiddleware.authenticate(), async (req, res) => {
+router.post('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -66,7 +83,7 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
         const endTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
         
         const appointment = new Appointment({
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             serviceType: 'consultation',
             serviceName: service,
             customer: {
@@ -85,7 +102,7 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
         await appointment.save();
         
         logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             serviceName: service
         });
         
@@ -107,13 +124,13 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Get specific appointment
-router.get('/:appointmentId', authMiddleware.authenticate(), async (req, res) => {
+router.get('/:appointmentId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const appointment = await Appointment.findOne({
             _id: req.params.appointmentId,
-            businessId: req.user.id
+            businessId: req.provider.providerId
         });
         
         if (!appointment) {
@@ -141,7 +158,7 @@ router.get('/:appointmentId', authMiddleware.authenticate(), async (req, res) =>
 });
 
 // Update appointment
-router.put('/:appointmentId', authMiddleware.authenticate(), async (req, res) => {
+router.put('/:appointmentId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -162,7 +179,7 @@ router.put('/:appointmentId', authMiddleware.authenticate(), async (req, res) =>
         if (status) updateData.status = status;
         
         const appointment = await Appointment.findOneAndUpdate(
-            { _id: req.params.appointmentId, businessId: req.user.id },
+            { _id: req.params.appointmentId, businessId: req.provider.providerId },
             updateData,
             { new: true, runValidators: true }
         );
@@ -193,14 +210,14 @@ router.put('/:appointmentId', authMiddleware.authenticate(), async (req, res) =>
 });
 
 // Update appointment status
-router.patch('/:appointmentId/status', authMiddleware.authenticate(), async (req, res) => {
+router.patch('/:appointmentId/status', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const { status } = req.body;
         
         const appointment = await Appointment.findOneAndUpdate(
-            { _id: req.params.appointmentId, businessId: req.user.id },
+            { _id: req.params.appointmentId, businessId: req.provider.providerId },
             { status },
             { new: true, runValidators: true }
         );
@@ -231,12 +248,12 @@ router.patch('/:appointmentId/status', authMiddleware.authenticate(), async (req
 });
 
 // Delete appointment
-router.delete('/:appointmentId', authMiddleware.authenticate(), async (req, res) => {
+router.delete('/:appointmentId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const appointment = await Appointment.findOneAndUpdate(
-            { _id: req.params.appointmentId, businessId: req.user.id },
+            { _id: req.params.appointmentId, businessId: req.provider.providerId },
             { status: 'cancelled' },
             { new: true }
         );

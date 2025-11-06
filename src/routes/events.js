@@ -4,23 +4,40 @@ const router = express.Router();
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const EventService = require('../services/eventService');
-const authMiddleware = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 const { logApiRequest } = require('../utils/logger');
+
+// Provider authentication middleware
+const verifyProviderToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, 'your-secret-key');
+        req.provider = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: 'טוקן לא חוקי' });
+    }
+};
 
 const eventService = new EventService();
 
 // Get all events for business
-router.get('/', authMiddleware.authenticate(), async (req, res) => {
+router.get('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const { status, category, startDate, limit } = req.query;
         const filters = { status, category, startDate, limit };
         
-        const result = await eventService.getBusinessEvents(req.user.id, filters);
+        const result = await eventService.getBusinessEvents(req.provider.providerId, filters);
         
         logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             eventCount: result.events?.length || 0
         });
         
@@ -38,15 +55,15 @@ router.get('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Create new event
-router.post('/', authMiddleware.authenticate(), async (req, res) => {
+router.post('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const result = await eventService.createEvent(req.user.id, req.body);
+        const result = await eventService.createEvent(req.provider.providerId, req.body);
         
         const statusCode = result.success ? 201 : 400;
         logApiRequest(req.method, req.originalUrl, statusCode, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             eventName: req.body.name
         });
         
@@ -64,13 +81,13 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Get specific event
-router.get('/:eventId', authMiddleware.authenticate(), async (req, res) => {
+router.get('/:eventId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const event = await Event.findOne({
             _id: req.params.eventId,
-            businessId: req.user.id
+            businessId: req.provider.providerId
         });
         
         if (!event) {
@@ -98,12 +115,12 @@ router.get('/:eventId', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Update event
-router.put('/:eventId', authMiddleware.authenticate(), async (req, res) => {
+router.put('/:eventId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const event = await Event.findOneAndUpdate(
-            { _id: req.params.eventId, businessId: req.user.id },
+            { _id: req.params.eventId, businessId: req.provider.providerId },
             req.body,
             { new: true, runValidators: true }
         );
@@ -134,13 +151,13 @@ router.put('/:eventId', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Delete event
-router.delete('/:eventId', authMiddleware.authenticate(), async (req, res) => {
+router.delete('/:eventId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const event = await Event.findOne({
             _id: req.params.eventId,
-            businessId: req.user.id
+            businessId: req.provider.providerId
         });
         
         if (!event) {
@@ -181,7 +198,7 @@ router.delete('/:eventId', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Get event registrations
-router.get('/:eventId/registrations', authMiddleware.authenticate(), async (req, res) => {
+router.get('/:eventId/registrations', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -203,7 +220,7 @@ router.get('/:eventId/registrations', authMiddleware.authenticate(), async (req,
 });
 
 // Send reminders
-router.post('/:eventId/reminders', authMiddleware.authenticate(), async (req, res) => {
+router.post('/:eventId/reminders', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -257,7 +274,7 @@ router.post('/:eventId/register', async (req, res) => {
 });
 
 // Cancel registration
-router.delete('/registrations/:registrationId', authMiddleware.authenticate(), async (req, res) => {
+router.delete('/registrations/:registrationId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {

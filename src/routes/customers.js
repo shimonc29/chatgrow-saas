@@ -1,16 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const Customer = require('../models/Customer');
-const authMiddleware = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 const { logApiRequest } = require('../utils/logger');
 
+// Provider authentication middleware
+const verifyProviderToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, 'your-secret-key');
+        req.provider = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: 'טוקן לא חוקי' });
+    }
+};
+
 // Get all customers for business
-router.get('/', authMiddleware.authenticate(), async (req, res) => {
+router.get('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const { status, search } = req.query;
-        const query = { businessId: req.user.id };
+        const query = { businessId: req.provider.providerId };
         
         if (status) {
             query.status = status;
@@ -33,7 +50,7 @@ router.get('/', authMiddleware.authenticate(), async (req, res) => {
         }
         
         logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             customerCount: customers.length
         });
         
@@ -54,7 +71,7 @@ router.get('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Create new customer
-router.post('/', authMiddleware.authenticate(), async (req, res) => {
+router.post('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -66,7 +83,7 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
         const lastName = nameParts.slice(1).join(' ') || firstName;
         
         const customer = new Customer({
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             firstName,
             lastName,
             email,
@@ -79,7 +96,7 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
         await customer.save();
         
         logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
-            businessId: req.user.id,
+            businessId: req.provider.providerId,
             customerName: fullName
         });
         
@@ -101,13 +118,13 @@ router.post('/', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Get specific customer
-router.get('/:customerId', authMiddleware.authenticate(), async (req, res) => {
+router.get('/:customerId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const customer = await Customer.findOne({
             _id: req.params.customerId,
-            businessId: req.user.id
+            businessId: req.provider.providerId
         });
         
         if (!customer) {
@@ -135,7 +152,7 @@ router.get('/:customerId', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Update customer
-router.put('/:customerId', authMiddleware.authenticate(), async (req, res) => {
+router.put('/:customerId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
@@ -154,7 +171,7 @@ router.put('/:customerId', authMiddleware.authenticate(), async (req, res) => {
         }
         
         const customer = await Customer.findOneAndUpdate(
-            { _id: req.params.customerId, businessId: req.user.id },
+            { _id: req.params.customerId, businessId: req.provider.providerId },
             updateData,
             { new: true, runValidators: true }
         );
@@ -185,12 +202,12 @@ router.put('/:customerId', authMiddleware.authenticate(), async (req, res) => {
 });
 
 // Delete customer
-router.delete('/:customerId', authMiddleware.authenticate(), async (req, res) => {
+router.delete('/:customerId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
     
     try {
         const customer = await Customer.findOneAndUpdate(
-            { _id: req.params.customerId, businessId: req.user.id },
+            { _id: req.params.customerId, businessId: req.provider.providerId },
             { status: 'inactive' },
             { new: true }
         );
