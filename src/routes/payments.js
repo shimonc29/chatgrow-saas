@@ -9,6 +9,34 @@ const { logInfo, logError, logApiRequest } = require('../utils/logger');
 const authRouter = require('./auth');
 const verifyProviderToken = authRouter.verifyProviderToken;
 
+// Get payment providers list (MUST be before /:id route)
+router.get('/providers', (req, res) => {
+    res.json({
+        success: true,
+        providers: [
+            {
+                name: 'cardcom',
+                displayName: 'Cardcom',
+                supported: !!process.env.CARDCOM_TERMINAL_NUMBER && !!process.env.CARDCOM_API_KEY,
+                currency: ['ILS', 'USD', 'EUR']
+            },
+            {
+                name: 'meshulam',
+                displayName: 'Meshulam (Grow)',
+                supported: !!process.env.MESHULAM_API_KEY && !!process.env.MESHULAM_PAGE_CODE,
+                currency: ['ILS', 'USD', 'EUR']
+            },
+            {
+                name: 'tranzila',
+                displayName: 'Tranzila',
+                supported: !!process.env.TRANZILA_TERMINAL_NAME,
+                currency: ['ILS', 'USD', 'EUR', 'GBP']
+            }
+        ],
+        defaultProvider: process.env.PAYMENT_PROVIDER || 'cardcom'
+    });
+});
+
 // Get all payments
 router.get('/', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();
@@ -98,19 +126,60 @@ router.get('/:id', verifyProviderToken, async (req, res) => {
     }
 });
 
-// Create payment using paymentService
+// Create payment (manual or via payment gateway)
 router.post('/create', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
     try {
         const businessId = req.provider.providerId;
-        const { customerId, amount, currency, paymentMethod, provider, customer, billing, relatedTo, notes, metadata, successUrl, errorUrl } = req.body;
+        const { customerId, amount, currency, paymentMethod, provider, customer, billing, relatedTo, notes, metadata } = req.body;
 
         if (!customerId || !amount || !customer) {
             return res.status(400).json({
                 success: false,
-                error: 'Missing required fields: customerId, amount, customer'
+                message: 'Missing required fields: customerId, amount, customer'
             });
         }
 
+        // For manual payments, create directly in DB without calling paymentService
+        if (!provider || provider === 'manual') {
+            const payment = new Payment({
+                businessId,
+                customerId,
+                amount: parseFloat(amount),
+                currency: currency || 'ILS',
+                paymentMethod: paymentMethod || 'cash',
+                status: 'pending',
+                customer: {
+                    name: customer.name,
+                    email: customer.email,
+                    phone: customer.phone
+                },
+                provider: {
+                    name: 'manual',
+                    displayName: 'תשלום ידני'
+                },
+                notes,
+                metadata: metadata || {},
+                relatedTo
+            });
+
+            await payment.save();
+
+            logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
+                businessId,
+                paymentId: payment._id,
+                amount: payment.amount
+            });
+
+            return res.status(201).json({
+                success: true,
+                payment,
+                message: 'תשלום נוצר בהצלחה'
+            });
+        }
+
+        // For gateway payments, use paymentService
         const paymentData = {
             amount,
             currency: currency || 'ILS',
@@ -121,11 +190,17 @@ router.post('/create', verifyProviderToken, async (req, res) => {
             relatedTo,
             notes,
             metadata,
-            successUrl: successUrl || `${process.env.BASE_URL || 'http://localhost:5000'}/payment/success`,
-            errorUrl: errorUrl || `${process.env.BASE_URL || 'http://localhost:5000'}/payment/error`
+            successUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/success`,
+            errorUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/error`
         };
 
         const result = await paymentService.createPayment(businessId, customerId, paymentData);
+
+        logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
+            businessId,
+            paymentId: result.payment._id,
+            amount: result.payment.amount
+        });
 
         res.status(201).json({
             success: true,
@@ -137,10 +212,12 @@ router.post('/create', verifyProviderToken, async (req, res) => {
 
     } catch (error) {
         logError('Failed to create payment via API', error);
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
         res.status(500).json({
             success: false,
-            error: error.message,
-            message: 'שגיאה ביצירת התשלום'
+            message: 'שגיאה ביצירת התשלום: ' + error.message
         });
     }
 });
@@ -369,33 +446,6 @@ router.post('/webhook/:provider', async (req, res) => {
         logError('Failed to process webhook', error);
         res.status(500).json({ success: false, error: error.message });
     }
-});
-
-router.get('/providers', (req, res) => {
-    res.json({
-        success: true,
-        providers: [
-            {
-                name: 'cardcom',
-                displayName: 'Cardcom',
-                supported: !!process.env.CARDCOM_TERMINAL_NUMBER && !!process.env.CARDCOM_API_KEY,
-                currency: ['ILS', 'USD', 'EUR']
-            },
-            {
-                name: 'meshulam',
-                displayName: 'Meshulam (Grow)',
-                supported: !!process.env.MESHULAM_API_KEY && !!process.env.MESHULAM_PAGE_CODE,
-                currency: ['ILS', 'USD', 'EUR']
-            },
-            {
-                name: 'tranzila',
-                displayName: 'Tranzila',
-                supported: !!process.env.TRANZILA_TERMINAL_NAME,
-                currency: ['ILS', 'USD', 'EUR', 'GBP']
-            }
-        ],
-        defaultProvider: process.env.PAYMENT_PROVIDER || 'cardcom'
-    });
 });
 
 module.exports = router;
