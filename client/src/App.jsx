@@ -19,13 +19,14 @@ import AppointmentBooking from './pages/public/AppointmentBooking';
 import PaymentSuccess from './pages/public/PaymentSuccess';
 import PaymentError from './pages/public/PaymentError';
 import LandingPageViewer from './pages/public/LandingPageViewer';
+import MarketingHome from './pages/public/MarketingHome';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<MarketingHome />} />
           
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
