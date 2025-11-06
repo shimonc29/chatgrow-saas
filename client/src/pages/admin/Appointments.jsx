@@ -4,6 +4,8 @@ import { appointmentsAPI } from '../../services/api';
 
 const Appointments = () => {
   const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editAppointmentId, setEditAppointmentId] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,14 +38,57 @@ const Appointments = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await appointmentsAPI.create(formData);
-      setAppointments([response.data.appointment, ...appointments]);
+      if (editMode && editAppointmentId) {
+        const response = await appointmentsAPI.update(editAppointmentId, formData);
+        setAppointments(appointments.map(apt => apt._id === editAppointmentId ? response.data.appointment : apt));
+        alert('תור עודכן בהצלחה!');
+      } else {
+        const response = await appointmentsAPI.create(formData);
+        setAppointments([response.data.appointment, ...appointments]);
+      }
+      
       setFormData({ customerName: '', service: '', date: '', time: '', notes: '' });
       setShowModal(false);
+      setEditMode(false);
+      setEditAppointmentId(null);
     } catch (err) {
-      console.error('Error creating appointment:', err);
-      alert('שגיאה ביצירת תור: ' + (err.response?.data?.error || err.message));
+      console.error('Error saving appointment:', err);
+      alert('שגיאה בשמירת תור: ' + (err.response?.data?.error || err.message));
     }
+  };
+
+  const handleEdit = (appointment) => {
+    const dateObj = new Date(appointment.appointmentDate || appointment.dateTime);
+    
+    setFormData({
+      customerName: `${appointment.customer.firstName} ${appointment.customer.lastName}`,
+      service: appointment.serviceName || appointment.serviceType,
+      date: dateObj.toISOString().split('T')[0],
+      time: appointment.startTime || '09:00',
+      notes: appointment.customer.notes || appointment.notes || '',
+    });
+    setEditAppointmentId(appointment._id);
+    setEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleOpenModal = () => {
+    setFormData({ customerName: '', service: '', date: '', time: '', notes: '' });
+    setEditMode(false);
+    setEditAppointmentId(null);
+    setShowModal(true);
+  };
+
+  const copyBookingLink = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const businessId = user.providerId || 'demo';
+    const link = `${window.location.origin}/appointments/book?businessId=${businessId}`;
+    navigator.clipboard.writeText(link).then(() => {
+      alert('קישור הזמנת התור הועתק ללוח! 📋');
+    }).catch(err => {
+      console.error('Error copying link:', err);
+      alert('שגיאה בהעתקת הקישור');
+    });
   };
 
   const handleStatusChange = async (appointmentId, newStatus) => {
@@ -127,13 +172,22 @@ const Appointments = () => {
             <h1 className="text-3xl font-bold text-gray-800">ניהול תורים</h1>
             <p className="text-gray-600 mt-2">קבע ונהל תורים עם לקוחות</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
-          >
-            <span>➕</span>
-            <span>תור חדש</span>
-          </button>
+          <div className="flex space-x-reverse space-x-3">
+            <button
+              onClick={copyBookingLink}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
+            >
+              <span>🔗</span>
+              <span>קישור הזמנה</span>
+            </button>
+            <button
+              onClick={handleOpenModal}
+              className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
+            >
+              <span>➕</span>
+              <span>תור חדש</span>
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -178,28 +232,36 @@ const Appointments = () => {
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex space-x-reverse space-x-2">
-                    {appointment.status === 'scheduled' && (
+                  <div className="mt-4 flex flex-col space-y-2">
+                    <div className="flex space-x-reverse space-x-2">
+                      {appointment.status === 'scheduled' && (
+                        <button 
+                          onClick={() => handleStatusChange(appointment._id, 'confirmed')}
+                          className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                        >
+                          ✓ אשר
+                        </button>
+                      )}
+                      {appointment.status === 'confirmed' && (
+                        <button 
+                          onClick={() => handleStatusChange(appointment._id, 'completed')}
+                          className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                        >
+                          ✓ סיים
+                        </button>
+                      )}
                       <button 
-                        onClick={() => handleStatusChange(appointment._id, 'confirmed')}
-                        className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm"
+                        onClick={() => handleEdit(appointment)}
+                        className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                       >
-                        אשר
+                        ✏️ ערוך
                       </button>
-                    )}
-                    {appointment.status === 'confirmed' && (
-                      <button 
-                        onClick={() => handleStatusChange(appointment._id, 'completed')}
-                        className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-                      >
-                        סיים
-                      </button>
-                    )}
+                    </div>
                     <button 
                       onClick={() => handleDelete(appointment._id)}
-                      className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                      className="w-full bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
                     >
-                      בטל
+                      🗑️ בטל
                     </button>
                   </div>
                 </div>
@@ -212,7 +274,7 @@ const Appointments = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">אין תורים עדיין</h3>
             <p className="text-gray-600 mb-6">קבע את התור הראשון שלך!</p>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenModal}
               className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               ➕ קבע תור חדש
@@ -225,7 +287,9 @@ const Appointments = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">תור חדש</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {editMode ? 'ערוך תור' : 'תור חדש'}
+                </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-4">
@@ -289,7 +353,7 @@ const Appointments = () => {
                     type="submit"
                     className="flex-1 bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-semibold transition-colors"
                   >
-                    קבע תור
+                    {editMode ? 'שמור שינויים' : 'קבע תור'}
                   </button>
                   <button
                     type="button"

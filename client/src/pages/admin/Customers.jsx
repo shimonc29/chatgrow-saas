@@ -4,6 +4,8 @@ import { customersAPI } from '../../services/api';
 
 const Customers = () => {
   const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editCustomerId, setEditCustomerId] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,14 +37,42 @@ const Customers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await customersAPI.create(formData);
-      setCustomers([response.data.customer, ...customers]);
+      if (editMode && editCustomerId) {
+        const response = await customersAPI.update(editCustomerId, formData);
+        setCustomers(customers.map(c => c._id === editCustomerId ? response.data.customer : c));
+        alert('לקוח עודכן בהצלחה!');
+      } else {
+        const response = await customersAPI.create(formData);
+        setCustomers([response.data.customer, ...customers]);
+      }
+      
       setFormData({ fullName: '', email: '', phone: '', notes: '' });
       setShowModal(false);
+      setEditMode(false);
+      setEditCustomerId(null);
     } catch (err) {
-      console.error('Error creating customer:', err);
-      alert('שגיאה בהוספת לקוח: ' + (err.response?.data?.error || err.message));
+      console.error('Error saving customer:', err);
+      alert('שגיאה בשמירת לקוח: ' + (err.response?.data?.error || err.message));
     }
+  };
+
+  const handleEdit = (customer) => {
+    setFormData({
+      fullName: `${customer.firstName} ${customer.lastName}`,
+      email: customer.email || '',
+      phone: customer.phone,
+      notes: customer.notes || '',
+    });
+    setEditCustomerId(customer._id);
+    setEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleOpenModal = () => {
+    setFormData({ fullName: '', email: '', phone: '', notes: '' });
+    setEditMode(false);
+    setEditCustomerId(null);
+    setShowModal(true);
   };
 
   const handleDelete = async (customerId) => {
@@ -85,7 +115,7 @@ const Customers = () => {
             <p className="text-gray-600 mt-2">נהל את רשימת הלקוחות שלך</p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenModal}
             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
           >
             <span>➕</span>
@@ -143,12 +173,20 @@ const Customers = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(customer.createdAt)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button 
-                          onClick={() => handleDelete(customer._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          מחיקה
-                        </button>
+                        <div className="flex space-x-reverse space-x-3">
+                          <button 
+                            onClick={() => handleEdit(customer)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            ✏️ ערוך
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(customer._id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            🗑️ מחיקה
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -162,7 +200,7 @@ const Customers = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">אין לקוחות עדיין</h3>
             <p className="text-gray-600 mb-6">הוסף את הלקוח הראשון שלך!</p>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenModal}
               className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               ➕ הוסף לקוח חדש
@@ -175,7 +213,9 @@ const Customers = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">לקוח חדש</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {editMode ? 'ערוך לקוח' : 'לקוח חדש'}
+                </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-4">
@@ -229,7 +269,7 @@ const Customers = () => {
                     type="submit"
                     className="flex-1 bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-semibold transition-colors"
                   >
-                    הוסף לקוח
+                    {editMode ? 'שמור שינויים' : 'הוסף לקוח'}
                   </button>
                   <button
                     type="button"

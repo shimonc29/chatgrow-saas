@@ -4,6 +4,8 @@ import { paymentsAPI, customersAPI } from '../../services/api';
 
 const Payments = () => {
   const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editPaymentId, setEditPaymentId] = useState(null);
   const [payments, setPayments] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,24 +78,57 @@ const Payments = () => {
         }
       };
 
-      const response = await paymentsAPI.create(paymentData);
-      
-      if (response.data.success) {
-        await fetchPayments();
-        setFormData({
-          customerId: '',
-          amount: '',
-          currency: 'ILS',
-          paymentMethod: 'credit_card',
-          provider: 'manual',
-          notes: '',
-        });
-        setShowModal(false);
+      if (editMode && editPaymentId) {
+        await paymentsAPI.update(editPaymentId, paymentData);
+        alert('תשלום עודכן בהצלחה!');
+      } else {
+        await paymentsAPI.create(paymentData);
       }
+      
+      await fetchPayments();
+      setFormData({
+        customerId: '',
+        amount: '',
+        currency: 'ILS',
+        paymentMethod: 'credit_card',
+        provider: 'manual',
+        notes: '',
+      });
+      setShowModal(false);
+      setEditMode(false);
+      setEditPaymentId(null);
     } catch (err) {
-      console.error('Error creating payment:', err);
-      alert('שגיאה ביצירת תשלום: ' + (err.response?.data?.message || err.message));
+      console.error('Error saving payment:', err);
+      alert('שגיאה בשמירת תשלום: ' + (err.response?.data?.message || err.message));
     }
+  };
+
+  const handleEdit = (payment) => {
+    setFormData({
+      customerId: payment.customerId?._id || payment.customerId,
+      amount: payment.amount.toString(),
+      currency: payment.currency || 'ILS',
+      paymentMethod: payment.paymentMethod,
+      provider: payment.provider?.id || payment.provider || 'manual',
+      notes: payment.notes || '',
+    });
+    setEditPaymentId(payment._id);
+    setEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleOpenModal = () => {
+    setFormData({
+      customerId: '',
+      amount: '',
+      currency: 'ILS',
+      paymentMethod: 'credit_card',
+      provider: 'manual',
+      notes: '',
+    });
+    setEditMode(false);
+    setEditPaymentId(null);
+    setShowModal(true);
   };
 
   const handleDelete = async (paymentId) => {
@@ -187,7 +222,7 @@ const Payments = () => {
             <p className="text-gray-600 mt-2">נהל את התשלומים והחשבוניות שלך</p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenModal}
             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
           >
             <span>💳</span>
@@ -242,7 +277,14 @@ const Payments = () => {
                       {formatDate(payment.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-reverse space-x-2">
+                      <div className="flex space-x-reverse space-x-3">
+                        <button
+                          onClick={() => handleEdit(payment)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="ערוך"
+                        >
+                          ✏️
+                        </button>
                         {payment.status === 'pending' && (
                           <button
                             onClick={() => handleCompletePayment(payment._id)}
@@ -272,7 +314,7 @@ const Payments = () => {
             <h3 className="text-xl font-semibold text-gray-700 mb-2">אין תשלומים עדיין</h3>
             <p className="text-gray-500 mb-6">התחל לעקוב אחר התשלומים שלך</p>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenModal}
               className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               יצירת תשלום ראשון
@@ -284,7 +326,9 @@ const Payments = () => {
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">תשלום חדש</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                {editMode ? 'ערוך תשלום' : 'תשלום חדש'}
+              </h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

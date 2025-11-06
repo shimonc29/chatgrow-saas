@@ -4,6 +4,8 @@ import { eventsAPI } from '../../services/api';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editEventId, setEditEventId] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,8 +51,15 @@ const Events = () => {
         status: 'active',
       };
 
-      const response = await eventsAPI.create(eventData);
-      setEvents([response.data.event, ...events]);
+      if (editMode && editEventId) {
+        const response = await eventsAPI.update(editEventId, eventData);
+        setEvents(events.map(e => e._id === editEventId ? response.data.event : e));
+        alert('אירוע עודכן בהצלחה!');
+      } else {
+        const response = await eventsAPI.create(eventData);
+        setEvents([response.data.event, ...events]);
+      }
+      
       setFormData({
         title: '',
         description: '',
@@ -61,10 +70,55 @@ const Events = () => {
         price: '',
       });
       setShowModal(false);
+      setEditMode(false);
+      setEditEventId(null);
     } catch (err) {
-      console.error('Error creating event:', err);
-      alert('שגיאה ביצירת אירוע: ' + (err.response?.data?.error || err.message));
+      console.error('Error saving event:', err);
+      alert('שגיאה בשמירת אירוע: ' + (err.response?.data?.error || err.message));
     }
+  };
+
+  const handleEdit = (event) => {
+    const eventDate = event.startDateTime || event.date;
+    const dateObj = new Date(eventDate);
+    
+    setFormData({
+      title: event.name,
+      description: event.description,
+      date: dateObj.toISOString().split('T')[0],
+      time: formatTime(event.startDateTime) || event.startTime || '09:00',
+      location: getLocation(event.location),
+      maxParticipants: event.maxParticipants.toString(),
+      price: getPrice(event.pricing || event.price).toString(),
+    });
+    setEditEventId(event._id);
+    setEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleOpenModal = () => {
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      location: '',
+      maxParticipants: '',
+      price: '',
+    });
+    setEditMode(false);
+    setEditEventId(null);
+    setShowModal(true);
+  };
+
+  const copyRegistrationLink = (eventId) => {
+    const link = `${window.location.origin}/events/${eventId}/register`;
+    navigator.clipboard.writeText(link).then(() => {
+      alert('קישור ההרשמה הועתק ללוח! 📋');
+    }).catch(err => {
+      console.error('Error copying link:', err);
+      alert('שגיאה בהעתקת הקישור');
+    });
   };
 
   const handleDelete = async (eventId) => {
@@ -125,7 +179,7 @@ const Events = () => {
             <p className="text-gray-600 mt-2">צור ונהל את האירועים שלך</p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenModal}
             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
           >
             <span>➕</span>
@@ -171,12 +225,26 @@ const Events = () => {
                     <span>₪{getPrice(event.pricing || event.price)}</span>
                   </div>
                 </div>
-                <div className="mt-4 flex space-x-reverse space-x-2">
+                <div className="mt-4 flex flex-col space-y-2">
+                  <div className="flex space-x-reverse space-x-2">
+                    <button 
+                      onClick={() => handleEdit(event)}
+                      className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium"
+                    >
+                      ✏️ ערוך
+                    </button>
+                    <button 
+                      onClick={() => copyRegistrationLink(event._id)}
+                      className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors font-medium"
+                    >
+                      🔗 שתף
+                    </button>
+                  </div>
                   <button 
                     onClick={() => handleDelete(event._id)}
-                    className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors"
+                    className="w-full bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors"
                   >
-                    ביטול
+                    🗑️ ביטול
                   </button>
                 </div>
               </div>
@@ -188,7 +256,7 @@ const Events = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">אין אירועים עדיין</h3>
             <p className="text-gray-600 mb-6">צור את האירוע הראשון שלך!</p>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleOpenModal}
               className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
             >
               ➕ צור אירוע חדש
@@ -201,7 +269,9 @@ const Events = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">אירוע חדש</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {editMode ? 'ערוך אירוע' : 'אירוע חדש'}
+                </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -287,7 +357,7 @@ const Events = () => {
                     type="submit"
                     className="flex-1 bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-semibold transition-colors"
                   >
-                    צור אירוע
+                    {editMode ? 'שמור שינויים' : 'צור אירוע'}
                   </button>
                   <button
                     type="button"

@@ -76,3 +76,24 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **Tailwind CSS**: Utility-first CSS framework v3.
     - **React Router**: Client-side routing v6.
     - **Axios**: HTTP client.
+
+## Recent Changes
+
+### Edit Functionality & Registration Pages (November 6, 2025)
+- **Edit Functionality**: Added full edit capability for all admin entities (Events, Appointments, Customers, Payments)
+  - Edit modal opens with pre-filled data from selected entity
+  - Update API routes (PUT /:id) working for all entities  
+  - Seamless create/edit flow using single form component
+  - Edit buttons (✏️) added to all entity cards/tables
+- **Registration Page Links**: Quick access buttons to copy registration links
+  - Events: Each event card has "🔗 שתף" button to copy unique registration link
+  - Appointments: Global "🔗 קישור הזמנה" button in header for business-wide booking
+  - One-click copy to clipboard with 2-second visual confirmation ("✓ הועתק!")
+- **New RegistrationPages Tab**: Dedicated page (/registration-pages) showing all registration links
+  - Card-based UI with gradient backgrounds (green for appointments, purple for events)
+  - Each event card displays: name, description, date, participant count, pricing, full registration URL
+  - Appointment card shows business-wide booking link with service selection capability
+  - Two actions per card: "📋 העתק" (copy to clipboard) & "🔗 פתח" (open in new tab)
+  - Info box with detailed usage instructions for sharing links
+  - Full Hebrew RTL support with modern, accessible design
+  - Added to sidebar navigation with 🔗 icon
