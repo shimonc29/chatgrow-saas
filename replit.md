@@ -17,42 +17,56 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 ### UI/UX Decisions
 - **Frontend Framework**: React 19 with Vite.
 - **Styling**: Tailwind CSS v3 with full RTL support.
-- **Design Theme**: Luxurious black-gold color scheme across entire application.
-  - **Colors**: Black (#000000), Gold (#FFD700), Light Gold (#F4C430), Gray shades for accents
+- **Design Theme**: Luxurious navy-copper color scheme across entire application.
+  - **Colors**: 
+    - App Navy (#0D1117) - Primary background
+    - Card Navy (#161B22) - Secondary background / Cards
+    - Accent Copper (#B87333) - Primary accent / Premium highlights
+    - Action Blue (#3A7CA5) - Buttons / Active elements
+    - Text Light (#C9D1D9) - Primary text
+    - Text Subtle (#8B949E) - Secondary text / Descriptions
   - **Logo**: Crown icon (👑) representing premium quality
-  - **Backgrounds**: Black gradients (from-black via-gray-900 to-black)
-  - **Cards**: Dark cards with gold borders (border-yellow-600/30) and gold shadows
-  - **Typography**: Gold headings (text-yellow-400), gray content (text-gray-300/400)
-  - **Buttons**: Gold gradient primary buttons with glow effects (shadow-yellow-500/50)
-  - **Inputs**: Black inputs with gold borders and yellow focus rings
-  - **Effects**: Golden blur balls, hover animations, premium shadows
+  - **Backgrounds**: Navy gradients (from-app-navy via-card-navy to-app-navy)
+  - **Cards**: Dark navy cards with copper borders (border-accent-copper/30) and blue shadows
+  - **Typography**: Copper headings (text-accent-copper), light content (text-text-light)
+  - **Buttons**: Blue-copper gradient primary buttons with glow effects (shadow-action-blue/50)
+  - **Inputs**: Navy inputs with copper borders and blue focus rings
+  - **Effects**: Copper/blue blur balls, hover animations, premium shadows
 - **Architecture**: Single Page Application (SPA) with protected routes.
-- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, and Payments. Dark theme with gold accents throughout.
-- **Authentication UI**: Luxurious black-gold themed login/register pages with blur effects and gradient buttons.
-- **Components**: Modular layout using Sidebar (black with gold highlights), MainLayout (dark background), and PrivateRoute components.
-- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with luxury black-gold design, featuring a multi-section layout with sticky navigation bar, hero section with gold blur effects, statistics, benefits, detailed features, a "how it works" section, testimonials (full gold background section), and strong CTAs. Fully responsive with RTL support.
-- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a dark-themed management interface with gold accents for tracking views and conversions, and public routes for published pages.
+- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, Payments, Invoices, Receipts, Landing Pages, Registration Pages, Payment Settings, and Provider Settings. Dark navy theme with copper accents throughout.
+- **Authentication UI**: Luxurious navy-copper themed login/register pages with blur effects and gradient buttons.
+- **Components**: Modular layout using Sidebar (navy with copper highlights), MainLayout (dark navy background), and PrivateRoute components.
+- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with luxury navy-copper design, featuring a multi-section layout with sticky navigation bar, hero section with copper blur effects, statistics, benefits, detailed features, a "how it works" section, testimonials, and strong CTAs. Fully responsive with RTL support.
+- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a dark-themed management interface with copper accents for tracking views and conversions, and public routes for published pages.
+- **Invoice & Receipt Management**: Full UI for managing invoices and receipts with manual creation capabilities, PDF generation, and email delivery. Navy-copper themed with comprehensive CRUD operations.
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
 - **Authentication**: JWT for secure user authentication, AuthContext for global state, Protected Routes.
-- **Notifications**: `NotificationService` for Email (Nodemailer/SendGrid) and SMS (Twilio) using a provider pattern.
-- **Payments & Invoicing**: `PaymentService` and `InvoiceService` supporting multiple Israeli payment providers (Cardcom, Meshulam, Tranzila). Generates Hebrew PDF invoices and automates payment workflows.
+- **Multi-Tenant Provider System**: `ProviderSettings` model allowing each business client to configure their own Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers with encrypted API credentials.
+- **Notifications**: `NotificationService` for Email and SMS with provider-swapping support, template-based messaging, and delivery tracking.
+- **Payments & Invoicing**: `PaymentService` and `InvoiceService` supporting Israeli payment providers (Cardcom, GROW). Multi-tenant architecture with per-client configuration. Generates Hebrew PDF invoices and automates payment workflows.
+- **Receipt System**: `ReceiptService` for automatic and manual PDF receipt generation in Hebrew with proper RTL formatting and business branding.
 - **CRON Automation**: `CronService` (node-cron) handles scheduled tasks including event/appointment reminders, automatic payments, reports, and data cleanup.
 - **Queue System**: In-memory queue with basic retry logic, with an option for Redis integration.
 - **Logging**: Winston for console and file logging.
 - **Security**: JWT authentication, bcrypt password hashing, rate limiting, Helmet, CORS, Joi input validation.
 - **Public API Routes**: Secure, authentication-free endpoints for public event registration and appointment booking with server-side validation.
 - **Customer Auto-Creation**: System automatically creates or updates customer records from public registrations.
-- **Full CRUD Functionality**: Comprehensive create, read, update, and delete operations for all administrative entities (Events, Appointments, Customers, Payments), including dedicated edit modals and API routes.
+- **Full CRUD Functionality**: Comprehensive create, read, update, and delete operations for all administrative entities (Events, Appointments, Customers, Payments, Invoices, Receipts), including dedicated edit modals and API routes.
+- **Invoice Management UI**: Full-featured interface for creating invoices manually or from payments, with itemized billing, tax calculation, PDF generation, and email delivery.
+- **Receipt Management UI**: Comprehensive interface for generating receipts from payments or manually, with PDF download capabilities.
 - **Registration Page Links**: Quick access functionality to copy unique registration links for events and appointments, including a dedicated "RegistrationPages" tab.
-- **Payment Provider Settings**: Admin interface for configuring API credentials and enabling/disabling payment gateways (GROW/Meshulam, Cardcom, Tranzila).
+- **Provider Settings UI**: Admin interface for configuring Email, SMS, and Payment provider credentials with test functionality and invoice settings.
 - **Landing Page Analytics**: Built-in analytics system for tracking views, conversions, and conversion rates for landing pages.
 
 ### Feature Specifications
-- **Management**: Comprehensive CRUD operations for Customers, Events, Appointments, and Payments.
+- **Management**: Comprehensive CRUD operations for Customers, Events, Appointments, Payments, Invoices, and Receipts.
 - **Dashboard**: Overview of statistics (events, participants, revenue) and quick actions.
-- **Payment Management**: Multi-currency support (ILS, USD, EUR), various payment methods, status tracking, and integration with Israeli payment providers.
+- **Payment Management**: Multi-currency support (ILS, USD, EUR), various payment methods, status tracking, and integration with Israeli payment providers (Cardcom, GROW only).
+- **Invoice Management**: Manual and automatic invoice generation from payments, itemized billing, tax calculation, Hebrew PDF generation, and email delivery.
+- **Receipt Management**: Automatic receipt generation from completed payments, manual receipt creation, Hebrew PDF formatting with RTL support.
+- **Provider Configuration**: Multi-tenant system allowing each business to configure their own Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers.
 - **Subscriber Management**: Backend capabilities for managing subscriber lists.
 - **Health Monitoring**: Endpoints for system health checks and log retrieval.
 - **Participants View**: Feature to view and manage participants registered for events, including participant details and payment status.
@@ -74,8 +88,7 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **Twilio**: SMS provider.
 - **Payment Gateways**:
     - **Cardcom**
-    - **Meshulam (Grow-Meshulam)**
-    - **Tranzila**
+    - **Meshulam (GROW)**
 - **Security & Utilities**:
     - **JWT**: JSON Web Tokens for authentication.
     - **Winston**: Logging library.
