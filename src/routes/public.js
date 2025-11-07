@@ -5,6 +5,7 @@ const Customer = require('../models/Customer');
 const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
 const LandingPage = require('../models/LandingPage');
+const Availability = require('../models/Availability');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
 const { logInfo, logError, logApiRequest } = require('../utils/logger');
@@ -346,17 +347,133 @@ router.post('/events/:id/register', async (req, res) => {
 // Get available services catalog
 router.get('/services', async (req, res) => {
     try {
-        const services = getAllServices();
+        const { providerId } = req.query;
+        
+        if (!providerId) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש providerId'
+            });
+        }
+        
+        const availability = await Availability.findOne({ providerId });
+        
+        if (!availability || !availability.services) {
+            return res.json({
+                success: true,
+                services: []
+            });
+        }
+        
+        const activeServices = availability.services.filter(s => s.isActive).map(s => ({
+            _id: s._id,
+            name: s.name,
+            description: s.description,
+            duration: s.duration,
+            price: s.price,
+            currency: s.currency
+        }));
         
         res.json({
             success: true,
-            services
+            services: activeServices
         });
     } catch (error) {
         logError('Failed to get services catalog', error);
         res.status(500).json({
             success: false,
             message: 'שגיאה בטעינת רשימת השירותים'
+        });
+    }
+});
+
+// Get available time slots for a specific date and service
+router.get('/availability/slots', async (req, res) => {
+    try {
+        const { providerId, date, serviceId } = req.query;
+        
+        if (!providerId || !date) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש providerId ו-date'
+            });
+        }
+        
+        const availability = await Availability.findOne({ providerId });
+        
+        if (!availability) {
+            return res.json({
+                success: true,
+                slots: []
+            });
+        }
+        
+        const requestedDate = new Date(date);
+        const dayOfWeek = requestedDate.getDay();
+        
+        const isBlocked = availability.blockedDates.some(blocked => {
+            const blockedDate = new Date(blocked.date);
+            return blockedDate.toDateString() === requestedDate.toDateString();
+        });
+        
+        if (isBlocked) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: 'תאריך זה חסום'
+            });
+        }
+        
+        const daySchedule = availability.weeklySchedule.find(d => d.dayOfWeek === dayOfWeek);
+        
+        if (!daySchedule || !daySchedule.isAvailable) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: 'אין זמינות ביום זה'
+            });
+        }
+        
+        let serviceDuration = 30;
+        if (serviceId) {
+            const service = availability.services.id(serviceId);
+            if (service) {
+                serviceDuration = service.duration;
+            }
+        }
+        
+        const slots = [];
+        
+        for (const timeSlot of daySchedule.timeSlots) {
+            const [startHour, startMinute] = timeSlot.startTime.split(':').map(Number);
+            const [endHour, endMinute] = timeSlot.endTime.split(':').map(Number);
+            
+            let currentMinutes = startHour * 60 + startMinute;
+            const endMinutes = endHour * 60 + endMinute;
+            
+            while (currentMinutes + serviceDuration <= endMinutes) {
+                const slotHour = Math.floor(currentMinutes / 60);
+                const slotMinute = currentMinutes % 60;
+                const slotTime = `${String(slotHour).padStart(2, '0')}:${String(slotMinute).padStart(2, '0')}`;
+                
+                slots.push({
+                    time: slotTime,
+                    available: true
+                });
+                
+                currentMinutes += serviceDuration + availability.bufferTime;
+            }
+        }
+        
+        res.json({
+            success: true,
+            slots
+        });
+    } catch (error) {
+        logError('Failed to get available slots', error);
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת שעות פנויות'
         });
     }
 });

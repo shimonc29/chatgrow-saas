@@ -235,6 +235,7 @@ try {
     app.use('/api/cron', require('./routes/cron'));
     app.use('/api/stats', require('./routes/stats'));
     app.use('/api/landing-pages', require('./routes/landingPages'));
+    app.use('/api/availability', require('./routes/availability'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.warn('Some business routes not available, creating fallback routes');
@@ -248,6 +249,7 @@ try {
     app.get('/api/cron', (req, res) => res.json({ message: 'CRON service not available' }));
     app.get('/api/stats', (req, res) => res.json({ message: 'Stats service not available' }));
     app.get('/api/landing-pages', (req, res) => res.json({ message: 'Landing pages service not available' }));
+    app.get('/api/availability', (req, res) => res.json({ message: 'Availability service not available' }));
 }
 
 // Add missing routes for dashboard links

@@ -30,16 +30,37 @@ const Financial = () => {
   }, []);
 
   const fetchAll = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('No token found, user not logged in');
+        setLoading(false);
+        return;
+      }
+      
       const headers = { Authorization: `Bearer ${token}` };
 
       const [invoicesRes, receiptsRes, paymentsRes, customersRes] = await Promise.all([
-        axios.get('/api/invoices/list', { headers }).catch(() => ({ data: { invoices: [] } })),
-        axios.get('/api/receipts', { headers }).catch(() => ({ data: [] })),
-        axios.get('/api/payments', { headers }).catch(() => ({ data: { payments: [] } })),
-        axios.get('/api/customers', { headers }).catch(() => ({ data: [] }))
+        axios.get('/api/invoices/list', { headers }).catch((err) => {
+          console.error('Invoices API error:', err);
+          return { data: { invoices: [] } };
+        }),
+        axios.get('/api/receipts', { headers }).catch((err) => {
+          console.error('Receipts API error:', err);
+          return { data: [] };
+        }),
+        axios.get('/api/payments', { headers }).catch((err) => {
+          console.error('Payments API error:', err);
+          return { data: { payments: [] } };
+        }),
+        axios.get('/api/customers', { headers }).catch((err) => {
+          console.error('Customers API error:', err);
+          return { data: [] };
+        })
       ]);
+
+      console.log('Fetched data:', { invoicesRes, receiptsRes, paymentsRes, customersRes });
 
       setInvoices(invoicesRes.data.invoices || []);
       setReceipts(Array.isArray(receiptsRes.data) ? receiptsRes.data : []);

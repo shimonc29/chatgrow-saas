@@ -10,6 +10,7 @@ const Sidebar = () => {
     { path: '/events', icon: '📅', label: 'אירועים' },
     { path: '/customers', icon: '👥', label: 'לקוחות' },
     { path: '/appointments', icon: '📋', label: 'תורים' },
+    { path: '/availability', icon: '🕐', label: 'זמינות ושירותים' },
     { path: '/payments', icon: '💳', label: 'תשלומים' },
     { path: '/financial', icon: '💰', label: 'ניהול פיננסי' },
     { path: '/landing-pages', icon: '🎨', label: 'דפי נחיתה' },

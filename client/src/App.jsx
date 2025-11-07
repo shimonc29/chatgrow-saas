@@ -10,6 +10,7 @@ import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import Financial from './pages/admin/Financial';
+import Availability from './pages/admin/Availability';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import PaymentSettings from './pages/admin/PaymentSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
@@ -83,6 +84,15 @@ function App() {
             element={
               <PrivateRoute>
                 <Financial />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/availability" 
+            element={
+              <PrivateRoute>
+                <Availability />
               </PrivateRoute>
             } 
           />
