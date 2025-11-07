@@ -7,7 +7,6 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: '/dashboard', icon: '🏠', label: 'דאשבורד' },
-    { path: '/site-admin', icon: '👑', label: 'ניהול אתר' },
     { path: '/events', icon: '📅', label: 'אירועים' },
     { path: '/customers', icon: '👥', label: 'לקוחות' },
     { path: '/appointments', icon: '📋', label: 'תורים' },

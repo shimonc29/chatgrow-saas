@@ -16,7 +16,6 @@ import PaymentSettings from './pages/admin/PaymentSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
 import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
-import SiteAdmin from './pages/admin/SiteAdmin';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -139,15 +138,6 @@ function App() {
             element={
               <PrivateRoute>
                 <LandingPageEditor />
-              </PrivateRoute>
-            } 
-          />
-
-          <Route 
-            path="/site-admin" 
-            element={
-              <PrivateRoute>
-                <SiteAdmin />
               </PrivateRoute>
             } 
           />
