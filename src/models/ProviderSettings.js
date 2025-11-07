@@ -117,6 +117,16 @@ const providerSettingsSchema = new mongoose.Schema({
     notes: { type: String }
   },
 
+  // Google Calendar Integration
+  googleCalendar: {
+    enabled: { type: Boolean, default: false },
+    accessToken: { type: String },
+    refreshToken: { type: String },
+    tokenExpiry: { type: Number },
+    calendarId: { type: String, default: 'primary' },
+    lastSync: { type: Date }
+  },
+
   // Active/Inactive
   isActive: {
     type: Boolean,

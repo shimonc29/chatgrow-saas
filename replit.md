@@ -83,6 +83,11 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **PostgreSQL (Neon)**: For Subscribers and User data.
     - **MongoDB Atlas**: For Events, Customers, Appointments, Payments, Invoices, Analytics, and WhatsApp connections.
     - **Redis (Optional)**: For caching and background jobs.
+- **Google Calendar Integration**:
+    - **OAuth 2.0**: Multi-tenant integration allowing each provider to connect their own Google Calendar.
+    - **Requires**: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET environment variables.
+    - **Tokens**: Encrypted and stored per provider in ProviderSettings.googleCalendar.
+    - **Auto-sync**: Appointments automatically create calendar events in provider's Google Calendar.
 - **Communication Services**:
     - **Nodemailer**: Email provider.
     - **SendGrid**: Email provider.

@@ -236,6 +236,7 @@ try {
     app.use('/api/stats', require('./routes/stats'));
     app.use('/api/landing-pages', require('./routes/landingPages'));
     app.use('/api/availability', require('./routes/availability'));
+    app.use('/api/google-calendar', require('./routes/googleCalendar'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.warn('Some business routes not available, creating fallback routes');
@@ -250,6 +251,7 @@ try {
     app.get('/api/stats', (req, res) => res.json({ message: 'Stats service not available' }));
     app.get('/api/landing-pages', (req, res) => res.json({ message: 'Landing pages service not available' }));
     app.get('/api/availability', (req, res) => res.json({ message: 'Availability service not available' }));
+    app.get('/api/google-calendar', (req, res) => res.json({ message: 'Google Calendar service not available' }));
 }
 
 // Add missing routes for dashboard links
