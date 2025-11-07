@@ -230,10 +230,12 @@ try {
     app.use('/api/analytics', require('./routes/analytics'));
     app.use('/api/payments', require('./routes/payments'));
     app.use('/api/invoices', require('./routes/invoices'));
+    app.use('/api/receipts', require('./routes/receipts'));
+    app.use('/api/provider-settings', require('./routes/providerSettings'));
     app.use('/api/cron', require('./routes/cron'));
     app.use('/api/stats', require('./routes/stats'));
     app.use('/api/landing-pages', require('./routes/landingPages'));
-    console.log('All business management routes loaded successfully');
+    console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.warn('Some business routes not available, creating fallback routes');
     app.get('/api/appointments', (req, res) => res.json({ message: 'Appointments service not available' }));
@@ -241,6 +243,8 @@ try {
     app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
     app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
     app.use('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
+    app.use('/api/receipts', (req, res) => res.json({ message: 'Receipts service not available' }));
+    app.use('/api/provider-settings', (req, res) => res.json({ message: 'Provider settings service not available' }));
     app.get('/api/cron', (req, res) => res.json({ message: 'CRON service not available' }));
     app.get('/api/stats', (req, res) => res.json({ message: 'Stats service not available' }));
     app.get('/api/landing-pages', (req, res) => res.json({ message: 'Landing pages service not available' }));
