@@ -1,78 +1,73 @@
 const Payment = require('../models/Payment');
 const Invoice = require('../models/Invoice');
+const ProviderSettings = require('../models/ProviderSettings');
 const CardcomProvider = require('../providers/payments/CardcomProvider');
 const MeshulamProvider = require('../providers/payments/MeshulamProvider');
-const TranzilaProvider = require('../providers/payments/TranzilaProvider');
 const { logInfo, logError } = require('../utils/logger');
 
 class PaymentService {
-    constructor() {
-        this.providers = {};
-        this.initializeProviders();
-    }
-
-    initializeProviders() {
-        const defaultProvider = process.env.PAYMENT_PROVIDER || 'cardcom';
-
+    /**
+     * Get payment provider instance for a specific user (multi-tenant)
+     */
+    async getProviderForUser(userId) {
         try {
-            this.providers.cardcom = new CardcomProvider({
-                terminalNumber: process.env.CARDCOM_TERMINAL_NUMBER,
-                apiKey: process.env.CARDCOM_API_KEY,
-                sandbox: process.env.NODE_ENV !== 'production'
-            });
+            const settings = await ProviderSettings.findOne({ userId, isActive: true });
+            
+            if (!settings) {
+                throw new Error('Provider settings not found. Please configure payment gateway settings.');
+            }
 
-            this.providers.meshulam = new MeshulamProvider({
-                apiKey: process.env.MESHULAM_API_KEY,
-                pageCode: process.env.MESHULAM_PAGE_CODE,
-                userId: process.env.MESHULAM_USER_ID,
-                sandbox: process.env.NODE_ENV !== 'production'
-            });
+            const gateway = settings.getActivePaymentGateway();
+            
+            if (!gateway) {
+                throw new Error('No payment gateway enabled. Please enable Cardcom or GROW in settings.');
+            }
 
-            this.providers.tranzila = new TranzilaProvider({
-                terminalName: process.env.TRANZILA_TERMINAL_NAME,
-                apiKey: process.env.TRANZILA_API_KEY
-            });
+            if (gateway.type === 'cardcom') {
+                return new CardcomProvider({
+                    terminalNumber: gateway.settings.terminalNumber,
+                    apiUsername: gateway.settings.apiUsername,
+                    apiPassword: gateway.settings.apiPassword,
+                    lowProfileCode: gateway.settings.lowProfileCode,
+                    currency: gateway.settings.currency,
+                    sandbox: gateway.settings.testMode
+                });
+            } else if (gateway.type === 'grow') {
+                return new MeshulamProvider({
+                    apiKey: gateway.settings.apiKey,
+                    userId: gateway.settings.userId,
+                    pageCode: gateway.settings.pageCode,
+                    currency: gateway.settings.currency,
+                    sandbox: gateway.settings.testMode
+                });
+            }
 
-            this.defaultProvider = defaultProvider;
-
-            logInfo('Payment providers initialized', {
-                providers: Object.keys(this.providers),
-                defaultProvider: this.defaultProvider
-            });
+            throw new Error(`Unsupported payment gateway: ${gateway.type}`);
 
         } catch (error) {
-            logError('Failed to initialize payment providers', error);
+            logError('Failed to get payment provider', { error: error.message, userId });
+            throw error;
         }
     }
 
-    getProvider(providerName) {
-        const provider = this.providers[providerName || this.defaultProvider];
-        if (!provider) {
-            throw new Error(`Payment provider '${providerName}' not found`);
-        }
-        return provider;
-    }
-
-    async createPayment(businessId, customerId, paymentData) {
+    async createPayment(userId, customerId, paymentData) {
         try {
-            const providerName = paymentData.provider || this.defaultProvider;
-            const provider = this.getProvider(providerName);
+            // Get provider for this user
+            const provider = await this.getProviderForUser(userId);
+            const settings = await ProviderSettings.findOne({ userId });
+            const gateway = settings.getActivePaymentGateway();
 
             await provider.initialize();
 
             const payment = new Payment({
-                businessId,
+                userId,
                 customerId,
                 amount: paymentData.amount,
-                currency: paymentData.currency || 'ILS',
-                paymentMethod: paymentData.paymentMethod || 'credit_card',
-                provider: {
-                    name: providerName
-                },
-                customer: paymentData.customer,
-                billing: paymentData.billing,
-                relatedTo: paymentData.relatedTo,
-                notes: paymentData.notes,
+                currency: paymentData.currency || gateway.settings.currency || 'ILS',
+                method: paymentData.method || 'credit_card',
+                provider: gateway.type,
+                description: paymentData.description,
+                status: 'pending',
                 metadata: paymentData.metadata
             });
 
@@ -86,14 +81,14 @@ class PaymentService {
 
             const result = await provider.createPaymentPage(paymentPageData);
 
-            payment.provider.transactionId = result.transactionId;
-            payment.provider.metadata = result.metadata;
+            payment.transactionId = result.transactionId;
             payment.status = 'processing';
             await payment.save();
 
             logInfo('Payment created successfully', {
                 paymentId: payment._id,
-                provider: providerName,
+                userId,
+                provider: gateway.type,
                 amount: payment.amount
             });
 
@@ -105,12 +100,12 @@ class PaymentService {
             };
 
         } catch (error) {
-            logError('Failed to create payment', error, { businessId, customerId });
+            logError('Failed to create payment', error, { userId, customerId });
             throw error;
         }
     }
 
-    async getPaymentStatus(paymentId) {
+    async getPaymentStatus(userId, paymentId) {
         try {
             const payment = await Payment.findById(paymentId);
             if (!payment) {
@@ -121,36 +116,36 @@ class PaymentService {
                 return payment;
             }
 
-            const provider = this.getProvider(payment.provider.name);
-            const status = await provider.getPaymentStatus(payment.provider.transactionId);
+            const provider = await this.getProviderForUser(userId);
+            const status = await provider.getPaymentStatus(payment.transactionId);
 
             payment.status = status.status;
-            payment.provider.authNumber = status.authNumber;
-            payment.provider.confirmationCode = status.confirmationCode;
-            payment.provider.metadata = { ...payment.provider.metadata, ...status.metadata };
+            payment.authNumber = status.authNumber;
+            payment.confirmationCode = status.confirmationCode;
 
             if (status.card) {
-                payment.card = status.card;
+                payment.cardLast4 = status.card.last4;
             }
 
             await payment.save();
 
             logInfo('Payment status updated', {
                 paymentId: payment._id,
+                userId,
                 status: payment.status
             });
 
             return payment;
 
         } catch (error) {
-            logError('Failed to get payment status', error, { paymentId });
+            logError('Failed to get payment status', error, { paymentId, userId });
             throw error;
         }
     }
 
-    async handlePaymentWebhook(providerName, payload) {
+    async handlePaymentWebhook(userId, payload) {
         try {
-            const provider = this.getProvider(providerName);
+            const provider = await this.getProviderForUser(userId);
             
             const isValid = await provider.validateWebhook(payload);
             if (!isValid) {
@@ -158,7 +153,8 @@ class PaymentService {
             }
 
             const payment = await Payment.findOne({
-                'provider.transactionId': payload.transactionId || payload.processId
+                transactionId: payload.transactionId || payload.processId,
+                userId
             });
 
             if (!payment) {
@@ -166,31 +162,38 @@ class PaymentService {
             }
 
             if (payload.status === 'success' || payload.Response === '000') {
-                await payment.markAsCompleted({
-                    transactionId: payload.transactionId,
-                    authNumber: payload.authNumber || payload.ConfirmationCode,
-                    confirmationCode: payload.approvalNumber || payload.ConfirmationCode,
-                    metadata: payload
-                });
+                payment.status = 'completed';
+                payment.paidAt = new Date();
+                payment.authNumber = payload.authNumber || payload.ConfirmationCode;
+                payment.confirmationCode = payload.approvalNumber || payload.ConfirmationCode;
             } else {
-                await payment.markAsFailed(payload.error || 'Payment failed');
+                payment.status = 'failed';
+                payment.failedReason = payload.error || 'Payment failed';
             }
 
+            await payment.save();
+
             logInfo('Webhook processed successfully', {
-                provider: providerName,
+                userId,
                 paymentId: payment._id,
                 status: payment.status
             });
 
+            // Auto-generate receipt for completed payments
+            if (payment.status === 'completed') {
+                const ReceiptService = require('./ReceiptService');
+                await ReceiptService.autoGenerateReceipt(userId, payment._id.toString());
+            }
+
             return payment;
 
         } catch (error) {
-            logError('Failed to process webhook', error, { providerName });
+            logError('Failed to process webhook', error, { userId });
             throw error;
         }
     }
 
-    async refundPayment(paymentId, amount, reason) {
+    async refundPayment(userId, paymentId, amount, reason) {
         try {
             const payment = await Payment.findById(paymentId);
             if (!payment) {
@@ -201,21 +204,25 @@ class PaymentService {
                 throw new Error('Only completed payments can be refunded');
             }
 
-            const provider = this.getProvider(payment.provider.name);
+            const provider = await this.getProviderForUser(userId);
             const refundAmount = amount || payment.amount;
 
             const result = await provider.refundPayment(
-                payment.provider.transactionId,
+                payment.transactionId,
                 refundAmount,
                 reason
             );
 
-            await payment.refundPayment(refundAmount, reason);
-            payment.refund.refundTransactionId = result.refundTransactionId;
+            payment.status = 'refunded';
+            payment.refundedAt = new Date();
+            payment.refundAmount = refundAmount;
+            payment.refundReason = reason;
+            payment.refundTransactionId = result.refundTransactionId;
             await payment.save();
 
             logInfo('Payment refunded successfully', {
                 paymentId: payment._id,
+                userId,
                 refundAmount,
                 reason
             });
@@ -227,14 +234,14 @@ class PaymentService {
             };
 
         } catch (error) {
-            logError('Failed to refund payment', error, { paymentId });
+            logError('Failed to refund payment', error, { paymentId, userId });
             throw error;
         }
     }
 
-    async getBusinessPayments(businessId, filters = {}) {
+    async getUserPayments(userId, filters = {}) {
         try {
-            const query = { businessId };
+            const query = { userId };
 
             if (filters.status) {
                 query.status = filters.status;
@@ -258,25 +265,41 @@ class PaymentService {
             return payments;
 
         } catch (error) {
-            logError('Failed to get business payments', error, { businessId });
+            logError('Failed to get user payments', error, { userId });
             throw error;
         }
     }
 
-    async getBusinessRevenue(businessId, startDate, endDate) {
+    async getUserRevenue(userId, startDate, endDate) {
         try {
-            const revenue = await Payment.getBusinessRevenue(businessId, startDate, endDate);
+            const query = {
+                userId,
+                status: 'completed',
+                paidAt: {}
+            };
 
-            logInfo('Business revenue calculated', {
-                businessId,
-                totalRevenue: revenue.totalRevenue,
-                totalPayments: revenue.totalPayments
+            if (startDate) query.paidAt.$gte = new Date(startDate);
+            if (endDate) query.paidAt.$lte = new Date(endDate);
+
+            const payments = await Payment.find(query);
+
+            const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+            const totalPayments = payments.length;
+
+            logInfo('User revenue calculated', {
+                userId,
+                totalRevenue,
+                totalPayments
             });
 
-            return revenue;
+            return {
+                totalRevenue,
+                totalPayments,
+                averagePayment: totalPayments > 0 ? totalRevenue / totalPayments : 0
+            };
 
         } catch (error) {
-            logError('Failed to get business revenue', error, { businessId });
+            logError('Failed to get user revenue', error, { userId });
             throw error;
         }
     }
