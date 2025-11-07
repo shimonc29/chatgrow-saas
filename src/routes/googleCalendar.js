@@ -1,12 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const auth = require('../middleware/auth');
 const googleCalendarService = require('../services/googleCalendarService');
+
+const pendingOAuthStates = new Map();
 
 router.get('/auth', auth, (req, res) => {
   try {
     const userId = req.user.userId;
-    const authUrl = googleCalendarService.generateAuthUrl(userId);
+    
+    const state = crypto.randomBytes(32).toString('hex');
+    pendingOAuthStates.set(state, {
+      userId,
+      timestamp: Date.now()
+    });
+    
+    setTimeout(() => {
+      pendingOAuthStates.delete(state);
+    }, 10 * 60 * 1000);
+    
+    const authUrl = googleCalendarService.generateAuthUrl(state);
     
     res.json({
       success: true,
@@ -24,11 +38,21 @@ router.get('/auth', auth, (req, res) => {
 router.get('/callback', async (req, res) => {
   try {
     const { code, state } = req.query;
-    const userId = state;
     
-    if (!code || !userId) {
+    if (!code || !state) {
+      console.error('OAuth callback missing parameters');
       return res.redirect('/provider-settings?error=missing_params');
     }
+    
+    const stateData = pendingOAuthStates.get(state);
+    if (!stateData) {
+      console.error('OAuth state validation failed: invalid or expired state');
+      return res.redirect('/provider-settings?error=invalid_state');
+    }
+    
+    pendingOAuthStates.delete(state);
+    
+    const { userId } = stateData;
     
     await googleCalendarService.handleCallback(code, userId);
     

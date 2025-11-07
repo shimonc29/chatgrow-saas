@@ -60,6 +60,8 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 - **Registration Page Links**: Quick access functionality to copy unique registration links for events and appointments, including a dedicated "RegistrationPages" tab.
 - **Provider Settings UI**: Admin interface for configuring Email, SMS, and Payment provider credentials with test functionality and invoice settings.
 - **Landing Page Analytics**: Built-in analytics system for tracking views, conversions, and conversion rates for landing pages.
+- **Image Upload System**: Replit Object Storage integration for uploading and managing landing page images with secure presigned URLs.
+- **Site Admin Panel**: Comprehensive admin dashboard showing all customers, events, appointments, and payments with filtering, search, and monthly analytics.
 
 ### Feature Specifications
 - **Management**: Comprehensive CRUD operations for Customers, Events, Appointments, Payments, Invoices, and Receipts.
@@ -88,6 +90,10 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **Requires**: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET environment variables.
     - **Tokens**: Encrypted and stored per provider in ProviderSettings.googleCalendar.
     - **Auto-sync**: Appointments automatically create calendar events in provider's Google Calendar.
+- **Object Storage (Replit)**:
+    - **Requires**: PRIVATE_OBJECT_DIR environment variable pointing to bucket path (e.g., `/chatgrow-assets`).
+    - **Usage**: Landing page image uploads with secure presigned URLs.
+    - **Service**: ObjectStorageService handles upload URL generation and file serving.
 - **Communication Services**:
     - **Nodemailer**: Email provider.
     - **SendGrid**: Email provider.
