@@ -11,6 +11,7 @@ import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import PaymentSettings from './pages/admin/PaymentSettings';
+import ProviderSettings from './pages/admin/ProviderSettings';
 import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
 
@@ -90,6 +91,15 @@ function App() {
             element={
               <PrivateRoute>
                 <PaymentSettings />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/provider-settings" 
+            element={
+              <PrivateRoute>
+                <ProviderSettings />
               </PrivateRoute>
             } 
           />

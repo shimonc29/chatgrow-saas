@@ -14,6 +14,7 @@ const Sidebar = () => {
     { path: '/landing-pages', icon: '🎨', label: 'דפי נחיתה' },
     { path: '/registration-pages', icon: '🔗', label: 'דפי הרשמה' },
     { path: '/payment-settings', icon: '⚙️', label: 'הגדרות תשלום' },
+    { path: '/provider-settings', icon: '🔧', label: 'הגדרות ספקים' },
   ];
 
   const isActive = (path) => location.pathname === path;
