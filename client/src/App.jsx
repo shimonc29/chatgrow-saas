@@ -9,6 +9,8 @@ import Events from './pages/admin/Events';
 import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
+import Invoices from './pages/admin/Invoices';
+import Receipts from './pages/admin/Receipts';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import PaymentSettings from './pages/admin/PaymentSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
@@ -73,6 +75,24 @@ function App() {
             element={
               <PrivateRoute>
                 <Payments />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/invoices" 
+            element={
+              <PrivateRoute>
+                <Invoices />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/receipts" 
+            element={
+              <PrivateRoute>
+                <Receipts />
               </PrivateRoute>
             } 
           />

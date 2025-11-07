@@ -11,6 +11,8 @@ const Sidebar = () => {
     { path: '/customers', icon: '👥', label: 'לקוחות' },
     { path: '/appointments', icon: '📋', label: 'תורים' },
     { path: '/payments', icon: '💳', label: 'תשלומים' },
+    { path: '/invoices', icon: '🧾', label: 'חשבוניות' },
+    { path: '/receipts', icon: '📃', label: 'קבלות' },
     { path: '/landing-pages', icon: '🎨', label: 'דפי נחיתה' },
     { path: '/registration-pages', icon: '🔗', label: 'דפי הרשמה' },
     { path: '/payment-settings', icon: '⚙️', label: 'הגדרות תשלום' },
