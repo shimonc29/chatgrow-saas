@@ -61,7 +61,7 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 - **Provider Settings UI**: Admin interface for configuring Email, SMS, and Payment provider credentials with test functionality and invoice settings.
 - **Landing Page Analytics**: Built-in analytics system for tracking views, conversions, and conversion rates for landing pages.
 - **Image Upload System**: Replit Object Storage integration for uploading and managing landing page images with secure presigned URLs.
-- **Site Admin Panel**: Comprehensive admin dashboard showing all customers, events, appointments, and payments with filtering, search, and monthly analytics.
+- **Super Admin Panel**: Restricted admin panel (accessible only to platform owner via SUPER_ADMIN_EMAILS) showing all business subscribers, system-wide statistics, subscriber growth metrics, and per-business analytics. Multi-tenant isolation ensures business owners only see their own data in regular dashboards.
 
 ### Feature Specifications
 - **Management**: Comprehensive CRUD operations for Customers, Events, Appointments, Payments, Invoices, and Receipts.
@@ -76,6 +76,8 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 
 ### System Design Choices
 - **Database Strategy**: Hybrid approach with PostgreSQL for user/subscriber data and MongoDB Atlas for events, customers, appointments, payments, invoices, analytics, and WhatsApp connections.
+- **Multi-Tenant Architecture**: Each subscriber (business owner) has isolated data with userId-based filtering. Super Admin has system-wide access via SUPER_ADMIN_EMAILS environment variable.
+- **Access Control**: Two-tier system - regular users (business owners) see only their data; Super Admin sees all subscribers and system statistics.
 - **Modularity**: Backend organized into `models`, `routes`, `services`, `providers`, `middleware`; Frontend into `pages`, `components`, `contexts`, `services`, `utils`.
 - **Development Setup**: Single `fullstack` workflow for backend (port 3000) and frontend (port 5000) with Vite proxy.
 
@@ -94,6 +96,11 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **Requires**: PRIVATE_OBJECT_DIR environment variable pointing to bucket path (e.g., `/chatgrow-assets`).
     - **Usage**: Landing page image uploads with secure presigned URLs.
     - **Service**: ObjectStorageService handles upload URL generation and file serving.
+- **Super Admin Access Control**:
+    - **Requires**: SUPER_ADMIN_EMAILS environment variable (comma-separated email addresses, e.g., `shimon@example.com,admin@chatgrow.com`).
+    - **Usage**: Only users with emails in this list can access Super Admin Panel at `/super-admin`.
+    - **Routes**: `/api/super-admin/stats` (full system statistics), `/api/super-admin/check` (authorization check).
+    - **Security**: Protected by both JWT authentication and email whitelist middleware.
 - **Communication Services**:
     - **Nodemailer**: Email provider.
     - **SendGrid**: Email provider.
