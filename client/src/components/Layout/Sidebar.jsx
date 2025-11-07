@@ -1,9 +1,31 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
 
 const Sidebar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    checkSuperAdmin();
+  }, [user]);
+
+  const checkSuperAdmin = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('/api/super-admin/check', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setIsSuperAdmin(response.data.isSuperAdmin);
+    } catch (err) {
+      setIsSuperAdmin(false);
+    }
+  };
 
   const menuItems = [
     { path: '/dashboard', icon: '🏠', label: 'דאשבורד' },
@@ -52,6 +74,21 @@ const Sidebar = () => {
       {/* Navigation Menu */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
+          {isSuperAdmin && (
+            <li>
+              <Link
+                to="/super-admin"
+                className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive('/super-admin')
+                    ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
+                    : 'text-text-primary hover:bg-bg-card hover:text-accent-teal'
+                }`}
+              >
+                <span className="text-xl">👑</span>
+                <span>Super Admin</span>
+              </Link>
+            </li>
+          )}
           {menuItems.map((item) => (
             <li key={item.path}>
               <Link
