@@ -20,29 +20,29 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-black via-gray-900 to-black border-l border-yellow-600/30 min-h-screen flex flex-col">
+    <aside className="w-64 bg-gradient-to-b from-app-navy via-card-navy to-app-navy border-l border-accent-copper/30 min-h-screen flex flex-col">
       {/* Logo/Brand */}
-      <div className="p-6 border-b border-yellow-600/30">
+      <div className="p-6 border-b border-accent-copper/30">
         <h1 className="text-2xl font-bold">
           <span className="text-2xl">👑</span>{' '}
-          <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">ChatGrow</span>
+          <span className="bg-gradient-to-r from-accent-copper to-action-blue bg-clip-text text-transparent">ChatGrow</span>
         </h1>
-        <p className="text-sm text-gray-400 mt-1">מערכת ניהול</p>
+        <p className="text-sm text-text-subtle mt-1">מערכת ניהול</p>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-b border-yellow-600/30">
+      <div className="p-4 border-b border-accent-copper/30">
         <div className="flex items-center space-x-reverse space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30">
-            <span className="text-black font-bold">
+          <div className="w-10 h-10 bg-gradient-to-br from-accent-copper to-action-blue rounded-full flex items-center justify-center shadow-lg shadow-accent-copper/30">
+            <span className="text-white font-bold">
               {user?.fullName?.charAt(0) || user?.email?.charAt(0) || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-yellow-400 truncate">
+            <p className="text-sm font-medium text-accent-copper truncate">
               {user?.fullName || 'משתמש'}
             </p>
-            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            <p className="text-xs text-text-subtle truncate">{user?.email}</p>
           </div>
         </div>
       </div>
@@ -56,8 +56,8 @@ const Sidebar = () => {
                 to={item.path}
                 className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
                   isActive(item.path)
-                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold shadow-lg shadow-yellow-500/30'
-                    : 'text-gray-300 hover:bg-gray-800 hover:text-yellow-400'
+                    ? 'bg-gradient-to-r from-action-blue to-accent-copper text-white font-semibold shadow-lg shadow-action-blue/30'
+                    : 'text-text-light hover:bg-card-navy hover:text-accent-copper'
                 }`}
               >
                 <span className="text-xl">{item.icon}</span>
@@ -69,13 +69,13 @@ const Sidebar = () => {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-yellow-600/30">
+      <div className="p-4 border-t border-accent-copper/30">
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center space-x-reverse space-x-2 px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-yellow-600/20 rounded-lg transition-all hover:border-yellow-500/40"
+          className="w-full flex items-center justify-center space-x-reverse space-x-2 px-4 py-3 bg-card-navy hover:bg-app-navy border border-accent-copper/20 rounded-lg transition-all hover:border-accent-copper/40"
         >
           <span className="text-xl">🚪</span>
-          <span className="font-medium text-gray-300">התנתק</span>
+          <span className="font-medium text-text-light">התנתק</span>
         </button>
       </div>
     </aside>

@@ -95,10 +95,10 @@ const Customers = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="p-8 flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
+        <div className="p-8 flex justify-center items-center min-h-screen bg-app-navy">
           <div className="text-center">
             <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-400">טוען לקוחות...</p>
+            <p className="text-text-subtle">טוען לקוחות...</p>
           </div>
         </div>
       </MainLayout>
@@ -107,16 +107,16 @@ const Customers = () => {
 
   return (
     <MainLayout>
-      <div className="p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
+      <div className="p-8 bg-app-navy min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-yellow-400">ניהול לקוחות</h1>
-            <p className="text-gray-300 mt-2">נהל את רשימת הלקוחות שלך</p>
+            <h1 className="text-3xl font-bold text-accent-copper">ניהול לקוחות</h1>
+            <p className="text-text-light mt-2">נהל את רשימת הלקוחות שלך</p>
           </div>
           <button
             onClick={handleOpenModal}
-            className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+            className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
           >
             <span>➕</span>
             <span>לקוח חדש</span>
@@ -124,59 +124,59 @@ const Customers = () => {
         </div>
 
         {error && (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-app-navy border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
         )}
 
         {/* Customers Table */}
         {customers.length > 0 ? (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg overflow-hidden">
             <table className="min-w-full divide-y divide-yellow-600/20">
               <thead className="bg-black/50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">שם מלא</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">אימייל</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">טלפון</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">סטטוס</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">תאריך הצטרפות</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">פעולות</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">שם מלא</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">אימייל</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">טלפון</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">סטטוס</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">תאריך הצטרפות</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">פעולות</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-yellow-600/10">
                 {customers.map((customer) => {
                   const fullName = `${customer.firstName} ${customer.lastName}`;
                   return (
-                    <tr key={customer._id} className="hover:bg-gray-800/50">
+                    <tr key={customer._id} className="hover:bg-app-navy/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-action-blue to-accent-copper flex items-center justify-center">
                               <span className="text-black font-semibold">
                                 {customer.firstName.charAt(0)}
                               </span>
                             </div>
                           </div>
                           <div className="mr-4">
-                            <div className="text-sm font-medium text-gray-300">{fullName}</div>
+                            <div className="text-sm font-medium text-text-light">{fullName}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{customer.email || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{customer.phone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">{customer.email || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">{customer.phone}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs rounded-full ${
-                          customer.status === 'active' ? 'bg-green-900/50 text-green-400 border border-green-600/30' : 'bg-gray-800 text-gray-400 border border-gray-600/30'
+                          customer.status === 'active' ? 'bg-green-900/50 text-green-400 border border-green-600/30' : 'bg-app-navy text-text-subtle border border-gray-600/30'
                         }`}>
                           {customer.status === 'active' ? 'פעיל' : 'לא פעיל'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{formatDate(customer.createdAt)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">{formatDate(customer.createdAt)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-reverse space-x-3">
                           <button 
                             onClick={() => handleEdit(customer)}
-                            className="text-yellow-400 hover:text-yellow-500"
+                            className="text-accent-copper hover:text-accent-copper/80"
                           >
                             ✏️ ערוך
                           </button>
@@ -195,13 +195,13 @@ const Customers = () => {
             </table>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-12 text-center">
+          <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">👥</div>
-            <h3 className="text-xl font-semibold text-yellow-400 mb-2">אין לקוחות עדיין</h3>
-            <p className="text-gray-300 mb-6">הוסף את הלקוח הראשון שלך!</p>
+            <h3 className="text-xl font-semibold text-accent-copper mb-2">אין לקוחות עדיין</h3>
+            <p className="text-text-light mb-6">הוסף את הלקוח הראשון שלך!</p>
             <button
               onClick={handleOpenModal}
-              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+              className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
             >
               ➕ הוסף לקוח חדש
             </button>
@@ -211,55 +211,55 @@ const Customers = () => {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-2xl shadow-2xl max-w-lg w-full">
-              <div className="p-6 border-b border-yellow-600/30">
-                <h2 className="text-2xl font-bold text-yellow-400">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-2xl shadow-2xl max-w-lg w-full">
+              <div className="p-6 border-b border-accent-copper/30">
+                <h2 className="text-2xl font-bold text-accent-copper">
                   {editMode ? 'ערוך לקוח' : 'לקוח חדש'}
                 </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-yellow-400 mb-2">שם מלא</label>
+                    <label className="block text-sm font-medium text-accent-copper mb-2">שם מלא</label>
                     <input
                       type="text"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent outline-none"
                       placeholder="שם פרטי ומשפחה"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-yellow-400 mb-2">אימייל</label>
+                    <label className="block text-sm font-medium text-accent-copper mb-2">אימייל</label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent outline-none"
                       placeholder="example@mail.com"
                       dir="ltr"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-yellow-400 mb-2">טלפון</label>
+                    <label className="block text-sm font-medium text-accent-copper mb-2">טלפון</label>
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent outline-none"
                       placeholder="05X-XXX-XXXX"
                       dir="ltr"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-yellow-400 mb-2">הערות (אופציונלי)</label>
+                    <label className="block text-sm font-medium text-accent-copper mb-2">הערות (אופציונלי)</label>
                     <textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows="3"
-                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent outline-none"
                       placeholder="הערות על הלקוח..."
                     />
                   </div>
@@ -267,14 +267,14 @@ const Customers = () => {
                 <div className="flex space-x-reverse space-x-4 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+                    className="flex-1 bg-gradient-to-r from-action-blue to-accent-copper text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
                   >
                     {editMode ? 'שמור שינויים' : 'הוסף לקוח'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 py-3 rounded-lg font-semibold transition-all hover:border-yellow-500/50"
+                    className="flex-1 bg-app-navy text-text-light border border-accent-copper/20 py-3 rounded-lg font-semibold transition-all hover:border-accent-copper/50"
                   >
                     ביטול
                   </button>

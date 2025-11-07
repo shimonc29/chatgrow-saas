@@ -90,8 +90,8 @@ const LandingPages = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-64 bg-gradient-to-br from-gray-900 to-black min-h-screen">
-          <div className="text-xl text-gray-300">טוען...</div>
+        <div className="flex items-center justify-center h-64 bg-app-navy min-h-screen">
+          <div className="text-xl text-text-light">טוען...</div>
         </div>
       </MainLayout>
     );
@@ -99,16 +99,16 @@ const LandingPages = () => {
 
   return (
     <MainLayout>
-      <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
+      <div className="p-4 sm:p-6 md:p-8 bg-app-navy min-h-screen">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-yellow-400">🎨 דפי נחיתה</h1>
-            <p className="text-sm sm:text-base text-gray-300 mt-2">בנה דפים מרשימים לשיווק האירועים והתורים שלך</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-accent-copper">🎨 דפי נחיתה</h1>
+            <p className="text-sm sm:text-base text-text-light mt-2">בנה דפים מרשימים לשיווק האירועים והתורים שלך</p>
           </div>
           <button
             onClick={() => navigate('/landing-pages/new')}
-            className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-4 sm:px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70 flex items-center justify-center space-x-reverse space-x-2"
+            className="w-full sm:w-auto bg-gradient-to-r from-action-blue to-accent-copper text-white px-4 sm:px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70 flex items-center justify-center space-x-reverse space-x-2"
           >
             <span>➕</span>
             <span className="whitespace-nowrap">צור דף נחיתה חדש</span>
@@ -116,7 +116,7 @@ const LandingPages = () => {
         </div>
 
         {error && (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/50 text-red-400 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-app-navy border border-red-600/50 text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
@@ -124,11 +124,11 @@ const LandingPages = () => {
         {/* Stats Overview */}
         {pages.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-copper/50 hover:shadow-accent-copper/20 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm">סה"כ דפים</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-yellow-400 mt-1">{pages.length}</p>
+                  <p className="text-text-subtle text-xs sm:text-sm">סה"כ דפים</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-copper mt-1">{pages.length}</p>
                 </div>
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
                   <span className="text-xl sm:text-2xl">📄</span>
@@ -136,11 +136,11 @@ const LandingPages = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-copper/50 hover:shadow-accent-copper/20 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm">דפים פורסמו</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-yellow-400 mt-1">
+                  <p className="text-text-subtle text-xs sm:text-sm">דפים פורסמו</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-copper mt-1">
                     {pages.filter(p => p.status === 'published').length}
                   </p>
                 </div>
@@ -150,11 +150,11 @@ const LandingPages = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-copper/50 hover:shadow-accent-copper/20 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm">סה"כ צפיות</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-yellow-400 mt-1">
+                  <p className="text-text-subtle text-xs sm:text-sm">סה"כ צפיות</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-copper mt-1">
                     {pages.reduce((sum, p) => sum + (p.analytics?.views || 0), 0)}
                   </p>
                 </div>
@@ -164,11 +164,11 @@ const LandingPages = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-copper/50 hover:shadow-accent-copper/20 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-xs sm:text-sm">סה"כ המרות</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-yellow-400 mt-1">
+                  <p className="text-text-subtle text-xs sm:text-sm">סה"כ המרות</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-accent-copper mt-1">
                     {pages.reduce((sum, p) => sum + (p.analytics?.conversions || 0), 0)}
                   </p>
                 </div>
@@ -182,13 +182,13 @@ const LandingPages = () => {
 
         {/* Pages List */}
         {pages.length === 0 ? (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-8 sm:p-12 text-center">
+          <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg p-8 sm:p-12 text-center">
             <div className="text-4xl sm:text-6xl mb-4">🎨</div>
-            <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-2">אין עדיין דפי נחיתה</h3>
-            <p className="text-sm sm:text-base text-gray-300 mb-6">צור את דף הנחיתה הראשון שלך ותתחיל לשווק!</p>
+            <h3 className="text-lg sm:text-xl font-bold text-accent-copper mb-2">אין עדיין דפי נחיתה</h3>
+            <p className="text-sm sm:text-base text-text-light mb-6">צור את דף הנחיתה הראשון שלך ותתחיל לשווק!</p>
             <button
               onClick={() => navigate('/landing-pages/new')}
-              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+              className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
             >
               ➕ צור דף נחיתה
             </button>
@@ -196,9 +196,9 @@ const LandingPages = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {pages.map((page) => (
-              <div key={page._id} className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg overflow-hidden hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+              <div key={page._id} className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg overflow-hidden hover:border-accent-copper/50 hover:shadow-accent-copper/20 transition-all">
                 {/* Thumbnail Preview */}
-                <div className="h-48 bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 relative">
+                <div className="h-48 bg-gradient-to-br from-action-blue/20 to-accent-copper/20 relative">
                   {page.content?.hero?.image ? (
                     <img src={page.content.hero.image} alt={page.name} className="w-full h-full object-cover" />
                   ) : (
@@ -213,14 +213,14 @@ const LandingPages = () => {
 
                 {/* Page Info */}
                 <div className="p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-2 truncate">{page.name}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-accent-copper mb-2 truncate">{page.name}</h3>
                   
-                  <div className="flex items-center flex-wrap space-x-reverse space-x-2 text-xs sm:text-sm text-gray-400 mb-4 gap-2">
-                    <span className="px-2 py-1 bg-gray-800 border border-yellow-600/20 rounded">
+                  <div className="flex items-center flex-wrap space-x-reverse space-x-2 text-xs sm:text-sm text-text-subtle mb-4 gap-2">
+                    <span className="px-2 py-1 bg-app-navy border border-accent-copper/20 rounded">
                       {page.template}
                     </span>
                     {page.linkedTo?.type !== 'none' && (
-                      <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-600/30 rounded">
+                      <span className="px-2 py-1 bg-yellow-500/20 text-accent-copper border border-accent-copper/30 rounded">
                         {page.linkedTo.type === 'event' ? '📅 אירוע' : '📋 תור'}
                       </span>
                     )}
@@ -228,17 +228,17 @@ const LandingPages = () => {
 
                   {/* Analytics */}
                   <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="text-center p-2 bg-black/50 border border-yellow-600/20 rounded">
-                      <div className="text-xs text-gray-400">צפיות</div>
-                      <div className="text-base sm:text-lg font-bold text-gray-300">{page.analytics?.views || 0}</div>
+                    <div className="text-center p-2 bg-black/50 border border-accent-copper/20 rounded">
+                      <div className="text-xs text-text-subtle">צפיות</div>
+                      <div className="text-base sm:text-lg font-bold text-text-light">{page.analytics?.views || 0}</div>
                     </div>
-                    <div className="text-center p-2 bg-black/50 border border-yellow-600/20 rounded">
-                      <div className="text-xs text-gray-400">המרות</div>
-                      <div className="text-base sm:text-lg font-bold text-yellow-400">{page.analytics?.conversions || 0}</div>
+                    <div className="text-center p-2 bg-black/50 border border-accent-copper/20 rounded">
+                      <div className="text-xs text-text-subtle">המרות</div>
+                      <div className="text-base sm:text-lg font-bold text-accent-copper">{page.analytics?.conversions || 0}</div>
                     </div>
-                    <div className="text-center p-2 bg-black/50 border border-yellow-600/20 rounded">
-                      <div className="text-xs text-gray-400">שיעור</div>
-                      <div className="text-base sm:text-lg font-bold text-yellow-400">
+                    <div className="text-center p-2 bg-black/50 border border-accent-copper/20 rounded">
+                      <div className="text-xs text-text-subtle">שיעור</div>
+                      <div className="text-base sm:text-lg font-bold text-accent-copper">
                         {getConversionRate(page.analytics?.views || 0, page.analytics?.conversions || 0)}
                       </div>
                     </div>
@@ -248,21 +248,21 @@ const LandingPages = () => {
                   <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                     <button
                       onClick={() => navigate(`/landing-pages/edit/${page._id}`)}
-                      className="flex-1 sm:flex-none bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+                      className="flex-1 sm:flex-none bg-gradient-to-r from-action-blue to-accent-copper text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
                     >
                       ✏️ ערוך
                     </button>
                     <div className="flex gap-2">
                       <button
                         onClick={() => copyLink(page.slug)}
-                        className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-yellow-500/50"
+                        className="flex-1 bg-app-navy text-text-light border border-accent-copper/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-accent-copper/50"
                         title="העתק קישור"
                       >
                         🔗
                       </button>
                       <button
                         onClick={() => window.open(`/landing/${page.slug}`, '_blank')}
-                        className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-yellow-500/50 disabled:opacity-50"
+                        className="flex-1 bg-app-navy text-text-light border border-accent-copper/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-accent-copper/50 disabled:opacity-50"
                         title="צפייה"
                         disabled={page.status !== 'published'}
                       >
@@ -270,7 +270,7 @@ const LandingPages = () => {
                       </button>
                       <button
                         onClick={() => handleDuplicate(page._id)}
-                        className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-yellow-500/50"
+                        className="flex-1 bg-app-navy text-text-light border border-accent-copper/20 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all hover:border-accent-copper/50"
                         title="שכפל"
                       >
                         📋

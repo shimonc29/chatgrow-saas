@@ -209,10 +209,10 @@ const Payments = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="p-8 flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
+        <div className="p-8 flex justify-center items-center min-h-screen bg-app-navy">
           <div className="text-center">
             <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-400">טוען תשלומים...</p>
+            <p className="text-text-subtle">טוען תשלומים...</p>
           </div>
         </div>
       </MainLayout>
@@ -221,16 +221,16 @@ const Payments = () => {
 
   return (
     <MainLayout>
-      <div className="p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
+      <div className="p-8 bg-app-navy min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-yellow-400">ניהול תשלומים</h1>
-            <p className="text-gray-300 mt-2">נהל את התשלומים והחשבוניות שלך</p>
+            <h1 className="text-3xl font-bold text-accent-copper">ניהול תשלומים</h1>
+            <p className="text-text-light mt-2">נהל את התשלומים והחשבוניות שלך</p>
           </div>
           <button
             onClick={handleOpenModal}
-            className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+            className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
           >
             <span>💳</span>
             <span>תשלום חדש</span>
@@ -238,64 +238,64 @@ const Payments = () => {
         </div>
 
         {error && (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-app-navy border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
         )}
 
         {/* Payments Table */}
         {payments.length > 0 ? (
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg overflow-hidden">
             <table className="min-w-full divide-y divide-yellow-600/20">
               <thead className="bg-black/50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">לקוח</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">סכום</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">אמצעי תשלום</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">סטטוס</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">תאריך</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-yellow-400 uppercase">פעולות</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">לקוח</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">סכום</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">אמצעי תשלום</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">סטטוס</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">תאריך</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-accent-copper uppercase">פעולות</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-yellow-600/10">
                 {payments.map((payment) => (
-                  <tr key={payment._id} className="hover:bg-gray-800/50">
+                  <tr key={payment._id} className="hover:bg-app-navy/50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-300">
+                      <div className="text-sm font-medium text-text-light">
                         {payment.customer?.name || payment.customerId?.firstName + ' ' + payment.customerId?.lastName || '-'}
                       </div>
-                      <div className="text-sm text-gray-400">{payment.customer?.phone || payment.customerId?.phone}</div>
+                      <div className="text-sm text-text-subtle">{payment.customer?.phone || payment.customerId?.phone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-yellow-400">
+                      <div className="text-sm font-semibold text-accent-copper">
                         {formatCurrency(payment.amount, payment.currency)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{getMethodText(payment.paymentMethod)}</div>
-                      <div className="text-xs text-gray-400">{payment.provider?.name}</div>
+                      <div className="text-sm text-text-light">{getMethodText(payment.paymentMethod)}</div>
+                      <div className="text-xs text-text-subtle">{payment.provider?.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        payment.status === 'pending' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-600/30' :
+                        payment.status === 'pending' ? 'bg-yellow-900/50 text-accent-copper border border-accent-copper/30' :
                         payment.status === 'processing' ? 'bg-blue-900/50 text-blue-400 border border-blue-600/30' :
                         payment.status === 'completed' ? 'bg-green-900/50 text-green-400 border border-green-600/30' :
                         payment.status === 'failed' ? 'bg-red-900/50 text-red-400 border border-red-600/30' :
-                        payment.status === 'refunded' ? 'bg-gray-800 text-gray-400 border border-gray-600/30' :
-                        payment.status === 'cancelled' ? 'bg-gray-800 text-gray-400 border border-gray-600/30' :
-                        'bg-gray-800 text-gray-400 border border-gray-600/30'
+                        payment.status === 'refunded' ? 'bg-app-navy text-text-subtle border border-gray-600/30' :
+                        payment.status === 'cancelled' ? 'bg-app-navy text-text-subtle border border-gray-600/30' :
+                        'bg-app-navy text-text-subtle border border-gray-600/30'
                       }`}>
                         {getStatusText(payment.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
                       {formatDate(payment.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-reverse space-x-3">
                         <button
                           onClick={() => handleEdit(payment)}
-                          className="text-yellow-400 hover:text-yellow-500"
+                          className="text-accent-copper hover:text-accent-copper/80"
                           title="ערוך"
                         >
                           ✏️
@@ -324,13 +324,13 @@ const Payments = () => {
             </table>
           </div>
         ) : (
-          <div className="text-center py-12 bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg">
+          <div className="text-center py-12 bg-app-navy border border-accent-copper/30 rounded-xl shadow-lg">
             <div className="text-6xl mb-4">💳</div>
-            <h3 className="text-xl font-semibold text-yellow-400 mb-2">אין תשלומים עדיין</h3>
-            <p className="text-gray-300 mb-6">התחל לעקוב אחר התשלומים שלך</p>
+            <h3 className="text-xl font-semibold text-accent-copper mb-2">אין תשלומים עדיין</h3>
+            <p className="text-text-light mb-6">התחל לעקוב אחר התשלומים שלך</p>
             <button
               onClick={handleOpenModal}
-              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+              className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
             >
               יצירת תשלום ראשון
             </button>
@@ -340,18 +340,18 @@ const Payments = () => {
         {/* Create Payment Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-2xl shadow-2xl max-w-md w-full p-8">
-              <h2 className="text-2xl font-bold text-yellow-400 mb-6">
+            <div className="bg-app-navy border border-accent-copper/30 rounded-2xl shadow-2xl max-w-md w-full p-8">
+              <h2 className="text-2xl font-bold text-accent-copper mb-6">
                 {editMode ? 'ערוך תשלום' : 'תשלום חדש'}
               </h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-yellow-400 mb-2">לקוח *</label>
+                  <label className="block text-sm font-medium text-accent-copper mb-2">לקוח *</label>
                   <select
                     value={formData.customerId}
                     onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                     required
                   >
                     <option value="">בחר לקוח</option>
@@ -364,7 +364,7 @@ const Payments = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-yellow-400 mb-2">סכום *</label>
+                  <label className="block text-sm font-medium text-accent-copper mb-2">סכום *</label>
                   <div className="flex space-x-reverse space-x-2">
                     <input
                       type="number"
@@ -372,14 +372,14 @@ const Payments = () => {
                       step="0.01"
                       value={formData.amount}
                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className="flex-1 px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      className="flex-1 px-4 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                       placeholder="0.00"
                       required
                     />
                     <select
                       value={formData.currency}
                       onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="w-24 px-2 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      className="w-24 px-2 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                     >
                       <option value="ILS">₪ ILS</option>
                       <option value="USD">$ USD</option>
@@ -389,11 +389,11 @@ const Payments = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-yellow-400 mb-2">אמצעי תשלום</label>
+                  <label className="block text-sm font-medium text-accent-copper mb-2">אמצעי תשלום</label>
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                   >
                     <option value="credit_card">כרטיס אשראי</option>
                     <option value="bit">ביט</option>
@@ -404,11 +404,11 @@ const Payments = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-yellow-400 mb-2">ספק תשלום</label>
+                  <label className="block text-sm font-medium text-accent-copper mb-2">ספק תשלום</label>
                   <select
                     value={formData.provider}
                     onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                   >
                     <option value="manual">ידני</option>
                     {providers.map(provider => (
@@ -420,12 +420,12 @@ const Payments = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-yellow-400 mb-2">הערות</label>
+                  <label className="block text-sm font-medium text-accent-copper mb-2">הערות</label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     rows="3"
-                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-app-navy border border-accent-copper/30 text-white rounded-lg focus:ring-2 focus:ring-accent-copper focus:border-transparent"
                     placeholder="הערות נוספות..."
                   />
                 </div>
@@ -433,7 +433,7 @@ const Payments = () => {
                 <div className="flex space-x-reverse space-x-4 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
+                    className="flex-1 bg-gradient-to-r from-action-blue to-accent-copper text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-action-blue/50 hover:shadow-action-blue/70"
                   >
                     יצירת תשלום
                   </button>
@@ -450,7 +450,7 @@ const Payments = () => {
                         notes: '',
                       });
                     }}
-                    className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 py-3 rounded-lg font-semibold transition-all hover:border-yellow-500/50"
+                    className="flex-1 bg-app-navy text-text-light border border-accent-copper/20 py-3 rounded-lg font-semibold transition-all hover:border-accent-copper/50"
                   >
                     ביטול
                   </button>
