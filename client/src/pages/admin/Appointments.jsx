@@ -153,10 +153,10 @@ const Appointments = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="p-8 flex justify-center items-center min-h-screen">
+        <div className="p-8 flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
           <div className="text-center">
             <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-600">טוען תורים...</p>
+            <p className="text-gray-400">טוען תורים...</p>
           </div>
         </div>
       </MainLayout>
@@ -165,24 +165,24 @@ const Appointments = () => {
 
   return (
     <MainLayout>
-      <div className="p-8">
+      <div className="p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">ניהול תורים</h1>
-            <p className="text-gray-600 mt-2">קבע ונהל תורים עם לקוחות</p>
+            <h1 className="text-3xl font-bold text-yellow-400">ניהול תורים</h1>
+            <p className="text-gray-300 mt-2">קבע ונהל תורים עם לקוחות</p>
           </div>
           <div className="flex space-x-reverse space-x-3">
             <button
               onClick={copyBookingLink}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
+              className="bg-gray-800 text-gray-300 border border-yellow-600/20 px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all hover:border-yellow-500/50"
             >
               <span>🔗</span>
               <span>קישור הזמנה</span>
             </button>
             <button
               onClick={handleOpenModal}
-              className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
+              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
             >
               <span>➕</span>
               <span>תור חדש</span>
@@ -191,7 +191,7 @@ const Appointments = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
         )}
@@ -202,17 +202,23 @@ const Appointments = () => {
             {appointments.map((appointment) => {
               const customerName = `${appointment.customer.firstName} ${appointment.customer.lastName}`;
               return (
-                <div key={appointment._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                <div key={appointment._id} className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all shadow-lg">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800">{customerName}</h3>
-                      <p className="text-sm text-gray-600">{appointment.serviceName}</p>
+                      <h3 className="text-lg font-bold text-yellow-400">{customerName}</h3>
+                      <p className="text-sm text-gray-300">{appointment.serviceName}</p>
                     </div>
-                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getStatusColor(appointment.status)}`}>
+                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                      appointment.status === 'scheduled' ? 'bg-blue-900/50 text-blue-400 border border-blue-600/30' :
+                      appointment.status === 'confirmed' ? 'bg-green-900/50 text-green-400 border border-green-600/30' :
+                      appointment.status === 'completed' ? 'bg-gray-800 text-gray-400 border border-gray-600/30' :
+                      appointment.status === 'cancelled' ? 'bg-red-900/50 text-red-400 border border-red-600/30' :
+                      'bg-gray-800 text-gray-400 border border-gray-600/30'
+                    }`}>
                       {getStatusText(appointment.status)}
                     </span>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-400">
                     <div className="flex items-center space-x-reverse space-x-2">
                       <span>📅</span>
                       <span>{formatDate(appointment.appointmentDate)}</span>
@@ -237,7 +243,7 @@ const Appointments = () => {
                       {appointment.status === 'scheduled' && (
                         <button 
                           onClick={() => handleStatusChange(appointment._id, 'confirmed')}
-                          className="flex-1 bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                          className="flex-1 bg-gray-800 text-green-400 border border-green-600/20 py-2 rounded-lg hover:border-green-500/50 transition-all text-sm font-medium"
                         >
                           ✓ אשר
                         </button>
@@ -245,21 +251,21 @@ const Appointments = () => {
                       {appointment.status === 'confirmed' && (
                         <button 
                           onClick={() => handleStatusChange(appointment._id, 'completed')}
-                          className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                          className="flex-1 bg-gray-800 text-blue-400 border border-blue-600/20 py-2 rounded-lg hover:border-blue-500/50 transition-all text-sm font-medium"
                         >
                           ✓ סיים
                         </button>
                       )}
                       <button 
                         onClick={() => handleEdit(appointment)}
-                        className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                        className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 py-2 rounded-lg hover:border-yellow-500/50 transition-all text-sm font-medium"
                       >
                         ✏️ ערוך
                       </button>
                     </div>
                     <button 
                       onClick={() => handleDelete(appointment._id)}
-                      className="w-full bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                      className="w-full bg-gray-800 text-red-400 border border-red-600/20 py-2 rounded-lg hover:border-red-500/50 transition-all text-sm"
                     >
                       🗑️ בטל
                     </button>
@@ -269,13 +275,13 @@ const Appointments = () => {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">אין תורים עדיין</h3>
-            <p className="text-gray-600 mb-6">קבע את התור הראשון שלך!</p>
+            <h3 className="text-xl font-semibold text-yellow-400 mb-2">אין תורים עדיין</h3>
+            <p className="text-gray-300 mb-6">קבע את התור הראשון שלך!</p>
             <button
               onClick={handleOpenModal}
-              className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
             >
               ➕ קבע תור חדש
             </button>
@@ -284,66 +290,66 @@ const Appointments = () => {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-2xl shadow-2xl max-w-lg w-full">
+              <div className="p-6 border-b border-yellow-600/30">
+                <h2 className="text-2xl font-bold text-yellow-400">
                   {editMode ? 'ערוך תור' : 'תור חדש'}
                 </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">שם הלקוח</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">שם הלקוח</label>
                     <input
                       type="text"
                       value={formData.customerName}
                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="שם מלא"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">סוג השירות</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">סוג השירות</label>
                     <input
                       type="text"
                       value={formData.service}
                       onChange={(e) => setFormData({ ...formData, service: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="למשל: ייעוץ, טיפול, פגישה"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">תאריך</label>
+                      <label className="block text-sm font-medium text-yellow-400 mb-2">תאריך</label>
                       <input
                         type="date"
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">שעה</label>
+                      <label className="block text-sm font-medium text-yellow-400 mb-2">שעה</label>
                       <input
                         type="time"
                         value={formData.time}
                         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">הערות (אופציונלי)</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">הערות (אופציונלי)</label>
                     <textarea
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="הערות על התור..."
                     />
                   </div>
@@ -351,14 +357,14 @@ const Appointments = () => {
                 <div className="flex space-x-reverse space-x-4 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                    className="flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
                   >
                     {editMode ? 'שמור שינויים' : 'קבע תור'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                    className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 py-3 rounded-lg font-semibold transition-all hover:border-yellow-500/50"
                   >
                     ביטול
                   </button>

@@ -166,10 +166,10 @@ const Events = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="p-8 flex justify-center items-center min-h-screen">
+        <div className="p-8 flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
           <div className="text-center">
             <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-600">טוען אירועים...</p>
+            <p className="text-gray-400">טוען אירועים...</p>
           </div>
         </div>
       </MainLayout>
@@ -178,16 +178,16 @@ const Events = () => {
 
   return (
     <MainLayout>
-      <div className="p-8">
+      <div className="p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">ניהול אירועים</h1>
-            <p className="text-gray-600 mt-2">צור ונהל את האירועים שלך</p>
+            <h1 className="text-3xl font-bold text-yellow-400">ניהול אירועים</h1>
+            <p className="text-gray-300 mt-2">צור ונהל את האירועים שלך</p>
           </div>
           <button
             onClick={handleOpenModal}
-            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-colors"
+            className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-semibold flex items-center space-x-reverse space-x-2 transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
           >
             <span>➕</span>
             <span>אירוע חדש</span>
@@ -195,7 +195,7 @@ const Events = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
         )}
@@ -204,17 +204,17 @@ const Events = () => {
         {events.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <div key={event._id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div key={event._id} className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all shadow-lg">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">{event.name}</h3>
+                  <h3 className="text-xl font-bold text-yellow-400">{event.name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    event.status === 'published' || event.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    event.status === 'published' || event.status === 'active' ? 'bg-green-900/50 text-green-400 border border-green-600/30' : 'bg-gray-800 text-gray-400 border border-gray-600/30'
                   }`}>
                     {event.status === 'published' || event.status === 'active' ? 'פעיל' : event.status === 'cancelled' ? 'בוטל' : event.status}
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">{event.description}</p>
-                <div className="space-y-2 text-sm text-gray-500">
+                <p className="text-gray-300 text-sm mb-4">{event.description}</p>
+                <div className="space-y-2 text-sm text-gray-400">
                   <div className="flex items-center space-x-reverse space-x-2">
                     <span>📅</span>
                     <span>{formatDate(event.startDateTime || event.date)} בשעה {formatTime(event.startDateTime) || event.startTime}</span>
@@ -236,26 +236,26 @@ const Events = () => {
                   <div className="grid grid-cols-3 gap-2">
                     <button 
                       onClick={() => handleEdit(event)}
-                      className="bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+                      className="bg-gray-800 text-gray-300 border border-yellow-600/20 py-2 rounded-lg hover:border-yellow-500/50 transition-all font-medium text-sm"
                     >
                       ✏️ ערוך
                     </button>
                     <button 
                       onClick={() => copyRegistrationLink(event._id)}
-                      className="bg-green-50 text-green-600 py-2 rounded-lg hover:bg-green-100 transition-colors font-medium text-sm"
+                      className="bg-gray-800 text-gray-300 border border-yellow-600/20 py-2 rounded-lg hover:border-yellow-500/50 transition-all font-medium text-sm"
                     >
                       🔗 שתף
                     </button>
                     <button 
                       onClick={() => handleShowParticipants(event)}
-                      className="bg-purple-50 text-purple-600 py-2 rounded-lg hover:bg-purple-100 transition-colors font-medium text-sm"
+                      className="bg-gray-800 text-gray-300 border border-yellow-600/20 py-2 rounded-lg hover:border-yellow-500/50 transition-all font-medium text-sm"
                     >
                       👥 נרשמים
                     </button>
                   </div>
                   <button 
                     onClick={() => handleDelete(event._id)}
-                    className="w-full bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition-colors"
+                    className="w-full bg-gray-800 text-red-400 border border-red-600/20 py-2 rounded-lg hover:border-red-500/50 transition-all"
                   >
                     🗑️ ביטול
                   </button>
@@ -264,13 +264,13 @@ const Events = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl p-12 text-center shadow-lg">
             <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">אין אירועים עדיין</h3>
-            <p className="text-gray-600 mb-6">צור את האירוע הראשון שלך!</p>
+            <h3 className="text-xl font-semibold text-yellow-400 mb-2">אין אירועים עדיין</h3>
+            <p className="text-gray-300 mb-6">צור את האירוע הראשון שלך!</p>
             <button
               onClick={handleOpenModal}
-              className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
             >
               ➕ צור אירוע חדש
             </button>
@@ -279,81 +279,81 @@ const Events = () => {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-yellow-600/30">
+                <h2 className="text-2xl font-bold text-yellow-400">
                   {editMode ? 'ערוך אירוע' : 'אירוע חדש'}
                 </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">שם האירוע</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">שם האירוע</label>
                     <input
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="למשל: סדנת בישול איטלקי"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">תיאור</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">תיאור</label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       required
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="תיאור קצר של האירוע..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">תאריך</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">תאריך</label>
                     <input
                       type="date"
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">שעה</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">שעה</label>
                     <input
                       type="time"
                       value={formData.time}
                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">מיקום</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">מיקום</label>
                     <input
                       type="text"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                       placeholder="כתובת מלאה"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">מקסימום משתתפים</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">מקסימום משתתפים</label>
                     <input
                       type="number"
                       value={formData.maxParticipants}
                       onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
                       required
                       min="1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">מחיר (₪)</label>
+                    <label className="block text-sm font-medium text-yellow-400 mb-2">מחיר (₪)</label>
                     <input
                       type="number"
                       value={formData.price}
@@ -361,21 +361,21 @@ const Events = () => {
                       required
                       min="0"
                       step="0.01"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent outline-none"
                     />
                   </div>
                 </div>
                 <div className="flex space-x-reverse space-x-4 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                    className="flex-1 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black py-3 rounded-lg font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
                   >
                     {editMode ? 'שמור שינויים' : 'צור אירוע'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
+                    className="flex-1 bg-gray-800 text-gray-300 border border-yellow-600/20 py-3 rounded-lg font-semibold transition-all hover:border-yellow-500/50"
                   >
                     ביטול
                   </button>
@@ -387,19 +387,19 @@ const Events = () => {
 
         {/* Participants Modal */}
         {showParticipantsModal && selectedEvent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-yellow-600/30">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">נרשמים לאירוע: {selectedEvent.name}</h2>
-                    <p className="text-gray-600 mt-1">
+                    <h2 className="text-2xl font-bold text-yellow-400">נרשמים לאירוע: {selectedEvent.name}</h2>
+                    <p className="text-gray-300 mt-1">
                       {selectedEvent.participants?.length || 0} נרשמים מתוך {selectedEvent.maxParticipants} מקומות
                     </p>
                   </div>
                   <button
                     onClick={() => setShowParticipantsModal(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-yellow-400 hover:text-yellow-500 transition-colors"
                   >
                     <span className="text-2xl">✕</span>
                   </button>
@@ -410,31 +410,31 @@ const Events = () => {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gray-50">
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">#</th>
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">שם</th>
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">אימייל</th>
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">טלפון</th>
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">תאריך הרשמה</th>
-                          <th className="text-right px-4 py-3 text-sm font-semibold text-gray-700">סטטוס תשלום</th>
+                        <tr className="bg-black/50 border-b border-yellow-600/20">
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">#</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">שם</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">אימייל</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">טלפון</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">תאריך הרשמה</th>
+                          <th className="text-right px-4 py-3 text-sm font-semibold text-yellow-400">סטטוס תשלום</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedEvent.participants.map((participant, index) => (
-                          <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm">{index + 1}</td>
-                            <td className="px-4 py-3 text-sm font-medium">{participant.name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{participant.email}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{participant.phone}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">
+                          <tr key={index} className="border-b border-yellow-600/10 hover:bg-gray-800/50">
+                            <td className="px-4 py-3 text-sm text-gray-300">{index + 1}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-gray-300">{participant.name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-400">{participant.email}</td>
+                            <td className="px-4 py-3 text-sm text-gray-400">{participant.phone}</td>
+                            <td className="px-4 py-3 text-sm text-gray-400">
                               {participant.registeredAt ? new Date(participant.registeredAt).toLocaleDateString('he-IL') : '-'}
                             </td>
                             <td className="px-4 py-3 text-sm">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                participant.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                                participant.paymentStatus === 'free' ? 'bg-blue-100 text-blue-800' :
-                                participant.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
+                                participant.paymentStatus === 'paid' ? 'bg-green-900/50 text-green-400 border border-green-600/30' :
+                                participant.paymentStatus === 'free' ? 'bg-blue-900/50 text-blue-400 border border-blue-600/30' :
+                                participant.paymentStatus === 'pending' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-600/30' :
+                                'bg-gray-800 text-gray-400 border border-gray-600/30'
                               }`}>
                                 {participant.paymentStatus === 'paid' ? 'שולם' :
                                  participant.paymentStatus === 'free' ? 'חינם' :
@@ -450,8 +450,8 @@ const Events = () => {
                 ) : (
                   <div className="text-center py-12">
                     <div className="text-6xl mb-4">👥</div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">אין נרשמים עדיין</h3>
-                    <p className="text-gray-600">כאשר אנשים ירשמו לאירוע, הם יופיעו כאן</p>
+                    <h3 className="text-xl font-semibold text-yellow-400 mb-2">אין נרשמים עדיין</h3>
+                    <p className="text-gray-300">כאשר אנשים ירשמו לאירוע, הם יופיעו כאן</p>
                   </div>
                 )}
               </div>
