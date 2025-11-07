@@ -9,8 +9,7 @@ import Events from './pages/admin/Events';
 import Customers from './pages/admin/Customers';
 import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
-import Invoices from './pages/admin/Invoices';
-import Receipts from './pages/admin/Receipts';
+import Financial from './pages/admin/Financial';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import PaymentSettings from './pages/admin/PaymentSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
@@ -80,19 +79,10 @@ function App() {
           />
 
           <Route 
-            path="/invoices" 
+            path="/financial" 
             element={
               <PrivateRoute>
-                <Invoices />
-              </PrivateRoute>
-            } 
-          />
-
-          <Route 
-            path="/receipts" 
-            element={
-              <PrivateRoute>
-                <Receipts />
+                <Financial />
               </PrivateRoute>
             } 
           />

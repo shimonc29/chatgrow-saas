@@ -79,8 +79,8 @@ const ProviderSettings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-app-navy via-card-navy to-app-navy flex items-center justify-center">
-        <div className="text-accent-copper text-2xl">⏳ טוען הגדרות...</div>
+      <div className="min-h-screen bg-gradient-to-b from-bg-light via-bg-card to-bg-light flex items-center justify-center">
+        <div className="text-accent-teal text-2xl">⏳ טוען הגדרות...</div>
       </div>
     );
   }
@@ -88,20 +88,20 @@ const ProviderSettings = () => {
   if (!settings) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-app-navy via-card-navy to-app-navy p-8 rtl">
+    <div className="min-h-screen bg-gradient-to-b from-bg-light via-bg-card to-bg-light p-8 rtl">
       {/* Header */}
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-accent-copper mb-2">
+          <h1 className="text-4xl font-bold text-accent-teal mb-2">
             ⚙️ הגדרות ספקים
           </h1>
-          <p className="text-text-subtle">
+          <p className="text-text-secondary">
             הגדר את ספקי האימייל, SMS ותשלום שלך
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-accent-copper/30">
+        <div className="flex gap-4 mb-6 border-b border-accent-teal/30">
           {[
             { id: 'email', label: '📧 אימייל', icon: '📧' },
             { id: 'sms', label: '📱 SMS', icon: '📱' },
@@ -113,8 +113,8 @@ const ProviderSettings = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === tab.id
-                  ? 'text-accent-copper border-b-2 border-accent-copper'
-                  : 'text-text-subtle hover:text-accent-copper'
+                  ? 'text-accent-teal border-b-2 border-accent-teal'
+                  : 'text-text-secondary hover:text-accent-teal'
               }`}
             >
               {tab.label}
@@ -124,18 +124,18 @@ const ProviderSettings = () => {
 
         {/* Email Settings */}
         {activeTab === 'email' && (
-          <div className="bg-card-navy border border-accent-copper/30 rounded-lg p-6 shadow-lg shadow-accent-copper/10">
-            <h2 className="text-2xl font-bold text-accent-copper mb-4">📧 הגדרות אימייל</h2>
+          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10">
+            <h2 className="text-2xl font-bold text-accent-teal mb-4">📧 הגדרות אימייל</h2>
             
             <div className="mb-6">
-              <label className="block text-text-light mb-2">סוג ספק</label>
+              <label className="block text-text-primary mb-2">סוג ספק</label>
               <select
                 value={settings.emailProvider.type}
                 onChange={(e) => setSettings({
                   ...settings,
                   emailProvider: { ...settings.emailProvider, type: e.target.value }
                 })}
-                className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
               >
                 <option value="none">ללא</option>
                 <option value="sendgrid">SendGrid</option>
@@ -144,7 +144,7 @@ const ProviderSettings = () => {
             </div>
 
             <div className="mb-6">
-              <label className="flex items-center gap-2 text-text-light">
+              <label className="flex items-center gap-2 text-text-primary">
                 <input
                   type="checkbox"
                   checked={settings.emailProvider.enabled}
@@ -161,7 +161,7 @@ const ProviderSettings = () => {
             {settings.emailProvider.type === 'sendgrid' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-text-light mb-2">SendGrid API Key</label>
+                  <label className="block text-text-primary mb-2">SendGrid API Key</label>
                   <input
                     type="password"
                     value={settings.emailProvider.sendgrid.apiKey || ''}
@@ -172,12 +172,12 @@ const ProviderSettings = () => {
                         sendgrid: { ...settings.emailProvider.sendgrid, apiKey: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="SG.xxxxxxxxxxxxx"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">כתובת אימייל שולח</label>
+                  <label className="block text-text-primary mb-2">כתובת אימייל שולח</label>
                   <input
                     type="email"
                     value={settings.emailProvider.sendgrid.fromEmail || ''}
@@ -188,12 +188,12 @@ const ProviderSettings = () => {
                         sendgrid: { ...settings.emailProvider.sendgrid, fromEmail: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="noreply@yourdomain.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">שם שולח</label>
+                  <label className="block text-text-primary mb-2">שם שולח</label>
                   <input
                     type="text"
                     value={settings.emailProvider.sendgrid.fromName || ''}
@@ -204,7 +204,7 @@ const ProviderSettings = () => {
                         sendgrid: { ...settings.emailProvider.sendgrid, fromName: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="העסק שלי"
                   />
                 </div>
@@ -214,7 +214,7 @@ const ProviderSettings = () => {
             {settings.emailProvider.type === 'smtp' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-text-light mb-2">SMTP Host</label>
+                  <label className="block text-text-primary mb-2">SMTP Host</label>
                   <input
                     type="text"
                     value={settings.emailProvider.smtp.host || ''}
@@ -225,12 +225,12 @@ const ProviderSettings = () => {
                         smtp: { ...settings.emailProvider.smtp, host: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="smtp.gmail.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">SMTP Port</label>
+                  <label className="block text-text-primary mb-2">SMTP Port</label>
                   <input
                     type="number"
                     value={settings.emailProvider.smtp.port || 587}
@@ -241,11 +241,11 @@ const ProviderSettings = () => {
                         smtp: { ...settings.emailProvider.smtp, port: Number(e.target.value) }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">Username</label>
+                  <label className="block text-text-primary mb-2">Username</label>
                   <input
                     type="text"
                     value={settings.emailProvider.smtp.username || ''}
@@ -256,11 +256,11 @@ const ProviderSettings = () => {
                         smtp: { ...settings.emailProvider.smtp, username: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">Password</label>
+                  <label className="block text-text-primary mb-2">Password</label>
                   <input
                     type="password"
                     value={settings.emailProvider.smtp.password || ''}
@@ -271,26 +271,26 @@ const ProviderSettings = () => {
                         smtp: { ...settings.emailProvider.smtp, password: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                   />
                 </div>
               </div>
             )}
 
             {/* Test Email */}
-            <div className="mt-6 pt-6 border-t border-accent-copper/30">
-              <h3 className="text-lg font-semibold text-accent-copper mb-3">בדיקת תצורה</h3>
+            <div className="mt-6 pt-6 border-t border-accent-teal/30">
+              <h3 className="text-lg font-semibold text-accent-teal mb-3">בדיקת תצורה</h3>
               <div className="flex gap-3">
                 <input
                   type="email"
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
                   placeholder="test@example.com"
-                  className="flex-1 bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="flex-1 bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
                 <button
                   onClick={handleTestEmail}
-                  className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded font-semibold hover:shadow-lg hover:shadow-action-blue/50 transition-all"
+                  className="bg-gradient-to-r from-accent-teal to-accent-hover text-white px-6 py-3 rounded font-semibold hover:shadow-lg hover:shadow-accent-teal/50 transition-all"
                 >
                   שלח בדיקה
                 </button>
@@ -301,18 +301,18 @@ const ProviderSettings = () => {
 
         {/* SMS Settings */}
         {activeTab === 'sms' && (
-          <div className="bg-card-navy border border-accent-copper/30 rounded-lg p-6 shadow-lg shadow-accent-copper/10">
-            <h2 className="text-2xl font-bold text-accent-copper mb-4">📱 הגדרות SMS</h2>
+          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10">
+            <h2 className="text-2xl font-bold text-accent-teal mb-4">📱 הגדרות SMS</h2>
             
             <div className="mb-6">
-              <label className="block text-text-light mb-2">סוג ספק</label>
+              <label className="block text-text-primary mb-2">סוג ספק</label>
               <select
                 value={settings.smsProvider.type}
                 onChange={(e) => setSettings({
                   ...settings,
                   smsProvider: { ...settings.smsProvider, type: e.target.value }
                 })}
-                className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
               >
                 <option value="none">ללא</option>
                 <option value="twilio">Twilio</option>
@@ -320,7 +320,7 @@ const ProviderSettings = () => {
             </div>
 
             <div className="mb-6">
-              <label className="flex items-center gap-2 text-text-light">
+              <label className="flex items-center gap-2 text-text-primary">
                 <input
                   type="checkbox"
                   checked={settings.smsProvider.enabled}
@@ -337,7 +337,7 @@ const ProviderSettings = () => {
             {settings.smsProvider.type === 'twilio' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-text-light mb-2">Account SID</label>
+                  <label className="block text-text-primary mb-2">Account SID</label>
                   <input
                     type="password"
                     value={settings.smsProvider.twilio.accountSid || ''}
@@ -348,12 +348,12 @@ const ProviderSettings = () => {
                         twilio: { ...settings.smsProvider.twilio, accountSid: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="ACxxxxxxxxxxxxx"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">Auth Token</label>
+                  <label className="block text-text-primary mb-2">Auth Token</label>
                   <input
                     type="password"
                     value={settings.smsProvider.twilio.authToken || ''}
@@ -364,11 +364,11 @@ const ProviderSettings = () => {
                         twilio: { ...settings.smsProvider.twilio, authToken: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                   />
                 </div>
                 <div>
-                  <label className="block text-text-light mb-2">מספר טלפון Twilio</label>
+                  <label className="block text-text-primary mb-2">מספר טלפון Twilio</label>
                   <input
                     type="tel"
                     value={settings.smsProvider.twilio.phoneNumber || ''}
@@ -379,7 +379,7 @@ const ProviderSettings = () => {
                         twilio: { ...settings.smsProvider.twilio, phoneNumber: e.target.value }
                       }
                     })}
-                    className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                    className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     placeholder="+1234567890"
                   />
                 </div>
@@ -387,19 +387,19 @@ const ProviderSettings = () => {
             )}
 
             {/* Test SMS */}
-            <div className="mt-6 pt-6 border-t border-accent-copper/30">
-              <h3 className="text-lg font-semibold text-accent-copper mb-3">בדיקת תצורה</h3>
+            <div className="mt-6 pt-6 border-t border-accent-teal/30">
+              <h3 className="text-lg font-semibold text-accent-teal mb-3">בדיקת תצורה</h3>
               <div className="flex gap-3">
                 <input
                   type="tel"
                   value={testPhone}
                   onChange={(e) => setTestPhone(e.target.value)}
                   placeholder="+972501234567"
-                  className="flex-1 bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="flex-1 bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
                 <button
                   onClick={handleTestSMS}
-                  className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-6 py-3 rounded font-semibold hover:shadow-lg hover:shadow-action-blue/50 transition-all"
+                  className="bg-gradient-to-r from-accent-teal to-accent-hover text-white px-6 py-3 rounded font-semibold hover:shadow-lg hover:shadow-accent-teal/50 transition-all"
                 >
                   שלח בדיקה
                 </button>
@@ -410,13 +410,13 @@ const ProviderSettings = () => {
 
         {/* Payment Gateway Settings */}
         {activeTab === 'payment' && (
-          <div className="bg-card-navy border border-accent-copper/30 rounded-lg p-6 shadow-lg shadow-accent-copper/10 space-y-6">
-            <h2 className="text-2xl font-bold text-accent-copper mb-4">💳 הגדרות תשלום</h2>
+          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10 space-y-6">
+            <h2 className="text-2xl font-bold text-accent-teal mb-4">💳 הגדרות תשלום</h2>
             
             {/* Cardcom */}
-            <div className="border border-accent-copper/20 rounded-lg p-4">
+            <div className="border border-accent-teal/20 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
-                <label className="flex items-center gap-2 text-text-light font-semibold text-lg">
+                <label className="flex items-center gap-2 text-text-primary font-semibold text-lg">
                   <input
                     type="checkbox"
                     checked={settings.paymentGateways.cardcom.enabled}
@@ -436,7 +436,7 @@ const ProviderSettings = () => {
               {settings.paymentGateways.cardcom.enabled && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-text-light mb-2">Terminal Number</label>
+                    <label className="block text-text-primary mb-2">Terminal Number</label>
                     <input
                       type="text"
                       value={settings.paymentGateways.cardcom.terminalNumber || ''}
@@ -447,11 +447,11 @@ const ProviderSettings = () => {
                           cardcom: { ...settings.paymentGateways.cardcom, terminalNumber: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-light mb-2">API Username</label>
+                    <label className="block text-text-primary mb-2">API Username</label>
                     <input
                       type="text"
                       value={settings.paymentGateways.cardcom.apiUsername || ''}
@@ -462,11 +462,11 @@ const ProviderSettings = () => {
                           cardcom: { ...settings.paymentGateways.cardcom, apiUsername: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-light mb-2">API Password</label>
+                    <label className="block text-text-primary mb-2">API Password</label>
                     <input
                       type="password"
                       value={settings.paymentGateways.cardcom.apiPassword || ''}
@@ -477,11 +477,11 @@ const ProviderSettings = () => {
                           cardcom: { ...settings.paymentGateways.cardcom, apiPassword: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="flex items-center gap-2 text-text-light">
+                    <label className="flex items-center gap-2 text-text-primary">
                       <input
                         type="checkbox"
                         checked={settings.paymentGateways.cardcom.testMode}
@@ -502,9 +502,9 @@ const ProviderSettings = () => {
             </div>
 
             {/* GROW */}
-            <div className="border border-accent-copper/20 rounded-lg p-4">
+            <div className="border border-accent-teal/20 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
-                <label className="flex items-center gap-2 text-text-light font-semibold text-lg">
+                <label className="flex items-center gap-2 text-text-primary font-semibold text-lg">
                   <input
                     type="checkbox"
                     checked={settings.paymentGateways.grow.enabled}
@@ -524,7 +524,7 @@ const ProviderSettings = () => {
               {settings.paymentGateways.grow.enabled && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-text-light mb-2">API Key</label>
+                    <label className="block text-text-primary mb-2">API Key</label>
                     <input
                       type="password"
                       value={settings.paymentGateways.grow.apiKey || ''}
@@ -535,11 +535,11 @@ const ProviderSettings = () => {
                           grow: { ...settings.paymentGateways.grow, apiKey: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-light mb-2">User ID</label>
+                    <label className="block text-text-primary mb-2">User ID</label>
                     <input
                       type="text"
                       value={settings.paymentGateways.grow.userId || ''}
@@ -550,11 +550,11 @@ const ProviderSettings = () => {
                           grow: { ...settings.paymentGateways.grow, userId: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-light mb-2">Page Code</label>
+                    <label className="block text-text-primary mb-2">Page Code</label>
                     <input
                       type="text"
                       value={settings.paymentGateways.grow.pageCode || ''}
@@ -565,11 +565,11 @@ const ProviderSettings = () => {
                           grow: { ...settings.paymentGateways.grow, pageCode: e.target.value }
                         }
                       })}
-                      className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                     />
                   </div>
                   <div>
-                    <label className="flex items-center gap-2 text-text-light">
+                    <label className="flex items-center gap-2 text-text-primary">
                       <input
                         type="checkbox"
                         checked={settings.paymentGateways.grow.testMode}
@@ -593,12 +593,12 @@ const ProviderSettings = () => {
 
         {/* Invoice Settings */}
         {activeTab === 'invoice' && (
-          <div className="bg-card-navy border border-accent-copper/30 rounded-lg p-6 shadow-lg shadow-accent-copper/10">
-            <h2 className="text-2xl font-bold text-accent-copper mb-4">🧾 הגדרות חשבוניות</h2>
+          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10">
+            <h2 className="text-2xl font-bold text-accent-teal mb-4">🧾 הגדרות חשבוניות</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-text-light mb-2">שם החברה</label>
+                <label className="block text-text-primary mb-2">שם החברה</label>
                 <input
                   type="text"
                   value={settings.invoiceSettings.companyName || ''}
@@ -606,11 +606,11 @@ const ProviderSettings = () => {
                     ...settings,
                     invoiceSettings: { ...settings.invoiceSettings, companyName: e.target.value }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">ח.פ / ע.מ</label>
+                <label className="block text-text-primary mb-2">ח.פ / ע.מ</label>
                 <input
                   type="text"
                   value={settings.invoiceSettings.companyNumber || ''}
@@ -618,11 +618,11 @@ const ProviderSettings = () => {
                     ...settings,
                     invoiceSettings: { ...settings.invoiceSettings, companyNumber: e.target.value }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">מספר עוסק מורשה</label>
+                <label className="block text-text-primary mb-2">מספר עוסק מורשה</label>
                 <input
                   type="text"
                   value={settings.invoiceSettings.vatNumber || ''}
@@ -630,11 +630,11 @@ const ProviderSettings = () => {
                     ...settings,
                     invoiceSettings: { ...settings.invoiceSettings, vatNumber: e.target.value }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">רחוב</label>
+                <label className="block text-text-primary mb-2">רחוב</label>
                 <input
                   type="text"
                   value={settings.invoiceSettings.address?.street || ''}
@@ -645,11 +645,11 @@ const ProviderSettings = () => {
                       address: { ...settings.invoiceSettings.address, street: e.target.value }
                     }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">עיר</label>
+                <label className="block text-text-primary mb-2">עיר</label>
                 <input
                   type="text"
                   value={settings.invoiceSettings.address?.city || ''}
@@ -660,11 +660,11 @@ const ProviderSettings = () => {
                       address: { ...settings.invoiceSettings.address, city: e.target.value }
                     }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">טלפון</label>
+                <label className="block text-text-primary mb-2">טלפון</label>
                 <input
                   type="tel"
                   value={settings.invoiceSettings.phone || ''}
@@ -672,11 +672,11 @@ const ProviderSettings = () => {
                     ...settings,
                     invoiceSettings: { ...settings.invoiceSettings, phone: e.target.value }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
               <div>
-                <label className="block text-text-light mb-2">אימייל</label>
+                <label className="block text-text-primary mb-2">אימייל</label>
                 <input
                   type="email"
                   value={settings.invoiceSettings.email || ''}
@@ -684,7 +684,7 @@ const ProviderSettings = () => {
                     ...settings,
                     invoiceSettings: { ...settings.invoiceSettings, email: e.target.value }
                   })}
-                  className="w-full bg-app-navy border border-accent-copper/50 text-text-light px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-action-blue"
+                  className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
                 />
               </div>
             </div>
@@ -696,7 +696,7 @@ const ProviderSettings = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-gradient-to-r from-action-blue to-accent-copper text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:shadow-action-blue/50 transition-all disabled:opacity-50"
+            className="bg-gradient-to-r from-accent-teal to-accent-hover text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl hover:shadow-accent-teal/50 transition-all disabled:opacity-50"
           >
             {saving ? '⏳ שומר...' : '💾 שמור הגדרות'}
           </button>

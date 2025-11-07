@@ -7,12 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        'app-navy': '#0D1117',
-        'card-navy': '#161B22',
-        'accent-copper': '#B87333',
-        'action-blue': '#3A7CA5',
-        'text-light': '#C9D1D9',
-        'text-subtle': '#8B949E',
+        'bg-light': '#F8F9FA',
+        'bg-card': '#FFFFFF',
+        'accent-teal': '#00798C',
+        'accent-hover': '#035368',
+        'text-primary': '#212529',
+        'text-secondary': '#6C757D',
       },
     },
   },

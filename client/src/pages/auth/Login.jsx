@@ -31,10 +31,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-app-navy via-card-navy to-app-navy flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-bg-light via-bg-card to-bg-light flex items-center justify-center p-4">
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-accent-copper/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-action-blue/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-accent-teal/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-teal/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="w-full max-w-md relative z-10">
@@ -42,16 +42,16 @@ const Login = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">
             <span className="text-3xl">👑</span>{' '}
-            <span className="bg-gradient-to-r from-accent-copper to-action-blue bg-clip-text text-transparent">ChatGrow</span>
+            <span className="bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent">ChatGrow</span>
           </h1>
-          <p className="text-text-subtle">מערכת ניהול אירועים ועסקים</p>
+          <p className="text-text-secondary">מערכת ניהול אירועים ועסקים</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-gradient-to-br from-card-navy to-app-navy border border-accent-copper/30 rounded-2xl shadow-2xl shadow-accent-copper/10 p-8">
+        <div className="bg-gradient-to-br from-bg-card to-bg-light border border-accent-teal/30 rounded-2xl shadow-2xl shadow-accent-teal/10 p-8">
           <div className="mb-6 text-center">
-            <h2 className="text-3xl font-bold text-accent-copper mb-2">התחברות</h2>
-            <p className="text-text-subtle">ברוכים הבאים בחזרה!</p>
+            <h2 className="text-3xl font-bold text-accent-teal mb-2">התחברות</h2>
+            <p className="text-text-secondary">ברוכים הבאים בחזרה!</p>
           </div>
 
           {error && (
@@ -63,7 +63,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-text-light mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
                 אימייל
               </label>
               <input
@@ -72,7 +72,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-text-light rounded-lg focus:ring-2 focus:ring-action-blue focus:border-action-blue transition-all outline-none"
+                className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-text-primary rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal transition-all outline-none"
                 placeholder="example@mail.com"
                 dir="ltr"
               />
@@ -80,7 +80,7 @@ const Login = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-text-light mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-2">
                 סיסמה
               </label>
               <input
@@ -89,7 +89,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-app-navy border border-accent-copper/30 text-text-light rounded-lg focus:ring-2 focus:ring-action-blue focus:border-action-blue transition-all outline-none"
+                className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-text-primary rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal transition-all outline-none"
                 placeholder="••••••••"
                 dir="ltr"
               />
@@ -99,7 +99,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-action-blue via-accent-copper to-action-blue hover:from-accent-copper hover:to-action-blue text-white py-3 rounded-lg font-semibold shadow-lg shadow-action-blue/50 hover:shadow-xl hover:shadow-accent-copper/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-accent-teal via-accent-teal to-accent-teal hover:from-accent-teal hover:to-accent-teal text-white py-3 rounded-lg font-semibold shadow-lg shadow-accent-teal/50 hover:shadow-xl hover:shadow-accent-teal/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'מתחבר...' : 'התחבר'}
             </button>
@@ -107,9 +107,9 @@ const Login = () => {
 
           {/* Register Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-text-subtle">
+            <p className="text-sm text-text-secondary">
               עדיין אין לך חשבון?{' '}
-              <Link to="/register" className="text-accent-copper font-semibold hover:text-action-blue transition-colors">
+              <Link to="/register" className="text-accent-teal font-semibold hover:text-accent-teal transition-colors">
                 הירשם עכשיו
               </Link>
             </p>
@@ -117,7 +117,7 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-text-subtle text-sm">
+        <div className="mt-6 text-center text-text-secondary text-sm">
           <p>© 2025 ChatGrow. כל הזכויות שמורות.</p>
         </div>
       </div>

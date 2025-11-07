@@ -17,28 +17,28 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 ### UI/UX Decisions
 - **Frontend Framework**: React 19 with Vite.
 - **Styling**: Tailwind CSS v3 with full RTL support.
-- **Design Theme**: Luxurious navy-copper color scheme across entire application.
+- **Design Theme**: Clean, professional teal-light color scheme across entire application.
   - **Colors**: 
-    - App Navy (#0D1117) - Primary background
-    - Card Navy (#161B22) - Secondary background / Cards
-    - Accent Copper (#B87333) - Primary accent / Premium highlights
-    - Action Blue (#3A7CA5) - Buttons / Active elements
-    - Text Light (#C9D1D9) - Primary text
-    - Text Subtle (#8B949E) - Secondary text / Descriptions
+    - BG Light (#F8F9FA) - Soft white primary background, comfortable for the eyes
+    - BG Card (#FFFFFF) - Pure white for cards, creating contrast and "floating" effect
+    - Accent Teal (#00798C) - Deep blue-green for primary highlights and CTAs, conveys trust and understated luxury
+    - Accent Hover (#035368) - Darker teal for hover states, modern click effect
+    - Text Primary (#212529) - Near-black dark gray, excellent readability (AAA)
+    - Text Secondary (#6C757D) - Medium gray for secondary details
   - **Logo**: Crown icon (👑) representing premium quality
-  - **Backgrounds**: Navy gradients (from-app-navy via-card-navy to-app-navy)
-  - **Cards**: Dark navy cards with copper borders (border-accent-copper/30) and blue shadows
-  - **Typography**: Copper headings (text-accent-copper), light content (text-text-light)
-  - **Buttons**: Blue-copper gradient primary buttons with glow effects (shadow-action-blue/50)
-  - **Inputs**: Navy inputs with copper borders and blue focus rings
-  - **Effects**: Copper/blue blur balls, hover animations, premium shadows
+  - **Backgrounds**: Light gradients (from-bg-light via-bg-card to-bg-light)
+  - **Cards**: White cards with subtle borders and shadows
+  - **Typography**: Teal headings (text-accent-teal), dark content (text-primary)
+  - **Buttons**: Teal gradient primary buttons with hover effects
+  - **Inputs**: White inputs with gray borders and teal focus rings
+  - **Effects**: Subtle shadows, hover animations, professional appearance
 - **Architecture**: Single Page Application (SPA) with protected routes.
-- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, Payments, Invoices, Receipts, Landing Pages, Registration Pages, Payment Settings, and Provider Settings. Dark navy theme with copper accents throughout.
-- **Authentication UI**: Luxurious navy-copper themed login/register pages with blur effects and gradient buttons.
-- **Components**: Modular layout using Sidebar (navy with copper highlights), MainLayout (dark navy background), and PrivateRoute components.
-- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with luxury navy-copper design, featuring a multi-section layout with sticky navigation bar, hero section with copper blur effects, statistics, benefits, detailed features, a "how it works" section, testimonials, and strong CTAs. Fully responsive with RTL support.
-- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a dark-themed management interface with copper accents for tracking views and conversions, and public routes for published pages.
-- **Invoice & Receipt Management**: Full UI for managing invoices and receipts with manual creation capabilities, PDF generation, and email delivery. Navy-copper themed with comprehensive CRUD operations.
+- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, Payments, Financial Management, Landing Pages, Registration Pages, Payment Settings, and Provider Settings. Clean light theme with teal accents throughout.
+- **Authentication UI**: Professional teal-light themed login/register pages with clean design and teal accent buttons.
+- **Components**: Modular layout using Sidebar (teal highlights), MainLayout (light background), and PrivateRoute components.
+- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with clean teal-light design, featuring a multi-section layout with sticky navigation bar, hero section with teal accents, statistics, benefits, detailed features, a "how it works" section, testimonials, and strong CTAs. Fully responsive with RTL support.
+- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a light-themed management interface with teal accents for tracking views and conversions, and public routes for published pages.
+- **Financial Management**: Unified UI for managing both invoices and receipts with tabs, manual creation capabilities, PDF generation, and email delivery. Clean teal-light themed with comprehensive CRUD operations.
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
@@ -54,8 +54,9 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 - **Public API Routes**: Secure, authentication-free endpoints for public event registration and appointment booking with server-side validation.
 - **Customer Auto-Creation**: System automatically creates or updates customer records from public registrations.
 - **Full CRUD Functionality**: Comprehensive create, read, update, and delete operations for all administrative entities (Events, Appointments, Customers, Payments, Invoices, Receipts), including dedicated edit modals and API routes.
-- **Invoice Management UI**: Full-featured interface for creating invoices manually or from payments, with itemized billing, tax calculation, PDF generation, and email delivery.
-- **Receipt Management UI**: Comprehensive interface for generating receipts from payments or manually, with PDF download capabilities.
+- **Financial Management UI**: Unified tabbed interface combining invoice and receipt management:
+  - **Invoices Tab**: Create invoices manually or from payments, itemized billing, tax calculation, PDF generation, and email delivery
+  - **Receipts Tab**: Generate receipts from payments or manually, PDF download capabilities, and automatic payment-to-receipt linking
 - **Registration Page Links**: Quick access functionality to copy unique registration links for events and appointments, including a dedicated "RegistrationPages" tab.
 - **Provider Settings UI**: Admin interface for configuring Email, SMS, and Payment provider credentials with test functionality and invoice settings.
 - **Landing Page Analytics**: Built-in analytics system for tracking views, conversions, and conversion rates for landing pages.
