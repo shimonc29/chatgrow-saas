@@ -17,12 +17,21 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 ### UI/UX Decisions
 - **Frontend Framework**: React 19 with Vite.
 - **Styling**: Tailwind CSS v3 with full RTL support.
+- **Design Theme**: Luxurious black-gold color scheme across entire application.
+  - **Colors**: Black (#000000), Gold (#FFD700), Light Gold (#F4C430), Gray shades for accents
+  - **Logo**: Crown icon (👑) representing premium quality
+  - **Backgrounds**: Black gradients (from-black via-gray-900 to-black)
+  - **Cards**: Dark cards with gold borders (border-yellow-600/30) and gold shadows
+  - **Typography**: Gold headings (text-yellow-400), gray content (text-gray-300/400)
+  - **Buttons**: Gold gradient primary buttons with glow effects (shadow-yellow-500/50)
+  - **Inputs**: Black inputs with gold borders and yellow focus rings
+  - **Effects**: Golden blur balls, hover animations, premium shadows
 - **Architecture**: Single Page Application (SPA) with protected routes.
-- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, and Payments.
-- **Authentication UI**: Modern, responsive login/register pages.
-- **Components**: Modular layout using Sidebar, MainLayout, and PrivateRoute components.
-- **Marketing Home Page**: Public marketing page (`/`) designed for conversion, featuring a multi-section layout with a sticky navigation bar, hero section, statistics, benefits, detailed features, a "how it works" section, testimonials, and a strong call-to-action. It utilizes gradient backgrounds and is fully responsive with RTL support.
-- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a management interface for tracking views and conversions, and public routes for published pages.
+- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, and Payments. Dark theme with gold accents throughout.
+- **Authentication UI**: Luxurious black-gold themed login/register pages with blur effects and gradient buttons.
+- **Components**: Modular layout using Sidebar (black with gold highlights), MainLayout (dark background), and PrivateRoute components.
+- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with luxury black-gold design, featuring a multi-section layout with sticky navigation bar, hero section with gold blur effects, statistics, benefits, detailed features, a "how it works" section, testimonials (full gold background section), and strong CTAs. Fully responsive with RTL support.
+- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a dark-themed management interface with gold accents for tracking views and conversions, and public routes for published pages.
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
