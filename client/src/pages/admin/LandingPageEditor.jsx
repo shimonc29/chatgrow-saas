@@ -113,9 +113,10 @@ const LandingPageEditor = () => {
       const response = await axios.get('/api/events', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEvents(response.data);
+      setEvents(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error(err);
+      setEvents([]);
     }
   };
 
