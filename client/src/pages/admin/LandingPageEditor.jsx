@@ -232,8 +232,8 @@ const LandingPageEditor = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-xl text-gray-600">טוען...</div>
+        <div className="flex items-center justify-center h-64 bg-gradient-to-br from-gray-900 to-black min-h-screen">
+          <div className="text-xl text-gray-300">טוען...</div>
         </div>
       </MainLayout>
     );
@@ -241,26 +241,26 @@ const LandingPageEditor = () => {
 
   return (
     <MainLayout>
-      <div className="p-4 sm:p-6 md:p-8">
+      <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl font-bold text-yellow-400">
               {id && id !== 'new' ? '✏️ ערוך דף נחיתה' : '➕ צור דף נחיתה חדש'}
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-2">עצב דף נחיתה מושך לשיווק האירועים והתורים שלך</p>
+            <p className="text-sm sm:text-base text-gray-300 mt-2">עצב דף נחיתה מושך לשיווק האירועים והתורים שלך</p>
           </div>
           <div className="flex w-full sm:w-auto space-x-reverse space-x-3">
             <button
               onClick={() => navigate('/landing-pages')}
-              className="flex-1 sm:flex-none bg-gray-500 hover:bg-gray-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+              className="flex-1 sm:flex-none bg-gray-800 text-gray-300 border border-yellow-600/20 px-4 sm:px-6 py-3 rounded-lg font-semibold transition-all hover:border-yellow-500/50 text-sm sm:text-base"
             >
               ביטול
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 sm:flex-none bg-brand-500 hover:bg-brand-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold disabled:opacity-50 transition-colors text-sm sm:text-base"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-4 sm:px-6 py-3 rounded-lg font-semibold disabled:opacity-50 transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70 text-sm sm:text-base"
             >
               {saving ? '⏳ שומר...' : '💾 שמור'}
             </button>
@@ -271,27 +271,27 @@ const LandingPageEditor = () => {
           {/* Editor Panel */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Info */}
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">📝 פרטים בסיסיים</h3>
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">📝 פרטים בסיסיים</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">שם הדף</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">שם הדף</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="שם הדף (לניהול פנימי)"
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">סטטוס</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">סטטוס</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   >
                     <option value="draft">טיוטה</option>
                     <option value="published">פורסם</option>
@@ -300,14 +300,14 @@ const LandingPageEditor = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">חבר לאירוע/תור</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">חבר לאירוע/תור</label>
                   <select
                     value={formData.linkedTo.type}
                     onChange={(e) => setFormData({
                       ...formData,
                       linkedTo: { type: e.target.value, id: null }
                     })}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-2"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent mb-2"
                   >
                     <option value="none">ללא חיבור</option>
                     <option value="event">אירוע</option>
@@ -321,7 +321,7 @@ const LandingPageEditor = () => {
                         ...formData,
                         linkedTo: { ...formData.linkedTo, id: e.target.value }
                       })}
-                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     >
                       <option value="">בחר אירוע</option>
                       {events.map(event => (
@@ -334,8 +334,8 @@ const LandingPageEditor = () => {
             </div>
 
             {/* Template Selection */}
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">🎨 בחר תבנית</h3>
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">🎨 בחר תבנית</h3>
               
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4">
                 {Object.entries(TEMPLATES).map(([key, template]) => (
@@ -344,73 +344,73 @@ const LandingPageEditor = () => {
                     onClick={() => selectTemplate(key)}
                     className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                       formData.template === key
-                        ? 'border-brand-500 bg-brand-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-yellow-500 bg-yellow-500/20'
+                        : 'border-yellow-600/30 hover:border-yellow-500/50 bg-black/50'
                     }`}
                   >
                     <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">{template.preview}</div>
-                    <div className="text-xs sm:text-sm font-medium text-gray-700">{template.name}</div>
+                    <div className="text-xs sm:text-sm font-medium text-gray-300">{template.name}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Hero Section */}
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">🎯 קטע גיבור (Hero)</h3>
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">🎯 קטע גיבור (Hero)</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">כותרת ראשית</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">כותרת ראשית</label>
                   <input
                     type="text"
                     value={formData.content.hero.headline}
                     onChange={(e) => updateContent('hero', 'headline', e.target.value)}
                     placeholder="כותרת מושכת"
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">כותרת משנה</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">כותרת משנה</label>
                   <textarea
                     value={formData.content.hero.subheadline}
                     onChange={(e) => updateContent('hero', 'subheadline', e.target.value)}
                     placeholder="תיאור קצר"
                     rows="3"
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">תמונת רקע (URL)</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">תמונת רקע (URL)</label>
                   <input
                     type="url"
                     value={formData.content.hero.image}
                     onChange={(e) => updateContent('hero', 'image', e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">טקסט כפתור</label>
+                    <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">טקסט כפתור</label>
                     <input
                       type="text"
                       value={formData.content.hero.ctaText}
                       onChange={(e) => updateContent('hero', 'ctaText', e.target.value)}
                       placeholder="הירשם עכשיו"
-                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">צבע כפתור</label>
+                    <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">צבע כפתור</label>
                     <input
                       type="color"
                       value={formData.content.hero.ctaColor}
                       onChange={(e) => updateContent('hero', 'ctaColor', e.target.value)}
-                      className="w-full h-10 border border-gray-300 rounded-lg"
+                      className="w-full h-10 bg-black border border-yellow-600/30 rounded-lg"
                     />
                   </div>
                 </div>
@@ -418,12 +418,12 @@ const LandingPageEditor = () => {
             </div>
 
             {/* Features Section */}
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800">⭐ תכונות / יתרונות</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-yellow-400">⭐ תכונות / יתרונות</h3>
                 <button
                   onClick={addFeature}
-                  className="bg-brand-500 hover:bg-brand-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                  className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
                 >
                   ➕ הוסף
                 </button>
@@ -431,18 +431,18 @@ const LandingPageEditor = () => {
 
               <div className="space-y-4">
                 {formData.content.features.map((feature, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4">
+                  <div key={index} className="border border-yellow-600/30 bg-black/50 rounded-lg p-3 sm:p-4">
                     <div className="flex justify-between items-start mb-3">
                       <input
                         type="text"
                         value={feature.icon}
                         onChange={(e) => updateFeature(index, 'icon', e.target.value)}
                         placeholder="אייקון"
-                        className="w-16 sm:w-20 px-2 py-1 border border-gray-300 rounded text-xl sm:text-2xl text-center"
+                        className="w-16 sm:w-20 px-2 py-1 bg-black border border-yellow-600/30 text-white rounded text-xl sm:text-2xl text-center"
                       />
                       <button
                         onClick={() => removeFeature(index)}
-                        className="text-red-500 hover:text-red-700 text-sm sm:text-base"
+                        className="text-red-400 hover:text-red-300 text-sm sm:text-base"
                       >
                         🗑️
                       </button>
@@ -452,14 +452,14 @@ const LandingPageEditor = () => {
                       value={feature.title}
                       onChange={(e) => updateFeature(index, 'title', e.target.value)}
                       placeholder="כותרת התכונה"
-                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg mb-2"
+                      className="w-full px-3 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg mb-2 focus:ring-2 focus:ring-yellow-500 placeholder-gray-500"
                     />
                     <textarea
                       value={feature.description}
                       onChange={(e) => updateFeature(index, 'description', e.target.value)}
                       placeholder="תיאור התכונה"
                       rows="2"
-                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg"
+                      className="w-full px-3 py-2 text-sm sm:text-base bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 placeholder-gray-500"
                     />
                   </div>
                 ))}
@@ -467,35 +467,35 @@ const LandingPageEditor = () => {
             </div>
 
             {/* Styling */}
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">🎨 עיצוב וצבעים</h3>
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-yellow-400 mb-4">🎨 עיצוב וצבעים</h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">צבע ראשי</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">צבע ראשי</label>
                   <input
                     type="color"
                     value={formData.styling.primaryColor}
                     onChange={(e) => updateStyling('primaryColor', e.target.value)}
-                    className="w-full h-10 border border-gray-300 rounded-lg"
+                    className="w-full h-10 bg-black border border-yellow-600/30 rounded-lg"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">צבע משני</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">צבע משני</label>
                   <input
                     type="color"
                     value={formData.styling.secondaryColor}
                     onChange={(e) => updateStyling('secondaryColor', e.target.value)}
-                    className="w-full h-10 border border-gray-300 rounded-lg"
+                    className="w-full h-10 bg-black border border-yellow-600/30 rounded-lg"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm sm:text-base text-gray-700 font-medium mb-2">צבע רקע</label>
+                  <label className="block text-sm sm:text-base text-yellow-400 font-medium mb-2">צבע רקע</label>
                   <input
                     type="color"
                     value={formData.styling.backgroundColor}
                     onChange={(e) => updateStyling('backgroundColor', e.target.value)}
-                    className="w-full h-10 border border-gray-300 rounded-lg"
+                    className="w-full h-10 bg-black border border-yellow-600/30 rounded-lg"
                   />
                 </div>
               </div>
@@ -504,8 +504,8 @@ const LandingPageEditor = () => {
 
           {/* Preview Panel - Hidden on mobile, visible on desktop */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 sticky top-8">
-              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4">👁️ תצוגה מקדימה</h3>
+            <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-4 sm:p-6 sticky top-8">
+              <h3 className="text-base sm:text-lg font-bold text-yellow-400 mb-4">👁️ תצוגה מקדימה</h3>
               
               <div 
                 className="border-2 border-gray-200 rounded-lg overflow-hidden"
@@ -556,7 +556,7 @@ const LandingPageEditor = () => {
                 )}
               </div>
 
-              <div className="mt-4 text-xs text-gray-500 text-center">
+              <div className="mt-4 text-xs text-gray-400 text-center">
                 תצוגה מקדימה - הגרסה המלאה תהיה זמינה בדף הציבורי
               </div>
             </div>

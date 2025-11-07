@@ -73,36 +73,36 @@ const PaymentSettings = () => {
 
   return (
     <MainLayout>
-      <div className="p-8">
+      <div className="p-8 bg-gradient-to-br from-gray-900 to-black min-h-screen">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">הגדרות שירותי תשלום</h1>
-          <p className="text-gray-600 mt-2">הגדר את חיבורי שערי התשלום שלך</p>
+          <h1 className="text-3xl font-bold text-yellow-400">הגדרות שירותי תשלום</h1>
+          <p className="text-gray-300 mt-2">הגדר את חיבורי שערי התשלום שלך</p>
         </div>
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/50 text-yellow-400 px-4 py-3 rounded-lg mb-6 shadow-lg shadow-yellow-500/20">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-red-600/50 text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         <div className="space-y-6">
           {/* Meshulam (GROW) */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-reverse space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-2xl">🌱</span>
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                  <span className="text-black text-2xl">🌱</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">GROW by Meshulam</h3>
-                  <p className="text-sm text-gray-500">שער תשלום ישראלי מוביל</p>
+                  <h3 className="text-xl font-bold text-yellow-400">GROW by Meshulam</h3>
+                  <p className="text-sm text-gray-400">שער תשלום ישראלי מוביל</p>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -112,14 +112,14 @@ const PaymentSettings = () => {
                   onChange={(e) => handleProviderChange('meshulam', 'enabled', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
               </label>
             </div>
 
             {settings.meshulam.enabled && (
               <div className="space-y-4 mt-6">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     Page Code (מזהה עסק)
                   </label>
                   <input
@@ -127,11 +127,11 @@ const PaymentSettings = () => {
                     value={settings.meshulam.pageCode}
                     onChange={(e) => handleProviderChange('meshulam', 'pageCode', e.target.value)}
                     placeholder="הזן את ה-Page Code מחשבון Meshulam"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     API Key
                   </label>
                   <input
@@ -139,11 +139,11 @@ const PaymentSettings = () => {
                     value={settings.meshulam.apiKey}
                     onChange={(e) => handleProviderChange('meshulam', 'apiKey', e.target.value)}
                     placeholder="הזן את מפתח ה-API"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     API Password (סיסמה)
                   </label>
                   <input
@@ -151,28 +151,28 @@ const PaymentSettings = () => {
                     value={settings.meshulam.apiPassword}
                     onChange={(e) => handleProviderChange('meshulam', 'apiPassword', e.target.value)}
                     placeholder="הזן את סיסמת ה-API"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
-                <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm">
-                  💡 <strong>איפה למצוא?</strong> היכנס לחשבון Meshulam שלך → הגדרות → API Credentials
+                <div className="bg-black/50 border border-yellow-600/30 text-gray-300 px-4 py-3 rounded-lg text-sm">
+                  💡 <strong className="text-yellow-400">איפה למצוא?</strong> היכנס לחשבון Meshulam שלך → הגדרות → API Credentials
                   <br />
-                  📚 <a href="https://grow-il.readme.io/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-semibold">מדריך אינטגרציה מלא</a>
+                  📚 <a href="https://grow-il.readme.io/" target="_blank" rel="noopener noreferrer" className="text-yellow-400 underline font-semibold hover:text-yellow-300">מדריך אינטגרציה מלא</a>
                 </div>
               </div>
             )}
           </div>
 
           {/* Cardcom */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-reverse space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-2xl">💳</span>
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                  <span className="text-black text-2xl">💳</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">Cardcom</h3>
-                  <p className="text-sm text-gray-500">שער תשלום לכרטיסי אשראי</p>
+                  <h3 className="text-xl font-bold text-yellow-400">Cardcom</h3>
+                  <p className="text-sm text-gray-400">שער תשלום לכרטיסי אשראי</p>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -182,14 +182,14 @@ const PaymentSettings = () => {
                   onChange={(e) => handleProviderChange('cardcom', 'enabled', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
               </label>
             </div>
 
             {settings.cardcom.enabled && (
               <div className="space-y-4 mt-6">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     Terminal Number
                   </label>
                   <input
@@ -197,11 +197,11 @@ const PaymentSettings = () => {
                     value={settings.cardcom.terminalNumber}
                     onChange={(e) => handleProviderChange('cardcom', 'terminalNumber', e.target.value)}
                     placeholder="מספר טרמינל"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     API Username
                   </label>
                   <input
@@ -209,11 +209,11 @@ const PaymentSettings = () => {
                     value={settings.cardcom.apiUsername}
                     onChange={(e) => handleProviderChange('cardcom', 'apiUsername', e.target.value)}
                     placeholder="שם משתמש API"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     API Password
                   </label>
                   <input
@@ -221,7 +221,7 @@ const PaymentSettings = () => {
                     value={settings.cardcom.apiPassword}
                     onChange={(e) => handleProviderChange('cardcom', 'apiPassword', e.target.value)}
                     placeholder="סיסמת API"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -229,15 +229,15 @@ const PaymentSettings = () => {
           </div>
 
           {/* Tranzila */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl shadow-lg p-6 hover:border-yellow-500/50 hover:shadow-yellow-500/20 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-reverse space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-2xl">⚡</span>
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
+                  <span className="text-black text-2xl">⚡</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">Tranzila</h3>
-                  <p className="text-sm text-gray-500">פתרון תשלומים מהיר</p>
+                  <h3 className="text-xl font-bold text-yellow-400">Tranzila</h3>
+                  <p className="text-sm text-gray-400">פתרון תשלומים מהיר</p>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -247,14 +247,14 @@ const PaymentSettings = () => {
                   onChange={(e) => handleProviderChange('tranzila', 'enabled', e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
               </label>
             </div>
 
             {settings.tranzila.enabled && (
               <div className="space-y-4 mt-6">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     Terminal Name
                   </label>
                   <input
@@ -262,11 +262,11 @@ const PaymentSettings = () => {
                     value={settings.tranzila.terminalName}
                     onChange={(e) => handleProviderChange('tranzila', 'terminalName', e.target.value)}
                     placeholder="שם טרמינל"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">
+                  <label className="block text-yellow-400 font-medium mb-2">
                     API Key
                   </label>
                   <input
@@ -274,7 +274,7 @@ const PaymentSettings = () => {
                     value={settings.tranzila.apiKey}
                     onChange={(e) => handleProviderChange('tranzila', 'apiKey', e.target.value)}
                     placeholder="מפתח API"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -287,26 +287,26 @@ const PaymentSettings = () => {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70"
           >
             {loading ? '⏳ שומר...' : '💾 שמור הגדרות'}
           </button>
         </div>
 
         {/* Help Section */}
-        <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">📖 איך להשיג פרטי API?</h3>
-          <div className="space-y-3 text-sm text-gray-700">
+        <div className="mt-8 bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 rounded-xl p-6">
+          <h3 className="text-lg font-bold text-yellow-400 mb-4">📖 איך להשיג פרטי API?</h3>
+          <div className="space-y-3 text-sm text-gray-300">
             <div className="flex items-start space-x-reverse space-x-2">
-              <span className="font-bold text-green-600">🌱 GROW (Meshulam):</span>
+              <span className="font-bold text-yellow-400">🌱 GROW (Meshulam):</span>
               <span>פנה למחלקת התמיכה של Meshulam או היכנס לפאנל הניהול שלך → הגדרות → API</span>
             </div>
             <div className="flex items-start space-x-reverse space-x-2">
-              <span className="font-bold text-blue-600">💳 Cardcom:</span>
+              <span className="font-bold text-yellow-400">💳 Cardcom:</span>
               <span>צור קשר עם נציג Cardcom לקבלת פרטי API או גש לאזור האישי</span>
             </div>
             <div className="flex items-start space-x-reverse space-x-2">
-              <span className="font-bold text-purple-600">⚡ Tranzila:</span>
+              <span className="font-bold text-yellow-400">⚡ Tranzila:</span>
               <span>פנה לתמיכה של Tranzila או היכנס לממשק הניהול שלך</span>
             </div>
           </div>
