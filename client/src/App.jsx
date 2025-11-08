@@ -18,6 +18,9 @@ import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
 import SuperAdmin from './pages/admin/SuperAdmin';
 import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
+import PaymentOnboarding from './pages/admin/PaymentOnboarding';
+import SubscriptionManagement from './pages/admin/SubscriptionManagement';
+import PlatformFees from './pages/admin/PlatformFees';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -158,6 +161,33 @@ function App() {
             element={
               <PrivateRoute>
                 <CheckSuperAdmin />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/payment-onboarding" 
+            element={
+              <PrivateRoute>
+                <PaymentOnboarding />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/subscription" 
+            element={
+              <PrivateRoute>
+                <SubscriptionManagement />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/platform-fees" 
+            element={
+              <PrivateRoute>
+                <PlatformFees />
               </PrivateRoute>
             } 
           />
