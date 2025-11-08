@@ -2,7 +2,7 @@
 
 ## Overview
 
-ChatGrow is a comprehensive multi-tenant SaaS platform where Shimon (platform owner at shimonc29@gmail.com) manages business owners who run their own small-medium businesses. The platform operates on a **freemium model** with a 200-customer limit for free tier users and implements **marketplace-style payment splitting** (95% to business owner, 5% platform fee). Features include React 19 admin dashboard with Hebrew RTL, Google Calendar integration, Object Storage, landing page builder, Super Admin panel for platform analytics, and comprehensive subscription management. The project seeks to capture market share in the SMB SaaS space by offering an all-in-one solution for business growth and customer relationship management.
+ChatGrow is a multi-tenant SaaS platform designed for managing small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users. It incorporates marketplace-style payment splitting, where the platform takes a 5% fee. Key features include a React 19 admin dashboard with Hebrew RTL support, Google Calendar integration, Object Storage, a landing page builder, a Super Admin panel for analytics, and comprehensive subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
 
 ## User Preferences
 
@@ -12,134 +12,65 @@ I prefer detailed explanations.
 
 ## System Architecture
 
-ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like approach for distinct functionalities. The frontend is a React 19 Single Page Application (SPA) built with Vite and styled using Tailwind CSS v3, featuring full RTL support for a Hebrew interface.
+ChatGrow utilizes a Node.js and Express.js backend with a microservices-like approach, and a React 19 SPA frontend built with Vite and Tailwind CSS v3, featuring full Hebrew RTL support.
 
 ### UI/UX Decisions
 - **Frontend Framework**: React 19 with Vite.
-- **Styling**: Tailwind CSS v3 with full RTL support.
-- **Design Theme**: Clean, professional teal-light color scheme across entire application.
-  - **Colors**: 
-    - BG Light (#F8F9FA) - Soft white primary background, comfortable for the eyes
-    - BG Card (#FFFFFF) - Pure white for cards, creating contrast and "floating" effect
-    - Accent Teal (#00798C) - Deep blue-green for primary highlights and CTAs, conveys trust and understated luxury
-    - Accent Hover (#035368) - Darker teal for hover states, modern click effect
-    - Text Primary (#212529) - Near-black dark gray, excellent readability (AAA)
-    - Text Secondary (#6C757D) - Medium gray for secondary details
-  - **Logo**: Crown icon (👑) representing premium quality
-  - **Backgrounds**: Light gradients (from-bg-light via-bg-card to-bg-light)
-  - **Cards**: White cards with subtle borders and shadows
-  - **Typography**: Teal headings (text-accent-teal), dark content (text-primary)
-  - **Buttons**: Teal gradient primary buttons with hover effects
-  - **Inputs**: White inputs with gray borders and teal focus rings
-  - **Effects**: Subtle shadows, hover animations, professional appearance
-- **Architecture**: Single Page Application (SPA) with protected routes.
-- **Provider Dashboard**: Admin interface with sidebar navigation for CRUD operations on Dashboard, Events, Customers, Appointments, Payments, Financial Management, Landing Pages, Registration Pages, Payment Settings, and Provider Settings. Clean light theme with teal accents throughout.
-- **Authentication UI**: Professional teal-light themed login/register pages with clean design and teal accent buttons.
-- **Components**: Modular layout using Sidebar (teal highlights), MainLayout (light background), and PrivateRoute components.
-- **Marketing Home Page**: Public marketing page (`/`) designed for conversion with clean teal-light design, featuring a multi-section layout with sticky navigation bar, hero section with teal accents, statistics, benefits, detailed features, a "how it works" section, testimonials, and strong CTAs. Fully responsive with RTL support.
-- **Landing Page Builder**: Template-based system for creating marketing landing pages with 5 pre-designed templates, live preview, and customizable content/styling. Includes a light-themed management interface with teal accents for tracking views and conversions, and public routes for published pages.
-- **Financial Management**: Unified UI for managing both invoices and receipts with tabs, manual creation capabilities, PDF generation, and email delivery. Clean teal-light themed with comprehensive CRUD operations.
+- **Styling**: Tailwind CSS v3 with full RTL.
+- **Design Theme**: Clean, professional teal-light color scheme.
+- **Key Admin Pages**: Payment Onboarding, Subscription Management, Platform Fees Dashboard (Super Admin only).
+- **Color Palette**: BG Light (#F8F9FA), BG Card (#FFFFFF), Accent Teal (#00798C), Accent Hover (#035368), Text Primary (#212529), Text Secondary (#6C757D).
+- **Logo**: Crown icon (👑).
+- **Components**: Modular layout using Sidebar, MainLayout, and PrivateRoute.
+- **Marketing Home Page**: Public marketing page with a clean teal-light design, sticky navigation, hero section, statistics, benefits, features, testimonials, and CTAs.
+- **Landing Page Builder**: Template-based system with 5 pre-designed templates, live preview, and customizable content/styling, including analytics.
+- **Financial Management UI**: Unified UI for managing invoices and receipts with manual creation, PDF generation, and email delivery.
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
-- **Authentication**: JWT for secure user authentication, AuthContext for global state, Protected Routes.
-- **Freemium Model**: 
-  - **Customer Limit Enforcement**: Middleware (`src/middleware/customerLimit.js`) enforces 200-customer quota for FREE users
-  - **Premium Feature Gating**: Middleware (`src/middleware/isPremium.js`) restricts Google Calendar, SMS notifications, and full reports to TRIAL/ACTIVE subscribers
-  - **Subscription Tracking**: PostgreSQL schema tracks `subscription_status` (FREE/TRIAL/ACTIVE/SUSPENDED), `max_customers` (default 200), `current_customer_count`
-- **Marketplace Payments (95%/5% Split)**:
-  - **Payment Provider Onboarding**: Route (`src/routes/paymentOnboarding.js`) allows business owners to register partner accounts with Cardcom/GROW
-  - **Split Payment Logic**: `PaymentService` conditionally applies 5% platform fee only when `user.paymentProviderId` exists; stores `platformFee`, `amountToTransfer`, `partnerAccountId` in payment metadata
-  - **Platform Fee Automation**: `PlatformFeeService` calculates monthly fees and `CronService` generates invoices on 1st of month via Green Invoice/iCount integration
-  - **Invoicing Integration**: `InvoicingIntegrationService` supports Green Invoice and iCount APIs for automated platform fee billing
-- **Multi-Tenant Provider System**: `ProviderSettings` model allowing each business client to configure their own Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers with encrypted API credentials.
-- **Notifications**: `NotificationService` for Email and SMS with provider-swapping support, template-based messaging, and delivery tracking.
-- **Payments & Invoicing**: `PaymentService` and `InvoiceService` supporting Israeli payment providers (Cardcom, GROW). Multi-tenant architecture with per-client configuration. Generates Hebrew PDF invoices and automates payment workflows.
-- **Receipt System**: `ReceiptService` for automatic and manual PDF receipt generation in Hebrew with proper RTL formatting and business branding.
-- **CRON Automation**: `CronService` (node-cron) handles scheduled tasks including event/appointment reminders, automatic payments, weekly/monthly reports, monthly platform fee invoices, and data cleanup (7 total jobs).
-- **Queue System**: In-memory queue with basic retry logic, with an option for Redis integration.
-- **Logging**: Winston for console and file logging.
-- **Security**: JWT authentication, bcrypt password hashing, rate limiting, Helmet, CORS, Joi input validation.
-- **Public API Routes**: Secure, authentication-free endpoints for public event registration and appointment booking with server-side validation.
-- **Customer Auto-Creation**: System automatically creates or updates customer records from public registrations.
-- **Full CRUD Functionality**: Comprehensive create, read, update, and delete operations for all administrative entities (Events, Appointments, Customers, Payments, Invoices, Receipts), including dedicated edit modals and API routes.
-- **Financial Management UI**: Unified tabbed interface combining invoice and receipt management:
-  - **Invoices Tab**: Create invoices manually or from payments, itemized billing, tax calculation, PDF generation, and email delivery
-  - **Receipts Tab**: Generate receipts from payments or manually, PDF download capabilities, and automatic payment-to-receipt linking
-- **Registration Page Links**: Quick access functionality to copy unique registration links for events and appointments, including a dedicated "RegistrationPages" tab.
-- **Provider Settings UI**: Admin interface for configuring Email, SMS, and Payment provider credentials with test functionality and invoice settings.
-- **Landing Page Analytics**: Built-in analytics system for tracking views, conversions, and conversion rates for landing pages.
-- **Image Upload System**: Replit Object Storage integration for uploading and managing landing page images with secure presigned URLs.
-- **Super Admin Panel**: Restricted admin panel (accessible only to platform owner via SUPER_ADMIN_EMAILS) showing all business subscribers, system-wide statistics, subscriber growth metrics, and per-business analytics. Multi-tenant isolation ensures business owners only see their own data in regular dashboards.
+- **Authentication**: JWT for security, AuthContext, Protected Routes.
+- **Freemium Model**: Enforced 200-customer limit for FREE users via middleware; premium features (Google Calendar, SMS, reports) gated for TRIAL/ACTIVE subscribers.
+- **Marketplace Payments**: 95%/5% split logic with Cardcom/GROW integration; 5% platform fee applied when `user.paymentProviderId` exists. Platform fees are automated monthly via Green Invoice/iCount.
+- **Multi-Tenant Provider System**: `ProviderSettings` model allows per-business configuration of Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers.
+- **Notifications**: `NotificationService` for Email and SMS with provider-swapping, templates, and delivery tracking.
+- **Payments & Invoicing**: `PaymentService` and `InvoiceService` support Israeli providers (Cardcom, GROW), generate Hebrew PDF invoices, and automate workflows.
+- **Receipt System**: `ReceiptService` for automatic and manual Hebrew PDF receipt generation with RTL support.
+- **CRON Automation**: `CronService` (node-cron) handles scheduled tasks like reminders, payments, reports, and platform fee invoicing.
+- **Queue System**: In-memory queue with basic retry logic.
+- **Security**: JWT, bcrypt, rate limiting, Helmet, CORS, Joi validation.
+- **Public API Routes**: Secure, unauthenticated endpoints for public event registration and appointment booking.
+- **Customer Auto-Creation**: Creates/updates customer records from public registrations.
+- **Full CRUD Functionality**: Comprehensive operations for all administrative entities.
+- **Image Upload System**: Replit Object Storage integration for landing page images.
+- **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics.
 
 ### Feature Specifications
-- **Management**: Comprehensive CRUD operations for Customers, Events, Appointments, Payments, Invoices, and Receipts.
-- **Dashboard**: Overview of statistics (events, participants, revenue) and quick actions.
-- **Payment Management**: Multi-currency support (ILS, USD, EUR), various payment methods, status tracking, and integration with Israeli payment providers (Cardcom, GROW only).
-- **Invoice Management**: Manual and automatic invoice generation from payments, itemized billing, tax calculation, Hebrew PDF generation, and email delivery.
-- **Receipt Management**: Automatic receipt generation from completed payments, manual receipt creation, Hebrew PDF formatting with RTL support.
-- **Provider Configuration**: Multi-tenant system allowing each business to configure their own Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers.
-- **Subscriber Management**: Backend capabilities for managing subscriber lists.
-- **Health Monitoring**: Endpoints for system health checks and log retrieval.
-- **Participants View**: Feature to view and manage participants registered for events, including participant details and payment status.
+- **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
+- **Dashboard**: Overview of statistics and quick actions.
+- **Payment Management**: Multi-currency, various payment methods, integration with Israeli providers.
+- **Invoice Management**: Manual/automatic generation, itemized billing, tax calculation, Hebrew PDF, email delivery.
+- **Receipt Management**: Automatic/manual generation, Hebrew PDF with RTL.
+- **Provider Configuration**: Multi-tenant Email, SMS, Payment provider setup.
+- **Subscriber Management**: Backend for subscriber lists.
+- **Health Monitoring**: System health checks and log retrieval.
+- **Participants View**: View and manage event participants.
 
 ### System Design Choices
-- **Database Strategy**: Hybrid approach with PostgreSQL for user/subscriber data and MongoDB Atlas for events, customers, appointments, payments, invoices, analytics, and WhatsApp connections.
-- **Multi-Tenant Architecture**: Each subscriber (business owner) has isolated data with userId-based filtering. Super Admin has system-wide access via SUPER_ADMIN_EMAILS environment variable.
-- **Access Control**: Three-tier system:
-  - **FREE Users**: 200 customer limit, basic features only
-  - **PREMIUM Users (TRIAL/ACTIVE)**: Unlimited customers, Google Calendar, SMS, full reports
-  - **Super Admin**: System-wide access to all subscribers and platform statistics
-- **Business Model**: 
-  - **Freemium**: FREE tier with 200-customer limit drives conversion to paid plans
-  - **Marketplace Revenue**: 5% platform fee on all transactions from onboarded businesses (95% to business owner)
-  - **Platform Fee Billing**: Automated monthly invoicing via Green Invoice/iCount integration
-- **Modularity**: Backend organized into `models`, `routes`, `services`, `providers`, `middleware`; Frontend into `pages`, `components`, `contexts`, `services`, `utils`.
-- **Development Setup**: Single `fullstack` workflow for backend (port 3000) and frontend (port 5000) with Vite proxy.
+- **Database Strategy**: Hybrid with PostgreSQL (users/subscribers) and MongoDB Atlas (events, customers, appointments, payments, invoices, analytics, WhatsApp).
+- **Multi-Tenant Architecture**: Isolated data per business client, with Super Admin system-wide access.
+- **Access Control**: Three tiers: FREE (200 customer limit, basic), PREMIUM (unlimited customers, advanced features), Super Admin (system-wide access).
+- **Business Model**: Freemium (200-customer limit), Marketplace Revenue (5% platform fee), automated platform fee billing.
+- **Modularity**: Structured backend (models, routes, services) and frontend (pages, components, contexts).
+- **Development Setup**: Single `fullstack` workflow with Vite proxy.
 
 ## External Dependencies
 
-- **Databases**:
-    - **PostgreSQL (Neon)**: For Subscribers and User data.
-    - **MongoDB Atlas**: For Events, Customers, Appointments, Payments, Invoices, Analytics, and WhatsApp connections.
-    - **Redis (Optional)**: For caching and background jobs.
-- **Google Calendar Integration**:
-    - **OAuth 2.0**: Multi-tenant integration allowing each provider to connect their own Google Calendar.
-    - **Requires**: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET environment variables.
-    - **Tokens**: Encrypted and stored per provider in ProviderSettings.googleCalendar.
-    - **Auto-sync**: Appointments automatically create calendar events in provider's Google Calendar.
-- **Object Storage (Replit)**:
-    - **Requires**: PRIVATE_OBJECT_DIR environment variable pointing to bucket path (e.g., `/chatgrow-assets`).
-    - **Usage**: Landing page image uploads with secure presigned URLs.
-    - **Service**: ObjectStorageService handles upload URL generation and file serving.
-- **Super Admin Access Control**:
-    - **Requires**: SUPER_ADMIN_EMAILS environment variable (comma-separated email addresses, e.g., `shimon@example.com,admin@chatgrow.com`).
-    - **Usage**: Only users with emails in this list can access Super Admin Panel at `/super-admin`.
-    - **Routes**: `/api/super-admin/stats` (full system statistics), `/api/super-admin/check` (authorization check).
-    - **Security**: Protected by both JWT authentication and email whitelist middleware.
-- **Communication Services**:
-    - **Nodemailer**: Email provider.
-    - **SendGrid**: Email provider.
-    - **Twilio**: SMS provider.
-- **Payment Gateways**:
-    - **Cardcom**: Supports split payments with `partnerAccountId` parameter for marketplace transactions
-    - **Meshulam (GROW)**: Supports split payments with `partnerAccountId` parameter for marketplace transactions
-- **Accounting Software Integration**:
-    - **Green Invoice**: Israeli cloud accounting platform for automated platform fee invoicing
-    - **iCount**: Israeli accounting software for automated platform fee invoicing
-- **Security & Utilities**:
-    - **JWT**: JSON Web Tokens for authentication.
-    - **Winston**: Logging library.
-    - **Helmet**: Security headers middleware.
-    - **CORS**: Cross-Origin Resource Sharing middleware.
-    - **Mongoose**: MongoDB object modeling.
-    - **pg**: PostgreSQL client.
-    - **PDFKit**: PDF generation (for Hebrew invoices).
-    - **Bcrypt**: Password hashing.
-    - **Joi**: Data validation.
-- **Frontend Libraries**:
-    - **React**: UI library v19.
-    - **Vite**: Build tool and dev server.
-    - **Tailwind CSS**: Utility-first CSS framework v3.
-    - **React Router**: Client-side routing v6.
-    - **Axios**: HTTP client.
+- **Databases**: PostgreSQL (Neon), MongoDB Atlas, Redis (Optional).
+- **Google Calendar Integration**: OAuth 2.0 (requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
+- **Object Storage**: Replit Object Storage (requires `PRIVATE_OBJECT_DIR`).
+- **Super Admin Access Control**: `SUPER_ADMIN_EMAILS` environment variable.
+- **Communication Services**: Nodemailer, SendGrid, Twilio.
+- **Payment Gateways**: Cardcom, Meshulam (GROW).
+- **Accounting Software Integration**: Green Invoice, iCount.
+- **Security & Utilities**: JWT, Winston, Helmet, CORS, Mongoose, pg, PDFKit, Bcrypt, Joi.
+- **Frontend Libraries**: React, Vite, Tailwind CSS, React Router, Axios.
