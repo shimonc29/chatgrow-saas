@@ -1,0 +1,105 @@
+🛠️ שלב I: מימוש מודל הפרימיום (Freemium Gating)
+1. עדכון מודל המשתמש (PostgreSQL)
+המטרה: להוסיף שדות למשתמש (בעל העסק) שיאפשרו לנו לעקוב אחרי סטטוס המנוי ומימוש הלימיטים.
+
+הוראות ל-REPLIT Backend:
+
+עדכן את User Model (PostgreSQL): הוסף את השדות הבאים:
+
+subscriptionStatus: ENUM ('FREE', 'TRIAL', 'ACTIVE', 'CANCELED'). ברירת מחדל: 'FREE'.
+
+maxCustomers: INTEGER. ברירת מחדל: 200 (למודל חינמי).
+
+currentCustomerCount: INTEGER. ברירת מחדל: 0.
+
+isWhitelabel: BOOLEAN. ברירת מחדל: false.
+
+2. הטמעת בדיקת לימיט (Customer Count Check)
+המטרה: לחסום יצירת לקוחות חדשים כאשר משתמש חינמי מגיע ל-200 לקוחות סופיים.
+
+הוראות ל-REPLIT Backend:
+
+עדכן את CustomerService (MongoDB):
+
+אתר את הפונקציה ליצירת לקוח חדש (בדרך כלל createCustomer או הפונקציה שנקראת מ-POST /api/public/events/:id/register).
+
+לפני יצירת לקוח חדש, הוסף Middleware/לוגיקה שבודקת:
+
+JavaScript
+
+if (user.subscriptionStatus === 'FREE' && user.currentCustomerCount >= 200) {
+    // החזר שגיאה ברורה
+    throw new Error('LIMIT_REACHED: Customer limit exceeded for Free plan.');
+}
+// אם הצליח, הגדל את המונה
+user.currentCustomerCount += 1;
+await user.save();
+// המשך ליצירת הלקוח ב-MongoDB
+3. הטמעת חסימת פיצ'רים (Feature Gating)
+המטרה: לחסום גישה לפיצ'רי פרימיום כמו Google Calendar, SMS, ודוחות מלאים.
+
+הוראות ל-REPLIT Backend:
+
+צור Middleware isPremium: כפי שהוגדר קודם, שיבדוק את req.user.subscriptionStatus === 'ACTIVE'.
+
+הגן על ה-Routes: החל את ה-Middleware על נתיבים ספציפיים:
+
+router.get('/api/reports/full-history', isPremium, ...)
+
+router.post('/api/settings/google-calendar/connect', isPremium, ...)
+
+router.put('/api/settings/notifications/sms', isPremium, ...)
+
+🛠️ שלב II: מימוש סליקת Marketplace (Meshulam/GROW)
+כדי ליישם את המודל שבו הכסף נכנס אליך, העמלה נשארת אצלך, והכסף מועבר לבעל העסק (ללא חשבונית ממך על הסכום המלא), עליך להשתמש ביכולות Marketplace/Partner API של ספק הסליקה.
+
+בהנחה שאתה משתמש בספק ישראלי עם יכולות שותפים (כגון Meshulam Partner או פתרון דומה ל-Marketplace):
+
+1. חיבור חשבון העסק (Partner Account Onboarding)
+המטרה: לחבר את בעל העסק (המרצה) כ"תת-עסק" תחת החשבון הראשי שלך.
+
+הוראות ל-REPLIT Backend:
+
+עדכן את User Model (PostgreSQL): הוסף שדה למשתמש:
+
+paymentProviderId: STRING. יכיל את ה-ID של חשבון הסליקה של אותו עסק בתוך הפלטפורמה (למשל, ה-Sub-Account ID של Meshulam).
+
+צור Route Onboarding:
+
+בנה POST /api/settings/payments/onboard.
+
+כאשר המשתמש נרשם, המערכת שלך קוראת ל-Partner API של Meshulam/GROW ומבקשת: "צור חשבון סליקה חדש תחת החשבון שלי" ומקבלת בחזרה את ה-paymentProviderId.
+
+2. ביצוע העסקה ופיצול (Split Payment)
+המטרה: כאשר לקוח סופי משלם, המערכת מורה לספק הסליקה לפצל את העסקה.
+
+הוראות ל-REPLIT Backend:
+
+עדכן את PaymentService: אתר את הפונקציה שיוצרת בקשת תשלום (למשל, createPaymentTransaction).
+
+הוסף לוגיקת פיצול: בהתאם לתיעוד של Meshulam/GROW, בקשת התשלום חייבת לכלול פרמטרים נוספים:
+
+partnerAccountId: ה-ID של חשבון המרצה (user.paymentProviderId).
+
+amountToTransfer: הסכום המלא של העסקה.
+
+platformFee: העמלה שלך (למשל, 5% מהסכום המלא).
+
+ספק הסליקה יקבל את 100% מהכסף, יעביר את 95% לחשבון המרצה, וישאיר את 5% (העמלה שלך) בחשבון הפלטפורמה שלך.
+
+3. לוגיקת חשבוניות (Invoicing)
+המטרה: לוודא שהחשבוניות יוצאות נכון, ללא אחריות חשבונאית על סכום המכירה המלא.
+
+הוראות ל-REPLIT Backend:
+
+אינטגרציה עם תוכנת חשבונות (של הלקוח):
+
+ב-POST /api/public/events/:id/register (לאחר אישור תשלום): קרא ל-API של תוכנת החשבונות של המרצה (חשבונית ירוקה, iCount וכו') כדי להפיק חשבונית על הסכום המלא ללקוח הסופי.
+
+וודא שלמשתמש יש מפתחות API לתוכנת החשבונות שלו (בנייה פרימיום).
+
+הפקת חשבונית על עמלה (שלך):
+
+צור שירות CRON חודשי שיסכם את כל ה-platformFee שנשאר אצלך מכל מרצה.
+
+המערכת שלך תפיק חשבונית (או קבלה) על סך העמלות המצטברות, ותשלח אותה למרצה שלך לתשלום.
