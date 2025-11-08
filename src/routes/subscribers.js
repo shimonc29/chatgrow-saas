@@ -1096,4 +1096,34 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// Get subscription details API
+router.get('/subscription', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'נדרש טוקן גישה' });
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024');
+        const subscriber = await Subscriber.findById(decoded.subscriberId || decoded.userId);
+        
+        if (!subscriber) {
+            return res.status(404).json({ success: false, message: 'מנוי לא נמצא' });
+        }
+        
+        res.json({
+            success: true,
+            subscriptionStatus: subscriber.subscriptionStatus || 'FREE',
+            maxCustomers: subscriber.maxCustomers || 200,
+            currentCustomerCount: subscriber.currentCustomerCount || 0,
+            isWhitelabel: subscriber.isWhitelabel || false,
+            paymentProviderId: subscriber.paymentProviderId || null
+        });
+        
+    } catch (error) {
+        console.error('Subscription fetch error:', error);
+        res.status(500).json({ success: false, message: 'שגיאה בטעינת פרטי מנוי: ' + error.message });
+    }
+});
+
 module.exports = router;

@@ -4,15 +4,15 @@ const auth = require('../middleware/auth');
 const Subscriber = require('../models/Subscriber');
 const { logInfo, logError } = require('../utils/logger');
 
-router.post('/onboard', auth, async (req, res) => {
+router.post('/register', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { businessDetails } = req.body;
+    const userId = req.user.userId || req.user.id;
+    const { provider, partnerAccountId, businessName, businessId, contactEmail, contactPhone } = req.body;
 
-    if (!businessDetails || !businessDetails.businessName || !businessDetails.businessId) {
+    if (!partnerAccountId || !businessName || !businessId || !contactEmail || !contactPhone) {
       return res.status(400).json({
         success: false,
-        message: 'נא למלא את כל פרטי העסק הנדרשים'
+        message: 'נא למלא את כל השדות הנדרשים'
       });
     }
 
@@ -29,30 +29,31 @@ router.post('/onboard', auth, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'חשבון סליקה כבר קיים למשתמש זה',
-        providerId: user.paymentProviderId
+        paymentProviderId: user.paymentProviderId
       });
     }
 
-    const providerResponse = await createPartnerAccount(businessDetails);
-
-    if (!providerResponse || !providerResponse.accountId) {
-      throw new Error('Failed to create partner account with payment provider');
-    }
-
-    user.paymentProviderId = providerResponse.accountId;
+    user.paymentProviderId = partnerAccountId;
+    user.profile = user.profile || {};
+    user.profile.paymentProvider = provider;
+    user.profile.businessName = businessName;
+    user.profile.businessId = businessId;
+    user.profile.contactEmail = contactEmail;
+    user.profile.contactPhone = contactPhone;
     await user.save();
 
     logInfo('Payment provider onboarding completed', {
       userId,
-      providerId: providerResponse.accountId,
-      businessName: businessDetails.businessName
+      provider,
+      paymentProviderId: partnerAccountId,
+      businessName
     });
 
     res.json({
       success: true,
-      message: 'חשבון הסליקה נוצר בהצלחה',
-      providerId: providerResponse.accountId,
-      details: providerResponse
+      message: 'ההרשמה הושלמה בהצלחה',
+      paymentProviderId: partnerAccountId,
+      provider
     });
 
   } catch (error) {
@@ -70,7 +71,8 @@ router.post('/onboard', auth, async (req, res) => {
 
 router.get('/status', auth, async (req, res) => {
   try {
-    const user = await Subscriber.findById(req.user.id);
+    const userId = req.user.userId || req.user.id;
+    const user = await Subscriber.findById(userId);
     
     if (!user) {
       return res.status(404).json({
@@ -82,12 +84,14 @@ router.get('/status', auth, async (req, res) => {
     res.json({
       success: true,
       isOnboarded: !!user.paymentProviderId,
-      providerId: user.paymentProviderId || null
+      paymentProviderId: user.paymentProviderId || null,
+      provider: user.profile?.paymentProvider || null,
+      businessName: user.profile?.businessName || null
     });
 
   } catch (error) {
     logError('Failed to get onboarding status', {
-      userId: req.user.id,
+      userId: req.user.userId || req.user.id,
       error: error.message
     });
     res.status(500).json({
