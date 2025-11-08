@@ -154,9 +154,9 @@ class AuthMiddleware {
                     });
                 }
 
-                if (!user.isActive) {
+                if (user.isActive !== undefined && !user.isActive) {
                     logWarning('Inactive user attempted to access protected route', {
-                        userId: user._id,
+                        userId: user._id || user.id,
                         email: user.email
                     });
                     return res.status(403).json({
@@ -165,21 +165,23 @@ class AuthMiddleware {
                     });
                 }
 
-                // Verify session is still active
-                const session = user.activeSessions.find(s => s.sessionId === decoded.sessionId);
-                if (!session || session.expiresAt < new Date()) {
-                    logWarning('Session expired or invalid', {
-                        userId: user._id,
-                        sessionId: decoded.sessionId
-                    });
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Session expired'
-                    });
-                }
+                // Verify session is still active (only for User model with sessions)
+                if (user.activeSessions && decoded.sessionId) {
+                    const session = user.activeSessions.find(s => s.sessionId === decoded.sessionId);
+                    if (!session || session.expiresAt < new Date()) {
+                        logWarning('Session expired or invalid', {
+                            userId: user._id,
+                            sessionId: decoded.sessionId
+                        });
+                        return res.status(401).json({
+                            success: false,
+                            message: 'Session expired'
+                        });
+                    }
 
-                // Update session last activity
-                session.lastActivity = new Date();
+                    // Update session last activity
+                    session.lastActivity = new Date();
+                }
 
                 // Attach user and token info to request
                 req.user = user;
