@@ -239,9 +239,9 @@ try {
     app.use('/api/availability', require('./routes/availability'));
     app.use('/api/google-calendar', require('./routes/googleCalendar'));
     app.use('/api/uploads', require('./routes/uploads'));
-    app.use('/api/super-admin', require('./routes/superAdmin'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
+    console.error('Error loading business routes:', error.message);
     console.warn('Some business routes not available, creating fallback routes');
     app.get('/api/appointments', (req, res) => res.json({ message: 'Appointments service not available' }));
     app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
@@ -255,7 +255,23 @@ try {
     app.get('/api/landing-pages', (req, res) => res.json({ message: 'Landing pages service not available' }));
     app.get('/api/availability', (req, res) => res.json({ message: 'Availability service not available' }));
     app.get('/api/google-calendar', (req, res) => res.json({ message: 'Google Calendar service not available' }));
-    app.get('/api/uploads', (req, res) => res.json({ message: 'Uploads service not available' }));
+    app.use('/api/uploads', (req, res) => res.json({ message: 'Uploads service not available' }));
+}
+
+// Load super-admin routes separately with its own error handling
+try {
+    const superAdminRoutes = require('./routes/superAdmin');
+    app.use('/api/super-admin', superAdminRoutes);
+    console.log('✅ Super Admin routes loaded successfully');
+} catch (error) {
+    console.error('Super Admin routes error:', error.message);
+    console.error(error.stack);
+    app.get('/api/super-admin/check', authMiddleware, (req, res) => {
+        const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+        const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(req.user.email);
+        res.json({ success: true, isSuperAdmin });
+    });
+    app.get('/api/super-admin/*', (req, res) => res.json({ message: 'Super Admin service not available' }));
 }
 
 // Add missing routes for dashboard links

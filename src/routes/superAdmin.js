@@ -1,14 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const isSuperAdmin = require('../middleware/superAdmin');
-const { pool } = require('../db/postgres');
+const authMiddleware = require('../middleware/auth');
+const { pool } = require('../config/postgres');
 const Event = require('../models/Event');
 const Customer = require('../models/Customer');
 const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
 
-router.get('/stats', auth, isSuperAdmin, async (req, res) => {
+const auth = authMiddleware.authenticate();
+
+const checkSuperAdmin = (req, res, next) => {
+  const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+  
+  if (!req.user || !req.user.email) {
+    return res.status(401).json({
+      success: false,
+      message: 'אין הרשאה - משתמש לא מחובר'
+    });
+  }
+
+  if (!SUPER_ADMIN_EMAILS.includes(req.user.email)) {
+    return res.status(403).json({
+      success: false,
+      message: 'אין הרשאת Super Admin'
+    });
+  }
+
+  next();
+};
+
+router.get('/stats', auth, checkSuperAdmin, async (req, res) => {
   try {
     const subscribersResult = await pool.query(`
       SELECT 
@@ -122,7 +143,7 @@ router.get('/check', auth, async (req, res) => {
   });
 });
 
-router.get('/platform-fees', auth, isSuperAdmin, async (req, res) => {
+router.get('/platform-fees', auth, checkSuperAdmin, async (req, res) => {
   try {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
