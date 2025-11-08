@@ -4,7 +4,12 @@ import axios from 'axios';
 const ProviderSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState({
+    emailProvider: { type: 'none', enabled: false, sendgrid: {}, smtp: {} },
+    smsProvider: { type: 'none', enabled: false, twilio: {} },
+    paymentProvider: { type: 'none', enabled: false, cardcom: {}, grow: {} },
+    invoicingProvider: { type: 'none', enabled: false, greenInvoice: {}, iCount: {} }
+  });
   const [activeTab, setActiveTab] = useState('email');
   const [testEmail, setTestEmail] = useState('');
   const [testPhone, setTestPhone] = useState('');
