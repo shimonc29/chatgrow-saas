@@ -26,6 +26,7 @@ class CronService {
             this.scheduleAutomaticPayments();
             this.scheduleWeeklyReports();
             this.scheduleMonthlyReports();
+            this.scheduleMonthlyPlatformFeeInvoices();
             this.scheduleDataCleanup();
 
             this.isInitialized = true;
@@ -126,6 +127,24 @@ class CronService {
 
         this.jobs.set('monthlyReports', job);
         logInfo('Scheduled monthly reports job (1st of month, 08:00)');
+    }
+
+    /**
+     * Schedule monthly platform fee invoices
+     * Runs on the 1st of every month at 09:00
+     */
+    scheduleMonthlyPlatformFeeInvoices() {
+        const job = cron.schedule('0 9 1 * *', async () => {
+            try {
+                logInfo('Running monthly platform fee invoices job');
+                await this.generatePlatformFeeInvoices();
+            } catch (error) {
+                logError('Monthly platform fee invoices job failed', error);
+            }
+        });
+
+        this.jobs.set('monthlyPlatformFeeInvoices', job);
+        logInfo('Scheduled monthly platform fee invoices job (1st of month, 09:00)');
     }
 
     /**
@@ -451,6 +470,31 @@ class CronService {
 
         } catch (error) {
             logError('Failed to generate monthly reports', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate monthly platform fee invoices
+     */
+    async generatePlatformFeeInvoices() {
+        try {
+            const platformFeeService = require('./platformFeeService');
+            
+            logInfo('Starting monthly platform fee invoice generation');
+            
+            const result = await platformFeeService.generateMonthlyInvoicesForFees();
+            
+            logInfo('Completed monthly platform fee invoice generation', {
+                totalBusinesses: result.totalBusinesses,
+                successfulInvoices: result.successfulInvoices,
+                failedInvoices: result.failedInvoices
+            });
+
+            return result;
+
+        } catch (error) {
+            logError('Failed to generate platform fee invoices', error);
             throw error;
         }
     }

@@ -1,6 +1,7 @@
 const Payment = require('../models/Payment');
 const Invoice = require('../models/Invoice');
 const ProviderSettings = require('../models/ProviderSettings');
+const Subscriber = require('../models/Subscriber');
 const CardcomProvider = require('../providers/payments/CardcomProvider');
 const MeshulamProvider = require('../providers/payments/MeshulamProvider');
 const { logInfo, logError } = require('../utils/logger');
@@ -52,10 +53,14 @@ class PaymentService {
 
     async createPayment(userId, customerId, paymentData) {
         try {
-            // Get provider for this user
             const provider = await this.getProviderForUser(userId);
             const settings = await ProviderSettings.findOne({ userId });
             const gateway = settings.getActivePaymentGateway();
+            const user = await Subscriber.findById(userId);
+
+            if (!user) {
+                throw new Error('User not found. Unable to process payment.');
+            }
 
             await provider.initialize();
 
@@ -73,30 +78,60 @@ class PaymentService {
 
             await payment.save();
 
+            const hasSplitPayment = !!user.paymentProviderId;
+            const platformFeePercentage = hasSplitPayment ? parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || '5') : 0;
+            const platformFee = hasSplitPayment ? Math.round((paymentData.amount * platformFeePercentage) / 100) : 0;
+            const amountToTransfer = hasSplitPayment ? paymentData.amount - platformFee : paymentData.amount;
+
             const paymentPageData = {
                 ...paymentData,
                 orderId: payment._id.toString(),
                 referenceId: payment._id.toString()
             };
 
+            if (hasSplitPayment) {
+                paymentPageData.partnerAccountId = user.paymentProviderId;
+                paymentPageData.amountToTransfer = amountToTransfer;
+                paymentPageData.platformFee = platformFee;
+                paymentPageData.splitPayment = true;
+            }
+
             const result = await provider.createPaymentPage(paymentPageData);
 
             payment.transactionId = result.transactionId;
             payment.status = 'processing';
+            
+            if (hasSplitPayment) {
+                payment.metadata = {
+                    ...(payment.metadata || {}),
+                    platformFee,
+                    amountToTransfer,
+                    partnerAccountId: user.paymentProviderId
+                };
+            }
+            
             await payment.save();
 
             logInfo('Payment created successfully', {
                 paymentId: payment._id,
                 userId,
                 provider: gateway.type,
-                amount: payment.amount
+                amount: payment.amount,
+                platformFee,
+                amountToTransfer,
+                splitPayment: hasSplitPayment
             });
 
             return {
                 success: true,
                 payment,
                 paymentUrl: result.paymentUrl,
-                transactionId: result.transactionId
+                transactionId: result.transactionId,
+                splitPayment: {
+                    enabled: hasSplitPayment,
+                    platformFee,
+                    amountToTransfer
+                }
             };
 
         } catch (error) {

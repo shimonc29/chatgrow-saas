@@ -229,6 +229,7 @@ try {
     app.use('/api/customers', require('./routes/customers'));
     app.use('/api/analytics', require('./routes/analytics'));
     app.use('/api/payments', require('./routes/payments'));
+    app.use('/api/payment-onboarding', require('./routes/paymentOnboarding'));
     app.use('/api/invoices', require('./routes/invoices'));
     app.use('/api/receipts', require('./routes/receipts'));
     app.use('/api/provider-settings', require('./routes/providerSettings'));

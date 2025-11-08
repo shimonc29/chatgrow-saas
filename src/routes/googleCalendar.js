@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const auth = require('../middleware/auth');
+const { isPremium } = require('../middleware/isPremium');
 const googleCalendarService = require('../services/googleCalendarService');
 
 const pendingOAuthStates = new Map();
 
-router.get('/auth', auth, (req, res) => {
+router.get('/auth', auth, isPremium, (req, res) => {
   try {
     const userId = req.user.userId;
     

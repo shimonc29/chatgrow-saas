@@ -3,6 +3,7 @@ const router = express.Router();
 const ProviderSettings = require('../models/ProviderSettings');
 const NotificationService = require('../services/NotificationService');
 const { authenticateToken } = require('../middleware/auth');
+const { isPremium } = require('../middleware/isPremium');
 const { logInfo, logError } = require('../utils/logger');
 
 // Get current user's provider settings
@@ -30,6 +31,20 @@ router.get('/', authenticateToken, async (req, res) => {
 router.put('/', authenticateToken, async (req, res) => {
   try {
     const { emailProvider, smsProvider, paymentGateways, invoiceSettings } = req.body;
+
+    if (smsProvider) {
+      const Subscriber = require('../models/Subscriber');
+      const user = await Subscriber.findById(req.user.id);
+      
+      const premiumStatuses = ['TRIAL', 'ACTIVE'];
+      if (!premiumStatuses.includes(user?.subscriptionStatus)) {
+        return res.status(403).json({
+          success: false,
+          message: 'תזכורות SMS זמינות רק במנוי פרימיום',
+          code: 'SMS_PREMIUM_REQUIRED'
+        });
+      }
+    }
 
     let settings = await ProviderSettings.findOne({ userId: req.user.id });
     
@@ -84,7 +99,7 @@ router.post('/test-email', authenticateToken, async (req, res) => {
 });
 
 // Test SMS configuration
-router.post('/test-sms', authenticateToken, async (req, res) => {
+router.post('/test-sms', authenticateToken, isPremium, async (req, res) => {
   try {
     const { testPhone } = req.body;
     
