@@ -19,6 +19,21 @@ const SuperAdmin = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [filterQuery, setFilterQuery] = useState('');
+  
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [selectedSubscriber, setSelectedSubscriber] = useState(null);
+  const [editForm, setEditForm] = useState({
+    subscriptionStatus: 'FREE',
+    maxCustomers: 200
+  });
+  const [newCustomerForm, setNewCustomerForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    notes: ''
+  });
 
   useEffect(() => {
     checkAuthorization();
@@ -66,6 +81,135 @@ const SuperAdmin = () => {
       alert('שגיאה בטעינת נתוני Super Admin');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Subscription Management Functions
+  const handleEditSubscriber = (subscriber) => {
+    setSelectedSubscriber(subscriber);
+    setEditForm({
+      subscriptionStatus: subscriber.subscriptionStatus || 'FREE',
+      maxCustomers: subscriber.maxCustomers || 200
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePlan = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `/api/super-admin/subscribers/${selectedSubscriber.id}/plan`,
+        editForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('✅ תוכנית המנוי עודכנה בהצלחה');
+      setShowEditModal(false);
+      fetchData();
+    } catch (err) {
+      alert('❌ שגיאה בעדכון תוכנית המנוי');
+      console.error(err);
+    }
+  };
+
+  const handleSuspendAccount = async (subscriberId, currentStatus) => {
+    const newStatus = !currentStatus;
+    const confirmMsg = newStatus 
+      ? 'האם אתה בטוח שברצונך להפעיל מחדש חשבון זה?'
+      : 'האם אתה בטוח שברצונך להשעות חשבון זה?';
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `/api/super-admin/subscribers/${subscriberId}/status`,
+        { isActive: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert(newStatus ? '✅ החשבון הופעל מחדש' : '✅ החשבון הושעה');
+      fetchData();
+    } catch (err) {
+      alert('❌ שגיאה בעדכון סטטוס החשבון');
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSubscriber = async (subscriberId) => {
+    if (!confirm('⚠️ האם אתה בטוח? פעולה זו תמחק את בעל העסק וכל הנתונים שלו לצמיתות!')) return;
+    if (!confirm('🚨 אישור אחרון - פעולה זו בלתי הפיכה!')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `/api/super-admin/subscribers/${subscriberId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('✅ בעל העסק והנתונים שלו נמחקו בהצלחה');
+      fetchData();
+    } catch (err) {
+      alert('❌ שגיאה במחיקת בעל העסק');
+      console.error(err);
+    }
+  };
+
+  const handleUpdateQuota = async (subscriberId) => {
+    const newQuota = prompt('הזן מכסת לקוחות חדשה:', '200');
+    if (!newQuota) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `/api/super-admin/subscribers/${subscriberId}/quota`,
+        { maxCustomers: parseInt(newQuota) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('✅ מכסת הלקוחות עודכנה בהצלחה');
+      fetchData();
+    } catch (err) {
+      alert('❌ שגיאה בעדכון מכסת הלקוחות');
+      console.error(err);
+    }
+  };
+
+  // Customer Management Functions
+  const handleOpenAddCustomer = (subscriber) => {
+    setSelectedSubscriber(subscriber);
+    setNewCustomerForm({
+      name: '',
+      email: '',
+      phone: '',
+      notes: ''
+    });
+    setShowAddCustomerModal(true);
+  };
+
+  const handleAddCustomer = async () => {
+    if (!newCustomerForm.name || !newCustomerForm.email) {
+      alert('❌ שם ואימייל הם שדות חובה');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        '/api/super-admin/customers',
+        {
+          userId: selectedSubscriber.id,
+          customerData: newCustomerForm
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('✅ הלקוח נוסף בהצלחה');
+      setShowAddCustomerModal(false);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || '❌ שגיאה בהוספת הלקוח');
+      console.error(err);
     }
   };
 
@@ -259,19 +403,13 @@ const SuperAdmin = () => {
                         תוכנית
                       </th>
                       <th className="text-right p-3 text-text-primary font-semibold">
-                        אירועים
-                      </th>
-                      <th className="text-right p-3 text-text-primary font-semibold">
                         לקוחות
-                      </th>
-                      <th className="text-right p-3 text-text-primary font-semibold">
-                        תורים
                       </th>
                       <th className="text-right p-3 text-text-primary font-semibold">
                         הכנסות
                       </th>
                       <th className="text-right p-3 text-text-primary font-semibold">
-                        תאריך הצטרפות
+                        פעולות
                       </th>
                     </tr>
                   </thead>
@@ -295,30 +433,62 @@ const SuperAdmin = () => {
                         <td className="p-3">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
-                              sub.plan === 'pro'
-                                ? 'bg-purple-100 text-purple-800'
-                                : sub.plan === 'premium'
+                              sub.subscriptionStatus === 'ACTIVE'
+                                ? 'bg-green-100 text-green-800'
+                                : sub.subscriptionStatus === 'TRIAL'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {sub.plan}
+                            {sub.subscriptionStatus || 'FREE'}
                           </span>
                         </td>
                         <td className="p-3 text-center text-text-primary">
-                          {sub.stats.events}
-                        </td>
-                        <td className="p-3 text-center text-text-primary">
-                          {sub.stats.customers}
-                        </td>
-                        <td className="p-3 text-center text-text-primary">
-                          {sub.stats.appointments}
+                          {sub.stats.customers}/{sub.maxCustomers || 200}
                         </td>
                         <td className="p-3 text-accent-teal font-bold">
                           ₪{sub.stats.revenue.toLocaleString()}
                         </td>
-                        <td className="p-3 text-text-secondary">
-                          {new Date(sub.createdAt).toLocaleDateString('he-IL')}
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditSubscriber(sub)}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                              title="ערוך תוכנית"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleOpenAddCustomer(sub)}
+                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+                              title="הוסף לקוח"
+                            >
+                              ➕
+                            </button>
+                            <button
+                              onClick={() => handleUpdateQuota(sub.id)}
+                              className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 text-xs"
+                              title="שנה מכסה"
+                            >
+                              📊
+                            </button>
+                            <button
+                              onClick={() => handleSuspendAccount(sub.id, sub.isActive)}
+                              className={`px-3 py-1 ${
+                                sub.isActive ? 'bg-orange-500' : 'bg-teal-500'
+                              } text-white rounded hover:opacity-80 text-xs`}
+                              title={sub.isActive ? 'השעה חשבון' : 'הפעל מחדש'}
+                            >
+                              {sub.isActive ? '⏸️' : '▶️'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubscriber(sub.id)}
+                              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                              title="מחק לצמיתות"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -328,6 +498,129 @@ const SuperAdmin = () => {
             )}
           </div>
         </div>
+
+        {/* Edit Subscriber Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowEditModal(false)}>
+            <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <h2 className="text-2xl font-bold text-accent-teal mb-4">
+                ערוך תוכנית מנוי
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    סטטוס מנוי
+                  </label>
+                  <select
+                    value={editForm.subscriptionStatus}
+                    onChange={(e) => setEditForm({ ...editForm, subscriptionStatus: e.target.value })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                  >
+                    <option value="FREE">FREE - חינם</option>
+                    <option value="TRIAL">TRIAL - ניסיון</option>
+                    <option value="ACTIVE">ACTIVE - פעיל</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    מכסת לקוחות
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.maxCustomers}
+                    onChange={(e) => setEditForm({ ...editForm, maxCustomers: parseInt(e.target.value) })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                  />
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleUpdatePlan}
+                    className="flex-1 bg-accent-teal text-white py-2 rounded-lg hover:bg-accent-hover transition-colors"
+                  >
+                    שמור שינויים
+                  </button>
+                  <button
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    ביטול
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Customer Modal */}
+        {showAddCustomerModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddCustomerModal(false)}>
+            <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <h2 className="text-2xl font-bold text-accent-teal mb-4">
+                הוסף לקוח ל-{selectedSubscriber?.businessName}
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    שם מלא *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCustomerForm.name}
+                    onChange={(e) => setNewCustomerForm({ ...newCustomerForm, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    אימייל *
+                  </label>
+                  <input
+                    type="email"
+                    value={newCustomerForm.email}
+                    onChange={(e) => setNewCustomerForm({ ...newCustomerForm, email: e.target.value })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    טלפון
+                  </label>
+                  <input
+                    type="tel"
+                    value={newCustomerForm.phone}
+                    onChange={(e) => setNewCustomerForm({ ...newCustomerForm, phone: e.target.value })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    הערות
+                  </label>
+                  <textarea
+                    value={newCustomerForm.notes}
+                    onChange={(e) => setNewCustomerForm({ ...newCustomerForm, notes: e.target.value })}
+                    className="w-full px-4 py-2 border border-accent-teal/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                    rows="3"
+                  />
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleAddCustomer}
+                    className="flex-1 bg-accent-teal text-white py-2 rounded-lg hover:bg-accent-hover transition-colors"
+                  >
+                    הוסף לקוח
+                  </button>
+                  <button
+                    onClick={() => setShowAddCustomerModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    ביטול
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

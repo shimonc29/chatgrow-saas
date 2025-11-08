@@ -42,7 +42,10 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Customer Auto-Creation**: Creates/updates customer records from public registrations.
 - **Full CRUD Functionality**: Comprehensive operations for all administrative entities.
 - **Image Upload System**: Replit Object Storage integration for landing page images.
-- **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics.
+- **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics with full management capabilities:
+  - **Subscription Management**: Update subscription status (FREE/TRIAL/ACTIVE), modify customer quotas, suspend/activate accounts, delete subscribers
+  - **Customer Management**: Add customers manually to any business, delete customers across businesses, transfer customers between businesses
+  - **Platform Fees**: Track 5% marketplace fees, view onboarded businesses, monthly/yearly revenue analytics
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
@@ -52,6 +55,15 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Receipt Management**: Automatic/manual generation, Hebrew PDF with RTL.
 - **Provider Configuration**: Multi-tenant Email, SMS, Payment provider setup.
 - **Subscriber Management**: Backend for subscriber lists.
+- **Super Admin Management**: Comprehensive subscriber and customer management:
+  - Upgrade/downgrade subscription plans (FREE/TRIAL/ACTIVE)
+  - Modify customer quotas (200 default for FREE, unlimited for ACTIVE)
+  - Suspend/activate accounts
+  - Delete subscribers with cascade deletion of all related data
+  - Add customers manually to specific businesses
+  - Delete customers from any business
+  - Transfer customers between businesses
+  - View all customers across the platform
 - **Health Monitoring**: System health checks and log retrieval.
 - **Participants View**: View and manage event participants.
 
