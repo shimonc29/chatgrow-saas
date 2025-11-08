@@ -17,6 +17,7 @@ import ProviderSettings from './pages/admin/ProviderSettings';
 import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
 import SuperAdmin from './pages/admin/SuperAdmin';
+import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -148,6 +149,15 @@ function App() {
             element={
               <PrivateRoute>
                 <SuperAdmin />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/check-super-admin" 
+            element={
+              <PrivateRoute>
+                <CheckSuperAdmin />
               </PrivateRoute>
             } 
           />
