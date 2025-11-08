@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const ServiceProvider = require('../models/ServiceProvider');
 const { logError, logWarning, logInfo, logDebug } = require('../utils/logger');
 
 class AuthMiddleware {
@@ -134,11 +135,17 @@ class AuthMiddleware {
                 }
 
                 const decoded = this.verifyToken(token);
-                const user = await User.findById(decoded.userId);
+                
+                let user;
+                if (decoded.providerId) {
+                    user = await ServiceProvider.findById(decoded.providerId);
+                } else if (decoded.userId) {
+                    user = await User.findById(decoded.userId);
+                }
 
                 if (!user) {
                     logWarning('Token valid but user not found', {
-                        userId: decoded.userId,
+                        userId: decoded.userId || decoded.providerId,
                         sessionId: decoded.sessionId
                     });
                     return res.status(401).json({
