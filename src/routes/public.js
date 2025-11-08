@@ -6,8 +6,10 @@ const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
 const LandingPage = require('../models/LandingPage');
 const Availability = require('../models/Availability');
+const Subscriber = require('../models/Subscriber');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
+const { incrementCustomerCount } = require('../middleware/customerLimit');
 const { logInfo, logError, logApiRequest } = require('../utils/logger');
 const { getServiceDetails, isValidServiceType, getAllServices } = require('../config/serviceTypes');
 
@@ -123,8 +125,26 @@ router.post('/events/:id/register', async (req, res) => {
         });
 
         if (!existingCustomer) {
+            const user = await Subscriber.findById(event.businessId);
+            
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'בעל העסק לא נמצא'
+                });
+            }
+
+            if (user.subscriptionStatus === 'FREE' && user.currentCustomerCount >= user.maxCustomers) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'לא ניתן להירשם כרגע - בעל העסק הגיע למכסת הלקוחות המקסימלית בתוכנית החינמית.',
+                    code: 'BUSINESS_CUSTOMER_LIMIT_REACHED'
+                });
+            }
+
             existingCustomer = new Customer({
                 businessId: event.businessId,
+                userId: event.businessId,
                 firstName: customer.firstName,
                 lastName: customer.lastName,
                 email: customer.email,
@@ -132,9 +152,13 @@ router.post('/events/:id/register', async (req, res) => {
                 notes: `נרשם לאירוע: ${event.title}`
             });
             await existingCustomer.save();
+            
+            await incrementCustomerCount(event.businessId);
+            
             logInfo('New customer created from event registration', {
                 customerId: existingCustomer._id,
-                eventId: event._id
+                eventId: event._id,
+                customerCount: user.currentCustomerCount + 1
             });
         }
 
@@ -614,8 +638,26 @@ router.post('/appointments/book', async (req, res) => {
         });
 
         if (!existingCustomer) {
+            const user = await Subscriber.findById(businessId);
+            
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'בעל העסק לא נמצא'
+                });
+            }
+
+            if (user.subscriptionStatus === 'FREE' && user.currentCustomerCount >= user.maxCustomers) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'לא ניתן להזמין תור כרגע - בעל העסק הגיע למכסת הלקוחות המקסימלית בתוכנית החינמית.',
+                    code: 'BUSINESS_CUSTOMER_LIMIT_REACHED'
+                });
+            }
+
             existingCustomer = new Customer({
                 businessId,
+                userId: businessId,
                 firstName: customer.firstName,
                 lastName: customer.lastName,
                 email: customer.email,
@@ -623,9 +665,13 @@ router.post('/appointments/book', async (req, res) => {
                 notes: `הזמין תור: ${serviceType}`
             });
             await existingCustomer.save();
+            
+            await incrementCustomerCount(businessId);
+            
             logInfo('New customer created from appointment booking', {
                 customerId: existingCustomer._id,
-                serviceType
+                serviceType,
+                customerCount: user.currentCustomerCount + 1
             });
         }
 

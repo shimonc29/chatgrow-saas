@@ -428,6 +428,7 @@ async function connectToPostgreSQL() {
     const ServiceProvider = require('./models/ServiceProvider');
     
     await Subscriber.createTable();
+    await Subscriber.migrateAddFreemiumFields();
     await ServiceProvider.createTable();
     
     logInfo('Connected to PostgreSQL successfully');

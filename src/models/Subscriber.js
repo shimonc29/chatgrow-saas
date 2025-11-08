@@ -71,6 +71,11 @@ class Subscriber {
         this.connectedProviders = data.connectedProviders || [];
         this.isEmailVerified = data.isEmailVerified || false;
         this.emailVerificationToken = data.emailVerificationToken;
+        this.subscriptionStatus = data.subscriptionStatus || data.subscription_status || 'FREE';
+        this.maxCustomers = data.maxCustomers || data.max_customers || 200;
+        this.currentCustomerCount = data.currentCustomerCount || data.current_customer_count || 0;
+        this.isWhitelabel = data.isWhitelabel || data.is_whitelabel || false;
+        this.paymentProviderId = data.paymentProviderId || data.payment_provider_id || null;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
     }
@@ -91,15 +96,19 @@ class Subscriber {
                 email = $1, password = $2, profile = $3, subscription = $4,
                 referral = $5, analytics = $6, registrations = $7, 
                 connected_providers = $8, is_email_verified = $9,
-                email_verification_token = $10, updated_at = NOW()
-                WHERE id = $11 RETURNING *
+                email_verification_token = $10, subscription_status = $11,
+                max_customers = $12, current_customer_count = $13,
+                is_whitelabel = $14, payment_provider_id = $15, updated_at = NOW()
+                WHERE id = $16 RETURNING *
             `;
             const values = [
                 this.email, this.password, JSON.stringify(this.profile),
                 JSON.stringify(this.subscription), JSON.stringify(this.referral),
                 JSON.stringify(this.analytics), JSON.stringify(this.registrations),
                 JSON.stringify(this.connectedProviders), this.isEmailVerified,
-                this.emailVerificationToken, this.id
+                this.emailVerificationToken, this.subscriptionStatus,
+                this.maxCustomers, this.currentCustomerCount,
+                this.isWhitelabel, this.paymentProviderId, this.id
             ];
             const result = await pool.query(query, values);
             return new Subscriber(result.rows[0]);
@@ -109,8 +118,10 @@ class Subscriber {
                 INSERT INTO subscribers (
                     email, password, profile, subscription, referral,
                     analytics, registrations, connected_providers,
-                    is_email_verified, email_verification_token
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    is_email_verified, email_verification_token,
+                    subscription_status, max_customers, current_customer_count,
+                    is_whitelabel, payment_provider_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 RETURNING *
             `;
             const values = [
@@ -118,7 +129,9 @@ class Subscriber {
                 JSON.stringify(this.subscription), JSON.stringify(this.referral),
                 JSON.stringify(this.analytics), JSON.stringify(this.registrations),
                 JSON.stringify(this.connectedProviders), this.isEmailVerified,
-                this.emailVerificationToken
+                this.emailVerificationToken, this.subscriptionStatus,
+                this.maxCustomers, this.currentCustomerCount,
+                this.isWhitelabel, this.paymentProviderId
             ];
             const result = await pool.query(query, values);
             return new Subscriber(result.rows[0]);
@@ -210,17 +223,42 @@ class Subscriber {
                     connected_providers JSONB DEFAULT '[]',
                     is_email_verified BOOLEAN DEFAULT FALSE,
                     email_verification_token VARCHAR(255),
+                    subscription_status VARCHAR(20) DEFAULT 'FREE',
+                    max_customers INTEGER DEFAULT 200,
+                    current_customer_count INTEGER DEFAULT 0,
+                    is_whitelabel BOOLEAN DEFAULT FALSE,
+                    payment_provider_id VARCHAR(255),
                     created_at TIMESTAMP DEFAULT NOW(),
                     updated_at TIMESTAMP DEFAULT NOW()
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_subscribers_email ON subscribers(email);
                 CREATE INDEX IF NOT EXISTS idx_subscribers_referral_code ON subscribers USING GIN ((referral->>'referralCode'));
+                CREATE INDEX IF NOT EXISTS idx_subscribers_subscription_status ON subscribers(subscription_status);
             `;
             await pool.query(query);
             console.log('✅ Subscribers table created successfully');
         } catch (error) {
             console.error('❌ Error creating subscribers table:', error);
+        }
+    }
+
+    static async migrateAddFreemiumFields() {
+        try {
+            const query = `
+                ALTER TABLE subscribers 
+                ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'FREE',
+                ADD COLUMN IF NOT EXISTS max_customers INTEGER DEFAULT 200,
+                ADD COLUMN IF NOT EXISTS current_customer_count INTEGER DEFAULT 0,
+                ADD COLUMN IF NOT EXISTS is_whitelabel BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS payment_provider_id VARCHAR(255);
+
+                CREATE INDEX IF NOT EXISTS idx_subscribers_subscription_status ON subscribers(subscription_status);
+            `;
+            await pool.query(query);
+            console.log('✅ Freemium fields migration completed successfully');
+        } catch (error) {
+            console.error('❌ Error migrating freemium fields:', error);
         }
     }
 }
