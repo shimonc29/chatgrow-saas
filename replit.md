@@ -2,7 +2,7 @@
 
 ## Overview
 
-ChatGrow is a comprehensive backend system designed to empower small to medium-sized businesses with advanced communication capabilities and streamlined operational management. Its core purpose is to provide a robust platform for managing customers, events, appointments, payments, and invoices, complemented by an automated Email and SMS notification system. ChatGrow aims to significantly enhance business efficiency, improve customer engagement, and automate critical workflows through its integrated suite of management tools. The project seeks to capture market share in the SMB SaaS space by offering an all-in-one solution for business growth and customer relationship management.
+ChatGrow is a comprehensive multi-tenant SaaS platform where Shimon (platform owner at shimonc29@gmail.com) manages business owners who run their own small-medium businesses. The platform operates on a **freemium model** with a 200-customer limit for free tier users and implements **marketplace-style payment splitting** (95% to business owner, 5% platform fee). Features include React 19 admin dashboard with Hebrew RTL, Google Calendar integration, Object Storage, landing page builder, Super Admin panel for platform analytics, and comprehensive subscription management. The project seeks to capture market share in the SMB SaaS space by offering an all-in-one solution for business growth and customer relationship management.
 
 ## User Preferences
 
@@ -43,11 +43,20 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
 - **Authentication**: JWT for secure user authentication, AuthContext for global state, Protected Routes.
+- **Freemium Model**: 
+  - **Customer Limit Enforcement**: Middleware (`src/middleware/customerLimit.js`) enforces 200-customer quota for FREE users
+  - **Premium Feature Gating**: Middleware (`src/middleware/isPremium.js`) restricts Google Calendar, SMS notifications, and full reports to TRIAL/ACTIVE subscribers
+  - **Subscription Tracking**: PostgreSQL schema tracks `subscription_status` (FREE/TRIAL/ACTIVE/SUSPENDED), `max_customers` (default 200), `current_customer_count`
+- **Marketplace Payments (95%/5% Split)**:
+  - **Payment Provider Onboarding**: Route (`src/routes/paymentOnboarding.js`) allows business owners to register partner accounts with Cardcom/GROW
+  - **Split Payment Logic**: `PaymentService` conditionally applies 5% platform fee only when `user.paymentProviderId` exists; stores `platformFee`, `amountToTransfer`, `partnerAccountId` in payment metadata
+  - **Platform Fee Automation**: `PlatformFeeService` calculates monthly fees and `CronService` generates invoices on 1st of month via Green Invoice/iCount integration
+  - **Invoicing Integration**: `InvoicingIntegrationService` supports Green Invoice and iCount APIs for automated platform fee billing
 - **Multi-Tenant Provider System**: `ProviderSettings` model allowing each business client to configure their own Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers with encrypted API credentials.
 - **Notifications**: `NotificationService` for Email and SMS with provider-swapping support, template-based messaging, and delivery tracking.
 - **Payments & Invoicing**: `PaymentService` and `InvoiceService` supporting Israeli payment providers (Cardcom, GROW). Multi-tenant architecture with per-client configuration. Generates Hebrew PDF invoices and automates payment workflows.
 - **Receipt System**: `ReceiptService` for automatic and manual PDF receipt generation in Hebrew with proper RTL formatting and business branding.
-- **CRON Automation**: `CronService` (node-cron) handles scheduled tasks including event/appointment reminders, automatic payments, reports, and data cleanup.
+- **CRON Automation**: `CronService` (node-cron) handles scheduled tasks including event/appointment reminders, automatic payments, weekly/monthly reports, monthly platform fee invoices, and data cleanup (7 total jobs).
 - **Queue System**: In-memory queue with basic retry logic, with an option for Redis integration.
 - **Logging**: Winston for console and file logging.
 - **Security**: JWT authentication, bcrypt password hashing, rate limiting, Helmet, CORS, Joi input validation.
@@ -77,7 +86,14 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
 ### System Design Choices
 - **Database Strategy**: Hybrid approach with PostgreSQL for user/subscriber data and MongoDB Atlas for events, customers, appointments, payments, invoices, analytics, and WhatsApp connections.
 - **Multi-Tenant Architecture**: Each subscriber (business owner) has isolated data with userId-based filtering. Super Admin has system-wide access via SUPER_ADMIN_EMAILS environment variable.
-- **Access Control**: Two-tier system - regular users (business owners) see only their data; Super Admin sees all subscribers and system statistics.
+- **Access Control**: Three-tier system:
+  - **FREE Users**: 200 customer limit, basic features only
+  - **PREMIUM Users (TRIAL/ACTIVE)**: Unlimited customers, Google Calendar, SMS, full reports
+  - **Super Admin**: System-wide access to all subscribers and platform statistics
+- **Business Model**: 
+  - **Freemium**: FREE tier with 200-customer limit drives conversion to paid plans
+  - **Marketplace Revenue**: 5% platform fee on all transactions from onboarded businesses (95% to business owner)
+  - **Platform Fee Billing**: Automated monthly invoicing via Green Invoice/iCount integration
 - **Modularity**: Backend organized into `models`, `routes`, `services`, `providers`, `middleware`; Frontend into `pages`, `components`, `contexts`, `services`, `utils`.
 - **Development Setup**: Single `fullstack` workflow for backend (port 3000) and frontend (port 5000) with Vite proxy.
 
@@ -106,8 +122,11 @@ ChatGrow employs a Node.js and Express.js backend, adopting a microservices-like
     - **SendGrid**: Email provider.
     - **Twilio**: SMS provider.
 - **Payment Gateways**:
-    - **Cardcom**
-    - **Meshulam (GROW)**
+    - **Cardcom**: Supports split payments with `partnerAccountId` parameter for marketplace transactions
+    - **Meshulam (GROW)**: Supports split payments with `partnerAccountId` parameter for marketplace transactions
+- **Accounting Software Integration**:
+    - **Green Invoice**: Israeli cloud accounting platform for automated platform fee invoicing
+    - **iCount**: Israeli accounting software for automated platform fee invoicing
 - **Security & Utilities**:
     - **JWT**: JSON Web Tokens for authentication.
     - **Winston**: Logging library.
