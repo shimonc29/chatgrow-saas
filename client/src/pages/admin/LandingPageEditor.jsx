@@ -39,6 +39,7 @@ const LandingPageEditor = () => {
   const [saving, setSaving] = useState(false);
   const [events, setEvents] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeImagePicker, setActiveImagePicker] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -425,11 +426,26 @@ const LandingPageEditor = () => {
                 </div>
 
                 <div>
-                  <ImageUploader
-                    currentImage={formData.content.hero.image}
-                    onImageChange={(url) => updateContent('hero', 'image', url)}
-                    label="תמונת רקע"
-                  />
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תמונת רקע</label>
+                  <div className="space-y-2">
+                    {formData.content.hero.image && (
+                      <div className="relative">
+                        <img src={formData.content.hero.image} alt="Hero" className="w-full h-48 object-cover rounded-lg border border-accent-teal/30" />
+                        <button
+                          onClick={() => updateContent('hero', 'image', '')}
+                          className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600"
+                        >
+                          הסר
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setActiveImagePicker('hero')}
+                      className="w-full bg-gradient-to-r from-accent-teal to-accent-hover text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-lg shadow-accent-teal/50 hover:shadow-accent-teal/70"
+                    >
+                      {formData.content.hero.image ? '🔄 החלף תמונה' : '📁 בחר תמונה מהספרייה'}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -533,11 +549,26 @@ const LandingPageEditor = () => {
                 </div>
 
                 <div>
-                  <ImageUploader
-                    currentImage={formData.content.about.image}
-                    onImageChange={(url) => updateContent('about', 'image', url)}
-                    label="תמונה לקטע אודות"
-                  />
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תמונה לקטע אודות</label>
+                  <div className="space-y-2">
+                    {formData.content.about.image && (
+                      <div className="relative">
+                        <img src={formData.content.about.image} alt="About" className="w-full h-48 object-cover rounded-lg border border-accent-teal/30" />
+                        <button
+                          onClick={() => updateContent('about', 'image', '')}
+                          className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600"
+                        >
+                          הסר
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setActiveImagePicker('about')}
+                      className="w-full bg-gradient-to-r from-accent-teal to-accent-hover text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-lg shadow-accent-teal/50 hover:shadow-accent-teal/70"
+                    >
+                      {formData.content.about.image ? '🔄 החלף תמונה' : '📁 בחר תמונה מהספרייה'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -616,11 +647,26 @@ const LandingPageEditor = () => {
                 </div>
 
                 <div>
-                  <ImageUploader
-                    currentImage={formData.seo.ogImage}
-                    onImageChange={(url) => updateSeo('ogImage', url)}
-                    label="תמונת שיתוף (Open Graph)"
-                  />
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תמונת שיתוף (Open Graph)</label>
+                  <div className="space-y-2">
+                    {formData.seo.ogImage && (
+                      <div className="relative">
+                        <img src={formData.seo.ogImage} alt="OG" className="w-full h-48 object-cover rounded-lg border border-accent-teal/30" />
+                        <button
+                          onClick={() => updateSeo('ogImage', '')}
+                          className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600"
+                        >
+                          הסר
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setActiveImagePicker('seo')}
+                      className="w-full bg-gradient-to-r from-accent-teal to-accent-hover text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-lg shadow-accent-teal/50 hover:shadow-accent-teal/70"
+                    >
+                      {formData.seo.ogImage ? '🔄 החלף תמונה' : '📁 בחר תמונה מהספרייה'}
+                    </button>
+                  </div>
                   <p className="text-xs text-text-secondary mt-1">תמונה זו תוצג כאשר משתפים את הדף ברשתות חברתיות</p>
                 </div>
               </div>
@@ -687,6 +733,40 @@ const LandingPageEditor = () => {
             </div>
           </div>
         </div>
+
+        {/* MediaPicker Modals */}
+        {activeImagePicker === 'hero' && (
+          <MediaPicker
+            isOpen={true}
+            onClose={() => setActiveImagePicker(null)}
+            onSelect={(imageUrl) => {
+              updateContent('hero', 'image', imageUrl);
+              setActiveImagePicker(null);
+            }}
+          />
+        )}
+
+        {activeImagePicker === 'about' && (
+          <MediaPicker
+            isOpen={true}
+            onClose={() => setActiveImagePicker(null)}
+            onSelect={(imageUrl) => {
+              updateContent('about', 'image', imageUrl);
+              setActiveImagePicker(null);
+            }}
+          />
+        )}
+
+        {activeImagePicker === 'seo' && (
+          <MediaPicker
+            isOpen={true}
+            onClose={() => setActiveImagePicker(null)}
+            onSelect={(imageUrl) => {
+              updateSeo('ogImage', imageUrl);
+              setActiveImagePicker(null);
+            }}
+          />
+        )}
       </div>
     </MainLayout>
   );
