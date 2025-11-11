@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
+import ImageUploader from '../../components/ImageUploader';
 import axios from 'axios';
 
 const TEMPLATES = {
@@ -97,7 +98,38 @@ const LandingPageEditor = () => {
       const response = await axios.get(`/api/landing-pages/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setFormData(response.data);
+      
+      const loadedData = response.data;
+      setFormData(prev => ({
+        ...prev,
+        ...loadedData,
+        content: {
+          ...prev.content,
+          ...loadedData.content,
+          hero: {
+            ...prev.content.hero,
+            ...loadedData.content?.hero
+          },
+          about: {
+            ...prev.content.about,
+            ...loadedData.content?.about
+          },
+          features: loadedData.content?.features || prev.content.features,
+          testimonials: loadedData.content?.testimonials || prev.content.testimonials,
+          footer: {
+            ...prev.content.footer,
+            ...loadedData.content?.footer
+          }
+        },
+        seo: {
+          ...prev.seo,
+          ...loadedData.seo
+        },
+        styling: {
+          ...prev.styling,
+          ...loadedData.styling
+        }
+      }));
     } catch (err) {
       console.error(err);
       alert('שגיאה בטעינת הדף');
@@ -168,6 +200,16 @@ const LandingPageEditor = () => {
       ...prev,
       styling: {
         ...prev.styling,
+        [field]: value
+      }
+    }));
+  };
+
+  const updateSeo = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      seo: {
+        ...prev.seo,
         [field]: value
       }
     }));
@@ -383,13 +425,10 @@ const LandingPageEditor = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תמונת רקע (URL)</label>
-                  <input
-                    type="url"
-                    value={formData.content.hero.image}
-                    onChange={(e) => updateContent('hero', 'image', e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  <ImageUploader
+                    currentImage={formData.content.hero.image}
+                    onImageChange={(url) => updateContent('hero', 'image', url)}
+                    label="תמונת רקע"
                   />
                 </div>
 
@@ -466,6 +505,43 @@ const LandingPageEditor = () => {
               </div>
             </div>
 
+            {/* About Section */}
+            <div className="bg-bg-light border border-accent-teal/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-teal/50 hover:shadow-accent-teal/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-accent-teal mb-4">📖 קטע אודות</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">כותרת</label>
+                  <input
+                    type="text"
+                    value={formData.content.about.title}
+                    onChange={(e) => updateContent('about', 'title', e.target.value)}
+                    placeholder="אודות החברה"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תיאור</label>
+                  <textarea
+                    value={formData.content.about.description}
+                    onChange={(e) => updateContent('about', 'description', e.target.value)}
+                    placeholder="ספר על העסק, המוצרים והשירותים שלך..."
+                    rows="4"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <ImageUploader
+                    currentImage={formData.content.about.image}
+                    onImageChange={(url) => updateContent('about', 'image', url)}
+                    label="תמונה לקטע אודות"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Styling */}
             <div className="bg-bg-light border border-accent-teal/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-teal/50 hover:shadow-accent-teal/20 transition-all">
               <h3 className="text-lg sm:text-xl font-bold text-accent-teal mb-4">🎨 עיצוב וצבעים</h3>
@@ -497,6 +573,55 @@ const LandingPageEditor = () => {
                     onChange={(e) => updateStyling('backgroundColor', e.target.value)}
                     className="w-full h-10 bg-bg-light border border-accent-teal/30 rounded-lg"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* SEO Section */}
+            <div className="bg-bg-light border border-accent-teal/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-teal/50 hover:shadow-accent-teal/20 transition-all">
+              <h3 className="text-lg sm:text-xl font-bold text-accent-teal mb-4">🔍 SEO ומטא-נתונים</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">כותרת SEO</label>
+                  <input
+                    type="text"
+                    value={formData.seo.title}
+                    onChange={(e) => updateSeo('title', e.target.value)}
+                    placeholder="כותרת עמוד למנועי חיפוש"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">תיאור SEO</label>
+                  <textarea
+                    value={formData.seo.description}
+                    onChange={(e) => updateSeo('description', e.target.value)}
+                    placeholder="תיאור קצר שיופיע בתוצאות חיפוש"
+                    rows="3"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">מילות מפתח (מופרד בפסיקים)</label>
+                  <input
+                    type="text"
+                    value={formData.seo.keywords?.join(', ') || ''}
+                    onChange={(e) => updateSeo('keywords', e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                    placeholder="אירוע, תור, רישום, וכו'"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent placeholder-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <ImageUploader
+                    currentImage={formData.seo.ogImage}
+                    onImageChange={(url) => updateSeo('ogImage', url)}
+                    label="תמונת שיתוף (Open Graph)"
+                  />
+                  <p className="text-xs text-text-secondary mt-1">תמונה זו תוצג כאשר משתפים את הדף ברשתות חברתיות</p>
                 </div>
               </div>
             </div>
