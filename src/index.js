@@ -239,6 +239,7 @@ try {
     app.use('/api/availability', require('./routes/availability'));
     app.use('/api/google-calendar', require('./routes/googleCalendar'));
     app.use('/api/uploads', require('./routes/uploads'));
+    app.use('/api/media', require('./routes/media'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);
