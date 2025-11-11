@@ -16,6 +16,7 @@ import PaymentSettings from './pages/admin/PaymentSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
 import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
+import MediaLibrary from './pages/admin/MediaLibrary';
 import SuperAdmin from './pages/admin/SuperAdmin';
 import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
 import PaymentOnboarding from './pages/admin/PaymentOnboarding';
@@ -143,6 +144,15 @@ function App() {
             element={
               <PrivateRoute>
                 <LandingPageEditor />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/media" 
+            element={
+              <PrivateRoute>
+                <MediaLibrary />
               </PrivateRoute>
             } 
           />

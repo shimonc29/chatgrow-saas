@@ -36,6 +36,7 @@ const Sidebar = () => {
     { path: '/payments', icon: '💳', label: 'תשלומים' },
     { path: '/financial', icon: '💰', label: 'ניהול פיננסי' },
     { path: '/landing-pages', icon: '🎨', label: 'דפי נחיתה' },
+    { path: '/media', icon: '📚', label: 'ספריית מדיה' },
     { path: '/registration-pages', icon: '🔗', label: 'דפי הרשמה' },
     { path: '/subscription', icon: '📋', label: 'מנוי ומכסות' },
     { path: '/payment-onboarding', icon: '💳', label: 'הרשמה לתשלומים' },
