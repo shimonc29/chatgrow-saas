@@ -22,7 +22,7 @@ const mediaSchema = new mongoose.Schema({
     required: true
   },
   uploadedBy: {
-    type: Number,
+    type: String,
     required: true,
     index: true
   },
