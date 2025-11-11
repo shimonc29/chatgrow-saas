@@ -4,7 +4,9 @@ const auth = require('../middleware/auth');
 const Subscriber = require('../models/Subscriber');
 const { logInfo, logError } = require('../utils/logger');
 
-router.post('/register', auth, async (req, res) => {
+const authenticateToken = auth.authenticate();
+
+router.post('/register', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
     const { provider, partnerAccountId, businessName, businessId, contactEmail, contactPhone } = req.body;
@@ -69,7 +71,7 @@ router.post('/register', auth, async (req, res) => {
   }
 });
 
-router.get('/status', auth, async (req, res) => {
+router.get('/status', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
     const user = await Subscriber.findById(userId);

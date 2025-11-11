@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const ReceiptService = require('../services/ReceiptService');
-const { authenticateToken } = require('../middleware/auth');
+const auth = require('../middleware/auth');
 const { logInfo, logError } = require('../utils/logger');
 const path = require('path');
+
+const authenticateToken = auth.authenticate();
 
 // Generate receipt for a payment
 router.post('/generate/:paymentId', authenticateToken, async (req, res) => {

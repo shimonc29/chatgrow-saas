@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const invoiceService = require('../services/invoiceService');
 const { logInfo, logError } = require('../utils/logger');
-const { authenticate } = require('../middleware/auth');
+const auth = require('../middleware/auth');
+
+const authenticate = auth.authenticate();
 
 router.post('/create', authenticate, async (req, res) => {
     try {

@@ -3,7 +3,9 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const objectStorageService = require('../services/objectStorageService');
 
-router.post('/get-upload-url', auth, async (req, res) => {
+const authenticateToken = auth.authenticate();
+
+router.post('/get-upload-url', authenticateToken, async (req, res) => {
   try {
     const { fileExtension } = req.body;
     const ext = fileExtension || '.jpg';

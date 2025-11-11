@@ -5,9 +5,10 @@ const auth = require('../middleware/auth');
 const { isPremium } = require('../middleware/isPremium');
 const googleCalendarService = require('../services/googleCalendarService');
 
+const authenticateToken = auth.authenticate();
 const pendingOAuthStates = new Map();
 
-router.get('/auth', auth, isPremium, (req, res) => {
+router.get('/auth', authenticateToken, isPremium, (req, res) => {
   try {
     const userId = req.user.userId;
     
@@ -64,7 +65,7 @@ router.get('/callback', async (req, res) => {
   }
 });
 
-router.get('/status', auth, async (req, res) => {
+router.get('/status', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const status = await googleCalendarService.getConnectionStatus(userId);
@@ -82,7 +83,7 @@ router.get('/status', auth, async (req, res) => {
   }
 });
 
-router.post('/disconnect', auth, async (req, res) => {
+router.post('/disconnect', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     await googleCalendarService.disconnect(userId);
@@ -100,7 +101,7 @@ router.post('/disconnect', auth, async (req, res) => {
   }
 });
 
-router.post('/test-event', auth, async (req, res) => {
+router.post('/test-event', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     

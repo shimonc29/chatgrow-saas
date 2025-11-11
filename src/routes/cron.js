@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const cronService = require('../services/cronService');
 const { logInfo, logError } = require('../utils/logger');
-const { authenticateToken } = require('../middleware/auth');
+const auth = require('../middleware/auth');
+
+const authenticateToken = auth.authenticate();
 
 /**
  * Get CRON service status (public - no auth required)

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
-import ImageUploader from '../../components/ImageUploader';
+import MediaPicker from '../../components/MediaPicker';
 import axios from 'axios';
 
 const TEMPLATES = {

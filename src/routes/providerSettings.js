@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const ProviderSettings = require('../models/ProviderSettings');
 const NotificationService = require('../services/NotificationService');
-const { authenticateToken } = require('../middleware/auth');
+const auth = require('../middleware/auth');
 const { isPremium } = require('../middleware/isPremium');
 const { logInfo, logError } = require('../utils/logger');
+
+const authenticateToken = auth.authenticate();
 
 // Get current user's provider settings
 router.get('/', authenticateToken, async (req, res) => {

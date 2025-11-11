@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const Media = require('../models/Media');
-const { authenticateToken } = require('../middleware/auth');
+const auth = require('../middleware/auth');
 const objectStorageService = require('../services/objectStorageService');
+
+const authenticateToken = auth.authenticate();
 
 const upload = multer({
   storage: multer.memoryStorage(),

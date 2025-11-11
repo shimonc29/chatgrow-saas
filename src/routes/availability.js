@@ -4,6 +4,8 @@ const Availability = require('../models/Availability');
 const auth = require('../middleware/auth');
 const Joi = require('joi');
 
+const authenticateToken = auth.authenticate();
+
 const timeSlotSchema = Joi.object({
   startTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required(),
   endTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required()
@@ -36,7 +38,7 @@ const availabilityCreateSchema = Joi.object({
   })).default([])
 });
 
-router.get('/settings', auth, async (req, res) => {
+router.get('/settings', authenticateToken, async (req, res) => {
   try {
     const providerId = req.user.userId;
     
@@ -70,7 +72,7 @@ router.get('/settings', auth, async (req, res) => {
   }
 });
 
-router.put('/settings', auth, async (req, res) => {
+router.put('/settings', authenticateToken, async (req, res) => {
   try {
     const { error } = availabilityCreateSchema.validate(req.body);
     if (error) {
@@ -99,7 +101,7 @@ router.put('/settings', auth, async (req, res) => {
   }
 });
 
-router.get('/services', auth, async (req, res) => {
+router.get('/services', authenticateToken, async (req, res) => {
   try {
     const providerId = req.user.userId;
     
@@ -116,7 +118,7 @@ router.get('/services', auth, async (req, res) => {
   }
 });
 
-router.post('/services', auth, async (req, res) => {
+router.post('/services', authenticateToken, async (req, res) => {
   try {
     const { error } = serviceSchema.validate(req.body);
     if (error) {
@@ -156,7 +158,7 @@ router.post('/services', auth, async (req, res) => {
   }
 });
 
-router.put('/services/:serviceId', auth, async (req, res) => {
+router.put('/services/:serviceId', authenticateToken, async (req, res) => {
   try {
     const { error } = serviceSchema.validate(req.body);
     if (error) {
@@ -190,7 +192,7 @@ router.put('/services/:serviceId', auth, async (req, res) => {
   }
 });
 
-router.delete('/services/:serviceId', auth, async (req, res) => {
+router.delete('/services/:serviceId', authenticateToken, async (req, res) => {
   try {
     const providerId = req.user.userId;
     const { serviceId } = req.params;
