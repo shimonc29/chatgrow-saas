@@ -23,7 +23,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Logo**: Crown icon (👑).
 - **Components**: Modular layout using Sidebar, MainLayout, and PrivateRoute.
 - **Marketing Home Page**: Public marketing page with a clean teal-light design, sticky navigation, hero section, statistics, benefits, features, testimonials, and CTAs.
-- **Landing Page Builder**: Template-based system with 5 pre-designed templates, live preview, and customizable content/styling, including analytics. Image upload integrated via ImageUploader component for Hero, About, and SEO OG images.
+- **Landing Page Builder**: Template-based system with 5 pre-designed templates, live preview, and customizable content/styling, including analytics. Image selection integrated via MediaPicker component for Hero, About, and SEO OG images.
 - **Financial Management UI**: Unified UI for managing invoices and receipts with manual creation, PDF generation, and email delivery.
 
 ### Technical Implementations
@@ -41,7 +41,12 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Public API Routes**: Secure, unauthenticated endpoints for public event registration and appointment booking.
 - **Customer Auto-Creation**: Creates/updates customer records from public registrations.
 - **Full CRUD Functionality**: Comprehensive operations for all administrative entities.
-- **Image Upload System**: Replit Object Storage integration for landing page images via ImageUploader component. Supports Hero background, About section image, and SEO Open Graph images.
+- **Centralized Media Library System**: Replit Object Storage integration with centralized media management. Features include:
+  - **Media Model**: MongoDB-based media storage with metadata (filename, URL, size, type, tags, user reference)
+  - **Media Library Page**: Admin UI for uploading, managing, and deleting images with search and filtering
+  - **MediaPicker Component**: Reusable modal for selecting images from library across the platform
+  - **Landing Page Integration**: MediaPicker used in landing page builder for Hero, About, and SEO OG images
+  - **Upload System**: Multer-based file upload with Object Storage backend (/api/media routes)
 - **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics with full management capabilities:
   - **Subscription Management**: Update subscription status (FREE/TRIAL/ACTIVE), modify customer quotas, suspend/activate accounts, delete subscribers
   - **Customer Management**: Add customers manually to any business, delete customers across businesses, transfer customers between businesses
