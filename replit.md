@@ -25,6 +25,8 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Marketing Home Page**: Public marketing page with a clean teal-light design, sticky navigation, hero section, statistics, benefits, features, testimonials, and CTAs.
 - **Landing Page Builder**: Template-based system with 5 pre-designed templates, live preview, and customizable content/styling, including analytics. Image selection integrated via MediaPicker component for Hero, About, and SEO OG images.
 - **Financial Management UI**: Unified UI for managing invoices and receipts with manual creation, PDF generation, and email delivery.
+- **Public Event Registration**: Clean teal-light design for public event registration pages with clear 403 error handling and user-friendly messaging for inactive/unpublished events.
+- **Availability Calendar UI**: Integrated Google Calendar connection management with premium gating, status display, and clear upgrade prompts for FREE users.
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.

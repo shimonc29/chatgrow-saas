@@ -9,6 +9,8 @@ const Availability = () => {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [googleCalendarStatus, setGoogleCalendarStatus] = useState(null);
+  const [googleCalendarLoading, setGoogleCalendarLoading] = useState(false);
 
   const [newService, setNewService] = useState({
     name: '',
@@ -32,6 +34,7 @@ const Availability = () => {
   useEffect(() => {
     fetchAvailability();
     fetchSubscription();
+    fetchGoogleCalendarStatus();
   }, []);
 
   const fetchSubscription = async () => {
@@ -48,6 +51,70 @@ const Availability = () => {
 
   const isPremium = () => {
     return subscription && ['TRIAL', 'ACTIVE'].includes(subscription.subscriptionStatus);
+  };
+
+  const fetchGoogleCalendarStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('/api/google-calendar/status', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setGoogleCalendarStatus(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching Google Calendar status:', err);
+    }
+  };
+
+  const handleConnectGoogleCalendar = async () => {
+    if (!isPremium()) {
+      alert('חיבור ל-Google Calendar זמין רק במנוי פרימיום. אנא שדרג את המנוי שלך.');
+      return;
+    }
+
+    try {
+      setGoogleCalendarLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/google-calendar/auth', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success && response.data.authUrl) {
+        window.location.href = response.data.authUrl;
+      }
+    } catch (err) {
+      console.error('Error connecting Google Calendar:', err);
+      alert('❌ שגיאה בחיבור ל-Google Calendar: ' + (err.response?.data?.message || 'שגיאה לא ידועה'));
+    } finally {
+      setGoogleCalendarLoading(false);
+    }
+  };
+
+  const handleDisconnectGoogleCalendar = async () => {
+    if (!confirm('האם אתה בטוח שברצונך לנתק את יומן Google? תורים לא יסונכרנו יותר.')) {
+      return;
+    }
+
+    try {
+      setGoogleCalendarLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.post('/api/google-calendar/disconnect', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert('✅ יומן Google נותק בהצלחה');
+      setGoogleCalendarStatus({ connected: false });
+      await fetchGoogleCalendarStatus();
+    } catch (err) {
+      console.error('Error disconnecting Google Calendar:', err);
+      alert('❌ שגיאה בניתוק יומן Google');
+    } finally {
+      setGoogleCalendarLoading(false);
+    }
   };
 
   const fetchAvailability = async () => {
@@ -187,37 +254,80 @@ const Availability = () => {
           </p>
         </div>
 
-        {/* Calendar Integration Notice */}
-        {!isPremium() && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        {/* Google Calendar Integration Card */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between">
             <div className="flex items-start">
-              <span className="text-2xl ml-3">📆</span>
+              <span className="text-4xl ml-3">📅</span>
               <div>
-                <h3 className="font-bold text-yellow-900 mb-1">יומן פנימי בתוכנה</h3>
-                <p className="text-yellow-800 text-sm mb-2">
-                  בתוכנית החינמית, הזמינות והתורים שלך מנוהלים רק בתוך המערכת.
-                </p>
-                <p className="text-yellow-800 text-sm">
-                  <strong>שדרג לפרימיום</strong> וקבל סנכרון אוטומטי עם Google Calendar! 🚀
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+                <h3 className="font-bold text-accent-teal text-xl mb-2">חיבור ליומן Google</h3>
+                
+                {!isPremium() && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                    <p className="text-yellow-800 text-sm mb-2">
+                      <strong>יומן פנימי בתוכנה</strong> - בתוכנית החינמית, הזמינות והתורים שלך מנוהלים רק בתוך המערכת.
+                    </p>
+                    <p className="text-yellow-800 text-sm">
+                      💎 <strong>שדרג לפרימיום</strong> וקבל סנכרון אוטומטי עם Google Calendar!
+                    </p>
+                  </div>
+                )}
 
-        {isPremium() && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <span className="text-2xl ml-3">✅</span>
-              <div>
-                <h3 className="font-bold text-green-900 mb-1">מסונכרן עם Google Calendar</h3>
-                <p className="text-green-800 text-sm">
-                  התורים והאירועים שלך מסונכרנים אוטומטית עם יומן Google! כל שינוי מתעדכן בשני הכיוונים.
-                </p>
+                {isPremium() && googleCalendarStatus?.connected && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                    <p className="text-green-800 text-sm flex items-center gap-2">
+                      <span className="text-xl">✅</span>
+                      <span>מחובר ליומן Google - התורים והאירועים שלך מסונכרנים אוטומטית!</span>
+                    </p>
+                    {googleCalendarStatus.lastSync && (
+                      <p className="text-green-700 text-xs mt-1 mr-7">
+                        סנכרון אחרון: {new Date(googleCalendarStatus.lastSync).toLocaleString('he-IL')}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {isPremium() && !googleCalendarStatus?.connected && (
+                  <p className="text-text-secondary text-sm mb-3">
+                    חבר את יומן Google שלך כדי לנהל את הזמינות שלך ישירות מהיומן.
+                    כל תור שתקבע בתוכנה יתווסף אוטומטית ליומן Google שלך! 🚀
+                  </p>
+                )}
               </div>
             </div>
+
+            <div className="flex flex-col gap-2">
+              {isPremium() && !googleCalendarStatus?.connected && (
+                <button
+                  onClick={handleConnectGoogleCalendar}
+                  disabled={googleCalendarLoading}
+                  className="px-6 py-2 bg-accent-teal text-white rounded-lg hover:bg-accent-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {googleCalendarLoading ? 'מתחבר...' : '🔗 חבר יומן Google'}
+                </button>
+              )}
+
+              {isPremium() && googleCalendarStatus?.connected && (
+                <button
+                  onClick={handleDisconnectGoogleCalendar}
+                  disabled={googleCalendarLoading}
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {googleCalendarLoading ? 'מנתק...' : '🔌 נתק יומן Google'}
+                </button>
+              )}
+
+              {!isPremium() && (
+                <button
+                  onClick={() => window.location.href = '/admin/subscription'}
+                  className="px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-colors font-bold whitespace-nowrap"
+                >
+                  💎 שדרג לפרימיום
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         <div className="bg-bg-card rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex border-b border-gray-200">
