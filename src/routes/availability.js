@@ -40,11 +40,18 @@ const availabilityCreateSchema = Joi.object({
 
 router.get('/settings', authenticateToken, async (req, res) => {
   try {
+    if (!req.user || !req.user.userId) {
+      console.error('Availability GET /settings: req.user or userId is missing', req.user);
+      return res.status(401).json({ error: 'Unauthorized - user information missing' });
+    }
+    
     const providerId = req.user.userId;
+    console.log('Fetching availability for providerId:', providerId);
     
     let availability = await Availability.findOne({ providerId });
     
     if (!availability) {
+      console.log('No availability found, creating default for providerId:', providerId);
       availability = new Availability({
         providerId,
         weeklySchedule: [
@@ -62,13 +69,20 @@ router.get('/settings', authenticateToken, async (req, res) => {
         minAdvanceBookingHours: 2,
         blockedDates: []
       });
-      await availability.save();
+      
+      try {
+        await availability.save();
+        console.log('Default availability created successfully');
+      } catch (saveError) {
+        console.error('Error saving default availability:', saveError);
+        return res.status(500).json({ error: 'Failed to create default availability settings' });
+      }
     }
     
     res.json(availability);
   } catch (error) {
-    console.error('Get availability error:', error);
-    res.status(500).json({ error: 'Failed to fetch availability settings' });
+    console.error('Get availability error:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to fetch availability settings', details: error.message });
   }
 });
 

@@ -164,8 +164,12 @@ const SubscriptionManagement = () => {
                 <span className="text-text-secondary">דוחות בסיסיים</span>
               </li>
               <li className="flex items-start">
+                <span className="text-green-500 mr-2">✓</span>
+                <span className="text-text-secondary">יומן פנימי בתוכנה</span>
+              </li>
+              <li className="flex items-start">
                 <span className="text-red-500 mr-2">✗</span>
-                <span className="text-text-secondary line-through">Google Calendar</span>
+                <span className="text-text-secondary line-through">חיבור ליומן Google Calendar</span>
               </li>
               <li className="flex items-start">
                 <span className="text-red-500 mr-2">✗</span>
@@ -174,6 +178,10 @@ const SubscriptionManagement = () => {
               <li className="flex items-start">
                 <span className="text-red-500 mr-2">✗</span>
                 <span className="text-text-secondary line-through">דוחות מלאים</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-red-500 mr-2">✗</span>
+                <span className="text-text-secondary line-through">תשלומים אוטומטיים מטרנזילה</span>
               </li>
             </ul>
             {!premiumStatus && (
@@ -202,7 +210,15 @@ const SubscriptionManagement = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">✓</span>
-                  <span>אינטגרציה עם Google Calendar</span>
+                  <span>תשלומים אוטומטיים דרך Tranzila</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">✓</span>
+                  <span>חשבוניות וקבלות אוטומטיות</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">✓</span>
+                  <span>חיבור ליומן Google Calendar</span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">✓</span>
@@ -215,10 +231,6 @@ const SubscriptionManagement = () => {
                 <li className="flex items-start">
                   <span className="mr-2">✓</span>
                   <span>תמיכה טכנית מהירה</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">✓</span>
-                  <span>אפשרות Whitelabel</span>
                 </li>
               </ul>
               <div className="text-center">
@@ -248,23 +260,16 @@ const SubscriptionManagement = () => {
                 </p>
                 <ul className="text-green-700 text-sm space-y-1">
                   <li>✓ לקוחות בלתי מוגבלים</li>
-                  <li>✓ כל הפיצ'רים הפרימיום זמינים</li>
+                  <li>✓ תשלומים אוטומטיים דרך Tranzila</li>
+                  <li>✓ חשבוניות וקבלות אוטומטיות</li>
+                  <li>✓ חיבור ליומן Google Calendar</li>
+                  <li>✓ תזכורות SMS</li>
                   <li>✓ תמיכה טכנית מהירה</li>
                 </ul>
               </div>
             </div>
           </div>
         )}
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-          <h4 className="font-semibold text-blue-900 mb-2">💡 טיפ:</h4>
-          <p className="text-blue-800 text-sm">
-            רוצה להרוויח 95% מהתשלומים ישירות לחשבון הבנק שלך? 
-            <a href="/admin/payment-onboarding" className="underline font-semibold mr-1">
-              הירשם למערכת Payment Provider
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

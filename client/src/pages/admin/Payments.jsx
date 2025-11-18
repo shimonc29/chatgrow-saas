@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
 import { paymentsAPI, customersAPI } from '../../services/api';
+import axios from 'axios';
 
 const Payments = () => {
   const [showModal, setShowModal] = useState(false);
@@ -11,6 +12,7 @@ const Payments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [providers, setProviders] = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [formData, setFormData] = useState({
     customerId: '',
     amount: '',
@@ -25,7 +27,24 @@ const Payments = () => {
     fetchPayments();
     fetchCustomers();
     fetchProviders();
+    fetchSubscription();
   }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/subscribers/subscription', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSubscription(response.data);
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    }
+  };
+
+  const isPremium = () => {
+    return subscription && ['TRIAL', 'ACTIVE'].includes(subscription.subscriptionStatus);
+  };
 
   const fetchPayments = async () => {
     try {
@@ -225,8 +244,12 @@ const Payments = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-accent-teal">ניהול תשלומים</h1>
-            <p className="text-text-primary mt-2">נהל את התשלומים והחשבוניות שלך</p>
+            <h1 className="text-3xl font-bold text-accent-teal">💰 ניהול תשלומים</h1>
+            <p className="text-text-primary mt-2">
+              {isPremium() 
+                ? 'תשלומים אוטומטיים מטרנזילה וניהול חשבוניות וקבלות'
+                : 'ניהול ידני של תשלומים, חשבוניות וקבלות'}
+            </p>
           </div>
           <button
             onClick={handleOpenModal}
@@ -236,6 +259,38 @@ const Payments = () => {
             <span>תשלום חדש</span>
           </button>
         </div>
+
+        {/* Subscription Notice */}
+        {!isPremium() && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <span className="text-2xl ml-3">ℹ️</span>
+              <div>
+                <h3 className="font-bold text-yellow-900 mb-1">תוכנית חינמית - ניהול ידני</h3>
+                <p className="text-yellow-800 text-sm mb-2">
+                  בתוכנית החינמית, תצטרך לרשום תשלומים באופן ידני ולהוציא חשבוניות וקבלות בעצמך.
+                </p>
+                <p className="text-yellow-800 text-sm">
+                  <strong>שדרג לפרימיום</strong> וקבל תשלומים אוטומטיים מטרנזילה עם חשבוניות וקבלות אוטומטיות! 🚀
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isPremium() && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <span className="text-2xl ml-3">✅</span>
+              <div>
+                <h3 className="font-bold text-green-900 mb-1">מנוי פרימיום - תשלומים אוטומטיים</h3>
+                <p className="text-green-800 text-sm">
+                  התשלומים שלך מתקבלים אוטומטית דרך טרנזילה, והחשבוניות והקבלות נוצרות באופן אוטומטי!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-bg-light border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
