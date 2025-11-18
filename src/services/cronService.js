@@ -6,6 +6,8 @@ const Payment = require('../models/Payment');
 const notificationService = require('./notificationService');
 const paymentService = require('./paymentService');
 const invoiceService = require('./invoiceService');
+const strategicReportService = require('./strategicReportService');
+const dataBrokerService = require('./dataBrokerService');
 
 class CronService {
     constructor() {
@@ -28,6 +30,7 @@ class CronService {
             this.scheduleMonthlyReports();
             this.scheduleMonthlyPlatformFeeInvoices();
             this.scheduleDataCleanup();
+            this.scheduleWeeklyStrategicReports();
 
             this.isInitialized = true;
             logInfo('CronService initialized successfully', {
@@ -630,6 +633,153 @@ class CronService {
                 <p>צוות ChatGrow</p>
             </div>
         `;
+    }
+
+    /**
+     * Schedule weekly strategic AI reports for Premium businesses
+     * Runs every Monday at 02:00 AM
+     */
+    scheduleWeeklyStrategicReports() {
+        const job = cron.schedule('0 2 * * 1', async () => {
+            try {
+                logInfo('Running weekly strategic reports job');
+                await this.generateWeeklyStrategicReports();
+            } catch (error) {
+                logError('Weekly strategic reports job failed', error);
+            }
+        });
+
+        this.jobs.set('weeklyStrategicReports', job);
+        logInfo('Scheduled weekly strategic reports job (Monday 02:00)');
+    }
+
+    /**
+     * Generate strategic AI reports for all Premium businesses
+     * Multi-Tenant: Each business processed independently
+     */
+    async generateWeeklyStrategicReports() {
+        try {
+            logInfo('Starting weekly strategic reports generation for all Premium businesses');
+
+            // Step 1: Get all Premium businesses
+            const premiumBusinesses = await dataBrokerService.getPremiumBusinesses();
+
+            if (premiumBusinesses.length === 0) {
+                logInfo('No premium businesses found - skipping strategic reports');
+                return;
+            }
+
+            logInfo(`Found ${premiumBusinesses.length} premium businesses for strategic reports`);
+
+            // Step 2: Calculate date range (last 7 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+
+            // Step 3: Process each business in parallel (with concurrency limit)
+            const results = await this.processBatchReports(
+                premiumBusinesses,
+                startDate,
+                endDate,
+                5 // Max 5 concurrent reports
+            );
+
+            const successful = results.filter(r => r.status === 'success').length;
+            const failed = results.filter(r => r.status === 'failed').length;
+
+            logInfo('Weekly strategic reports completed', {
+                total: premiumBusinesses.length,
+                successful,
+                failed
+            });
+
+        } catch (error) {
+            logError('Failed to generate weekly strategic reports', error);
+        }
+    }
+
+    /**
+     * Process reports in batches to avoid overwhelming the system
+     * @param {Array} businesses - List of premium businesses
+     * @param {Date} startDate - Report start date
+     * @param {Date} endDate - Report end date
+     * @param {Number} concurrency - Max concurrent reports
+     */
+    async processBatchReports(businesses, startDate, endDate, concurrency = 5) {
+        const results = [];
+        const queue = [...businesses];
+
+        // Process in batches of 'concurrency'
+        while (queue.length > 0) {
+            const batch = queue.splice(0, concurrency);
+
+            const batchResults = await Promise.allSettled(
+                batch.map(business => this.generateBusinessReport(business, startDate, endDate))
+            );
+
+            // Collect results
+            batchResults.forEach((result, index) => {
+                const business = batch[index];
+                if (result.status === 'fulfilled') {
+                    results.push({
+                        businessId: business.id,
+                        status: 'success',
+                        reportId: result.value._id
+                    });
+                } else {
+                    results.push({
+                        businessId: business.id,
+                        status: 'failed',
+                        error: result.reason?.message || 'Unknown error'
+                    });
+                }
+            });
+
+            // Small delay between batches to prevent API rate limits
+            if (queue.length > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Generate strategic report for a single business
+     * @param {Object} business - Business subscriber object
+     * @param {Date} startDate - Report start date
+     * @param {Date} endDate - Report end date
+     */
+    async generateBusinessReport(business, startDate, endDate) {
+        try {
+            logInfo('Generating strategic report for business', {
+                businessId: business.id,
+                businessEmail: business.email
+            });
+
+            // Call Strategic Report Service
+            const report = await strategicReportService.generateReport(
+                business.id,
+                startDate,
+                endDate
+            );
+
+            logInfo('Strategic report generated successfully', {
+                businessId: business.id,
+                reportId: report._id
+            });
+
+            // Optional: Send notification to business owner
+            // await notificationService.sendStrategicReportNotification(business, report);
+
+            return report;
+
+        } catch (error) {
+            logError('Failed to generate strategic report for business', error, {
+                businessId: business.id
+            });
+            throw error;
+        }
     }
 
     /**

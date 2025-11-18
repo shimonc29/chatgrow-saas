@@ -240,6 +240,7 @@ try {
     app.use('/api/google-calendar', require('./routes/googleCalendar'));
     app.use('/api/uploads', require('./routes/uploads'));
     app.use('/api/media', require('./routes/media'));
+    app.use('/api/strategic-reports', require('./routes/strategicReports'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);
