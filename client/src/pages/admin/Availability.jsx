@@ -8,6 +8,7 @@ const Availability = () => {
   const [loading, setLoading] = useState(true);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const [subscription, setSubscription] = useState(null);
 
   const [newService, setNewService] = useState({
     name: '',
@@ -30,7 +31,24 @@ const Availability = () => {
 
   useEffect(() => {
     fetchAvailability();
+    fetchSubscription();
   }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/subscribers/subscription', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSubscription(response.data);
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    }
+  };
+
+  const isPremium = () => {
+    return subscription && ['TRIAL', 'ACTIVE'].includes(subscription.subscriptionStatus);
+  };
 
   const fetchAvailability = async () => {
     setLoading(true);
@@ -162,8 +180,44 @@ const Availability = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-accent-teal mb-2">📅 ניהול זמינות ושירותים</h1>
-          <p className="text-text-secondary">הגדר מתי אתה זמין ומה אפשר להזמין</p>
+          <p className="text-text-secondary">
+            {isPremium() 
+              ? 'הגדר זמינות ושירותים - מסונכרן עם Google Calendar'
+              : 'הגדר זמינות ושירותים - יומן פנימי בתוכנה'}
+          </p>
         </div>
+
+        {/* Calendar Integration Notice */}
+        {!isPremium() && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <span className="text-2xl ml-3">📆</span>
+              <div>
+                <h3 className="font-bold text-yellow-900 mb-1">יומן פנימי בתוכנה</h3>
+                <p className="text-yellow-800 text-sm mb-2">
+                  בתוכנית החינמית, הזמינות והתורים שלך מנוהלים רק בתוך המערכת.
+                </p>
+                <p className="text-yellow-800 text-sm">
+                  <strong>שדרג לפרימיום</strong> וקבל סנכרון אוטומטי עם Google Calendar! 🚀
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isPremium() && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <span className="text-2xl ml-3">✅</span>
+              <div>
+                <h3 className="font-bold text-green-900 mb-1">מסונכרן עם Google Calendar</h3>
+                <p className="text-green-800 text-sm">
+                  התורים והאירועים שלך מסונכרנים אוטומטית עם יומן Google! כל שינוי מתעדכן בשני הכיוונים.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-bg-card rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex border-b border-gray-200">

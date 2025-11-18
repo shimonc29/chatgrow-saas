@@ -12,14 +12,13 @@ import Payments from './pages/admin/Payments';
 import Financial from './pages/admin/Financial';
 import Availability from './pages/admin/Availability';
 import RegistrationPages from './pages/admin/RegistrationPages';
-import PaymentSettings from './pages/admin/PaymentSettings';
+import TranzilaSettings from './pages/admin/TranzilaSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
 import LandingPages from './pages/admin/LandingPages';
 import LandingPageEditor from './pages/admin/LandingPageEditor';
 import MediaLibrary from './pages/admin/MediaLibrary';
 import SuperAdmin from './pages/admin/SuperAdmin';
 import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
-import PaymentOnboarding from './pages/admin/PaymentOnboarding';
 import SubscriptionManagement from './pages/admin/SubscriptionManagement';
 
 import EventRegistration from './pages/public/EventRegistration';
@@ -112,10 +111,10 @@ function App() {
           />
 
           <Route 
-            path="/payment-settings" 
+            path="/tranzila-settings" 
             element={
               <PrivateRoute>
-                <PaymentSettings />
+                <TranzilaSettings />
               </PrivateRoute>
             } 
           />
@@ -170,15 +169,6 @@ function App() {
             element={
               <PrivateRoute>
                 <CheckSuperAdmin />
-              </PrivateRoute>
-            } 
-          />
-
-          <Route 
-            path="/payment-onboarding" 
-            element={
-              <PrivateRoute>
-                <PaymentOnboarding />
               </PrivateRoute>
             } 
           />

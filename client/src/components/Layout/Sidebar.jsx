@@ -39,8 +39,7 @@ const Sidebar = () => {
     { path: '/media', icon: '📚', label: 'ספריית מדיה' },
     { path: '/registration-pages', icon: '🔗', label: 'דפי הרשמה' },
     { path: '/subscription', icon: '📋', label: 'מנוי ומכסות' },
-    { path: '/payment-onboarding', icon: '💳', label: 'הרשמה לתשלומים' },
-    { path: '/payment-settings', icon: '⚙️', label: 'הגדרות תשלום' },
+    { path: '/tranzila-settings', icon: '⚡', label: 'הגדרות Tranzila' },
     { path: '/provider-settings', icon: '🔧', label: 'הגדרות ספקים' },
   ];
 
