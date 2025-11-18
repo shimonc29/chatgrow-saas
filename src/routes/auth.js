@@ -412,20 +412,34 @@ router.get('/login', (req, res) => {
 // Register service provider API
 router.post('/register', async (req, res) => {
     try {
-        const { fullName, businessName, email, password, phone, serviceType } = req.body;
+        let { fullName, businessName, email, password, phone, serviceType, profile } = req.body;
+        
+        // Support both full registration (with all fields) and simple registration (with profile.name)
+        if (!fullName && profile?.name) {
+            fullName = profile.name;
+            businessName = profile.name; // Use name as businessName for simple registration
+        }
+        
+        // Validate required fields
+        if (!fullName || !email || !password) {
+            return res.json({ 
+                success: false, 
+                message: 'נא למלא את כל השדות הנדרשים (שם, אימייל, סיסמה)' 
+            });
+        }
         
         const existingProvider = await ServiceProvider.findByEmail(email);
         if (existingProvider) {
-            return res.json({ success: false, message: 'ספק שירות עם אימייל זה כבר קיים' });
+            return res.json({ success: false, message: 'משתמש עם אימייל זה כבר קיים' });
         }
         
         const newProvider = new ServiceProvider({
             fullName,
-            businessName,
+            businessName: businessName || fullName, // Default businessName to fullName if not provided
             email,
             password,
-            phone,
-            serviceType,
+            phone: phone || null,
+            serviceType: serviceType || null,
             analytics: {
                 totalCustomers: 0,
                 totalAppointments: 0,
