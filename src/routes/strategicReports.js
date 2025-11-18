@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const strategicReportService = require('../services/strategicReportService');
 const redisManager = require('../services/redisClient');
-const { requireAuth, isPremium } = require('../middleware/auth');
+const auth = require('../middleware/auth');
+const { isPremium } = require('../middleware/isPremium');
 const { logInfo, logError } = require('../utils/logger');
+
+const authenticateToken = auth.authenticate();
 
 /**
  * Strategic Reports Routes - דוחות אסטרטגיים AI שבועיים
@@ -18,7 +21,7 @@ const { logInfo, logError } = require('../utils/logger');
  * GET /api/strategic-reports/latest
  * קבלת הדוח האחרון של העסק
  */
-router.get('/latest', requireAuth, isPremium, async (req, res) => {
+router.get('/latest', authenticateToken, isPremium, async (req, res) => {
   try {
     const businessId = req.user.userId || req.provider?.providerId;
 
@@ -86,7 +89,7 @@ router.get('/latest', requireAuth, isPremium, async (req, res) => {
  * GET /api/strategic-reports/:reportId
  * קבלת דוח ספציפי לפי ID (עם אימות tenantId)
  */
-router.get('/:reportId', requireAuth, isPremium, async (req, res) => {
+router.get('/:reportId', authenticateToken, isPremium, async (req, res) => {
   try {
     const businessId = req.user.userId || req.provider?.providerId;
     const { reportId } = req.params;
@@ -168,9 +171,12 @@ router.get('/:reportId', requireAuth, isPremium, async (req, res) => {
 /**
  * POST /api/strategic-reports/generate
  * יצירת דוח מיידי (למטרות בדיקה או לפי דרישה)
- * Optional: ניתן להגביל רק למנהלים
+ * 
+ * Access Policy: Available to all Premium users for testing/on-demand generation
+ * Note: For production use, consider restricting to admins via additional middleware
+ * to prevent excessive OpenAI API usage
  */
-router.post('/generate', requireAuth, isPremium, async (req, res) => {
+router.post('/generate', authenticateToken, isPremium, async (req, res) => {
   try {
     const businessId = req.user.userId || req.provider?.providerId;
 
@@ -227,7 +233,7 @@ router.post('/generate', requireAuth, isPremium, async (req, res) => {
  * DELETE /api/strategic-reports/cache
  * מחיקת Cache של דוחות (למטרות ניקוי)
  */
-router.delete('/cache', requireAuth, isPremium, async (req, res) => {
+router.delete('/cache', authenticateToken, isPremium, async (req, res) => {
   try {
     const businessId = req.user.userId || req.provider?.providerId;
 

@@ -183,7 +183,11 @@ class StrategicReportService {
         tokensUsed: response.usage?.total_tokens || 0
       };
     } catch (error) {
-      logError('AI insights generation failed', error);
+      logError('AI insights generation failed - using fallback insights', error, {
+        businessId: businessData.businessId,
+        errorType: error.constructor.name,
+        alertOps: true // Alert operations team about AI degradation
+      });
 
       // Fallback - דוח מינימלי במקרה של כשל
       return this.getFallbackInsights(businessData);
