@@ -2,7 +2,7 @@
 
 ## Overview
 
-ChatGrow is a multi-tenant SaaS platform designed for managing small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users. It incorporates marketplace-style payment splitting, where the platform takes a 5% fee. Key features include a React 19 admin dashboard with Hebrew RTL support, Google Calendar integration, Object Storage, a landing page builder, AI Performance Coach for event optimization, a Super Admin panel for analytics, and comprehensive subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
+ChatGrow is a multi-tenant SaaS platform designed for managing small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users. It incorporates marketplace-style payment splitting, where the platform takes a 5% fee. Key features include a React 19 admin dashboard with Hebrew RTL support, Google Calendar integration, Object Storage, a landing page builder, AI Performance Coach for event optimization, Weekly Strategic AI Reports with multi-tenant Redis caching, a Super Admin panel for analytics, and comprehensive subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
 
 ## User Preferences
 
@@ -49,6 +49,17 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
   - **Services**: `aiService.js` (OpenAI integration), `eventDataService.js` (analytics aggregation)
   - **Route**: `/api/events/:eventId/ai-insights` (protected by isPremium middleware)
   - **UI**: `AIInsightsCard.jsx` with premium gating (FREE users see upgrade prompt)
+- **Weekly Strategic AI Reports**: Premium-only automated business intelligence system generating comprehensive weekly reports every Monday at 02:00 AM. Powered by OpenAI GPT-4o-mini with Zod schema validation and multi-tenant Redis caching:
+  - **Pricing Recommendations**: Current pricing analysis with category-specific optimization suggestions and expected revenue impact
+  - **Demand Forecast**: Weekly attendance trends by day, seasonal patterns analysis, and upcoming opportunities identification
+  - **Key Risks**: Multi-category risk identification (financial, operational, competitive) with severity levels and mitigation strategies
+  - **Architecture**: Multi-tenant data isolation (MongoDB businessId filtering, Redis tenant-scoped key prefixing), batch processing with concurrency limits (5 concurrent reports), graceful AI fallback on errors
+  - **Services**: `strategicReportService.js` (AI generation with Zod validation), `dataBrokerService.js` (multi-source aggregation), `redisClient.js` (tenant-isolated caching)
+  - **Model**: `StrategicReport.js` (MongoDB with indexed businessId, status tracking, AI metadata)
+  - **Cron**: Weekly automation in `cronService.js` (Monday 02:00 AM) with distributed tenant processing
+  - **Routes**: `/api/strategic-reports` (GET /latest, GET /:reportId, POST /generate, DELETE /cache) - all protected by authenticateToken + isPremium
+  - **Caching**: 6-day Redis TTL per tenant, automatic cache invalidation on manual generation
+  - **Security**: Strict tenant authorization validation, no cross-tenant data leakage, tenant key validation against injection
 - **Centralized Media Library System**: Replit Object Storage integration with centralized media management. Features include:
   - **Media Model**: MongoDB-based media storage with metadata (filename, URL, size, type, tags, user reference)
   - **Media Library Page**: Admin UI for uploading, managing, and deleting images with search and filtering
