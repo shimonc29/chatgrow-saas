@@ -18,7 +18,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Frontend Framework**: React 19 with Vite.
 - **Styling**: Tailwind CSS v3 with full RTL.
 - **Design Theme**: Clean, professional teal-light color scheme.
-- **Key Admin Pages**: Payment Onboarding, Subscription Management, Platform Fees Dashboard (Super Admin only).
+- **Key Admin Pages**: Payment Onboarding (Cardcom/GROW/Tranzila with affiliate link), Subscription Management, Platform Fees Dashboard (Super Admin only).
 - **Color Palette**: BG Light (#F8F9FA), BG Card (#FFFFFF), Accent Teal (#00798C), Accent Hover (#035368), Text Primary (#212529), Text Secondary (#6C757D).
 - **Logo**: Crown icon (👑).
 - **Components**: Modular layout using Sidebar, MainLayout, and PrivateRoute.
@@ -31,9 +31,10 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Authentication**: JWT for security, AuthContext, Protected Routes.
 - **Freemium Model**: Enforced 200-customer limit for FREE users via middleware; premium features (Google Calendar, SMS, reports) gated for TRIAL/ACTIVE subscribers.
 - **Marketplace Payments**: 95%/5% split logic with Cardcom/GROW integration; 5% platform fee applied when `user.paymentProviderId` exists. Platform fees are automated monthly via Green Invoice/iCount.
-- **Multi-Tenant Provider System**: `ProviderSettings` model allows per-business configuration of Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW) providers.
+- **Tranzila Affiliate Integration**: Alternative payment model where providers use their own Tranzila terminal (via affiliate signup) for direct payment processing without platform fee splitting. Payments go 100% to the provider's account. Configured via `user.tranzilaTerminal` field.
+- **Multi-Tenant Provider System**: `ProviderSettings` model allows per-business configuration of Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW/Tranzila) providers.
 - **Notifications**: `NotificationService` for Email and SMS with provider-swapping, templates, and delivery tracking.
-- **Payments & Invoicing**: `PaymentService` and `InvoiceService` support Israeli providers (Cardcom, GROW), generate Hebrew PDF invoices, and automate workflows.
+- **Payments & Invoicing**: `PaymentService` and `InvoiceService` support Israeli providers (Cardcom, GROW, Tranzila), generate Hebrew PDF invoices, and automate workflows.
 - **Receipt System**: `ReceiptService` for automatic and manual Hebrew PDF receipt generation with RTL support.
 - **CRON Automation**: `CronService` (node-cron) handles scheduled tasks like reminders, payments, reports, and platform fee invoicing.
 - **Queue System**: In-memory queue with basic retry logic.
@@ -55,7 +56,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
 - **Dashboard**: Overview of statistics and quick actions.
-- **Payment Management**: Multi-currency, various payment methods, integration with Israeli providers.
+- **Payment Management**: Multi-currency, various payment methods, integration with Israeli providers (Cardcom, GROW, Tranzila).
 - **Invoice Management**: Manual/automatic generation, itemized billing, tax calculation, Hebrew PDF, email delivery.
 - **Receipt Management**: Automatic/manual generation, Hebrew PDF with RTL.
 - **Provider Configuration**: Multi-tenant Email, SMS, Payment provider setup.
@@ -76,7 +77,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Database Strategy**: Hybrid with PostgreSQL (users/subscribers) and MongoDB Atlas (events, customers, appointments, payments, invoices, analytics, WhatsApp).
 - **Multi-Tenant Architecture**: Isolated data per business client, with Super Admin system-wide access.
 - **Access Control**: Three tiers: FREE (200 customer limit, basic), PREMIUM (unlimited customers, advanced features), Super Admin (system-wide access).
-- **Business Model**: Freemium (200-customer limit), Marketplace Revenue (5% platform fee), automated platform fee billing.
+- **Business Model**: Freemium (200-customer limit), Marketplace Revenue (5% platform fee for Cardcom/GROW), Affiliate Model (Tranzila - 100% direct payments), automated platform fee billing.
 - **Modularity**: Structured backend (models, routes, services) and frontend (pages, components, contexts).
 - **Development Setup**: Single `fullstack` workflow with Vite proxy.
 
@@ -87,7 +88,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Object Storage**: Replit Object Storage (requires `PRIVATE_OBJECT_DIR`).
 - **Super Admin Access Control**: `SUPER_ADMIN_EMAILS` environment variable.
 - **Communication Services**: Nodemailer, SendGrid, Twilio.
-- **Payment Gateways**: Cardcom, Meshulam (GROW).
+- **Payment Gateways**: Cardcom, Meshulam (GROW), Tranzila (Affiliate Model - direct payments, no platform fee).
 - **Accounting Software Integration**: Green Invoice, iCount.
 - **Security & Utilities**: JWT, Winston, Helmet, CORS, Mongoose, pg, PDFKit, Bcrypt, Joi.
 - **Frontend Libraries**: React, Vite, Tailwind CSS, React Router, Axios.

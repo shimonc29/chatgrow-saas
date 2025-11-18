@@ -44,7 +44,10 @@ const PaymentOnboarding = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('✅ ההרשמה הושלמה בהצלחה! עכשיו תוכל לקבל 95% מהתשלומים ישירות לחשבון שלך.');
+      const successMessage = selectedProvider === 'tranzila' 
+        ? '✅ ההרשמה ל-Tranzila הושלמה בהצלחה! עכשיו תוכל לקבל 100% מהתשלומים ישירות לחשבון שלך ללא עמלת פלטפורמה!'
+        : '✅ ההרשמה הושלמה בהצלחה! עכשיו תוכל לקבל 95% מהתשלומים ישירות לחשבון שלך.';
+      alert(successMessage);
       await checkOnboardingStatus();
     } catch (error) {
       console.error('Failed to register:', error);
@@ -66,6 +69,10 @@ const PaymentOnboarding = () => {
   }
 
   if (onboardingStatus?.isOnboarded) {
+    const isTranzila = onboardingStatus.provider === 'tranzila' || !!onboardingStatus.tranzilaTerminal;
+    const providerName = onboardingStatus.provider === 'cardcom' ? 'Cardcom' : 
+                        onboardingStatus.provider === 'grow' ? 'GROW' : 'Tranzila';
+
     return (
       <div className="min-h-screen bg-bg-light p-8" dir="rtl">
         <div className="max-w-4xl mx-auto">
@@ -78,38 +85,65 @@ const PaymentOnboarding = () => {
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">ההרשמה הושלמה בהצלחה! 🎉</h2>
               <p className="text-text-secondary mb-6">
-                החשבון שלך מחובר ל-{onboardingStatus.provider === 'cardcom' ? 'Cardcom' : 'GROW'}
+                החשבון שלך מחובר ל-{providerName}
               </p>
               
-              <div className="bg-gradient-to-r from-accent-teal to-accent-hover text-white rounded-lg p-6 mb-6">
-                <h3 className="text-xl font-bold mb-2">מודל התשלומים שלך</h3>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-4xl font-bold">95%</div>
-                    <div className="text-sm opacity-90">הולך לחשבון שלך</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold">5%</div>
-                    <div className="text-sm opacity-90">עמלת פלטפורמה</div>
+              {isTranzila ? (
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-2">מודל התשלומים שלך - Tranzila</h3>
+                  <div className="text-center">
+                    <div className="text-5xl font-bold mb-2">100%</div>
+                    <div className="text-sm opacity-90">כל התשלומים הולכים ישירות לחשבון שלך!</div>
+                    <div className="text-xs opacity-75 mt-2">ללא עמלת פלטפורמה - סליקה ישירה דרך הטרמינל שלך</div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-gradient-to-r from-accent-teal to-accent-hover text-white rounded-lg p-6 mb-6">
+                  <h3 className="text-xl font-bold mb-2">מודל התשלומים שלך</h3>
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-4xl font-bold">95%</div>
+                      <div className="text-sm opacity-90">הולך לחשבון שלך</div>
+                    </div>
+                    <div>
+                      <div className="text-4xl font-bold">5%</div>
+                      <div className="text-sm opacity-90">עמלת פלטפורמה</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-right">
-                <h4 className="font-semibold text-blue-900 mb-2">📋 מידע חשוב:</h4>
-                <ul className="text-blue-800 text-sm space-y-2">
-                  <li>✅ כל תשלום יעבור דרך Cardcom/GROW</li>
-                  <li>✅ 95% מהסכום יועבר ישירות לחשבון הבנק שלך</li>
-                  <li>✅ 5% עמלת פלטפורמה תנוכה אוטומטית</li>
-                  <li>✅ תקבל חשבונית חודשית על העמלות ב-1 לכל חודש</li>
-                </ul>
-              </div>
-
-              <div className="mt-6">
-                <p className="text-sm text-text-secondary">
-                  <strong>מזהה חשבון:</strong> {onboardingStatus.paymentProviderId}
-                </p>
-              </div>
+              {isTranzila ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-right">
+                  <h4 className="font-semibold text-green-900 mb-2">🔷 Tranzila - תשלומים ישירים</h4>
+                  <ul className="text-green-800 text-sm space-y-2">
+                    <li>✅ כל תשלום עובר ישירות לחשבון שלך דרך הטרמינל של Tranzila</li>
+                    <li>✅ 100% מהסכום - ללא ניכוי עמלת פלטפורמה</li>
+                    <li>✅ הסליקה מתבצעת דרך הטרמינל האישי שלך</li>
+                    <li>✅ ניהול מלא של התשלומים במערכת Tranzila שלך</li>
+                  </ul>
+                  <div className="mt-4 pt-4 border-t border-green-300">
+                    <p className="text-sm text-green-900">
+                      <strong>מספר טרמינל:</strong> {onboardingStatus.tranzilaTerminal}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-right">
+                  <h4 className="font-semibold text-blue-900 mb-2">📋 מידע חשוב:</h4>
+                  <ul className="text-blue-800 text-sm space-y-2">
+                    <li>✅ כל תשלום יעבור דרך {providerName}</li>
+                    <li>✅ 95% מהסכום יועבר ישירות לחשבון הבנק שלך</li>
+                    <li>✅ 5% עמלת פלטפורמה תנוכה אוטומטית</li>
+                    <li>✅ תקבל חשבונית חודשית על העמלות ב-1 לכל חודש</li>
+                  </ul>
+                  <div className="mt-4 pt-4 border-t border-blue-300">
+                    <p className="text-sm text-blue-900">
+                      <strong>מזהה חשבון:</strong> {onboardingStatus.paymentProviderId}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -124,7 +158,7 @@ const PaymentOnboarding = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-text-primary mb-2">הרשמה למערכת תשלומים 💳</h1>
             <p className="text-text-secondary">
-              הירשם כדי לקבל 95% מהתשלומים ישירות לחשבון הבנק שלך
+              בחר את ספק התשלומים המועדף עליך - קבל 95% (Cardcom/GROW) או 100% (Tranzila) מהתשלומים
             </p>
           </div>
 
