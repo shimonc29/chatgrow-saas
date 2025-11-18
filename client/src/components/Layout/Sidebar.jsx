@@ -78,34 +78,19 @@ const Sidebar = () => {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {isSuperAdmin && (
-            <>
-              <li>
-                <Link
-                  to="/super-admin"
-                  className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive('/super-admin')
-                      ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
-                      : 'text-text-primary hover:bg-bg-card hover:text-accent-teal'
-                  }`}
-                >
-                  <span className="text-xl">👑</span>
-                  <span>Super Admin</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/platform-fees"
-                  className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive('/platform-fees')
-                      ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
-                      : 'text-text-primary hover:bg-bg-card hover:text-accent-teal'
-                  }`}
-                >
-                  <span className="text-xl">💰</span>
-                  <span>עמלות פלטפורמה</span>
-                </Link>
-              </li>
-            </>
+            <li>
+              <Link
+                to="/super-admin"
+                className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive('/super-admin')
+                    ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
+                    : 'text-text-primary hover:bg-bg-card hover:text-accent-teal'
+                }`}
+              >
+                <span className="text-xl">👑</span>
+                <span>Super Admin</span>
+              </Link>
+            </li>
           )}
           {menuItems.map((item) => (
             <li key={item.path}>
