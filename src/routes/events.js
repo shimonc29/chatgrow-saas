@@ -4,6 +4,9 @@ const router = express.Router();
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const EventService = require('../services/eventService');
+const aiService = require('../services/aiService');
+const eventDataService = require('../services/eventDataService');
+const { isPremium } = require('../middleware/isPremium');
 const { logApiRequest } = require('../utils/logger');
 
 // Import the shared verifyProviderToken middleware from auth routes
@@ -305,6 +308,48 @@ router.delete('/registrations/:registrationId', verifyProviderToken, async (req,
         });
         res.status(500).json({
             success: false,
+            error: error.message
+        });
+    }
+});
+
+// AI Performance Insights - Premium Feature
+router.get('/:eventId/ai-insights', verifyProviderToken, isPremium, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { eventId } = req.params;
+        const businessId = req.provider.providerId;
+        
+        // שלוף את נתוני האירוע
+        const eventData = await eventDataService.getEventForAI(eventId, businessId);
+        
+        if (!eventData) {
+            logApiRequest(req.method, req.originalUrl, 404, Date.now() - startTime);
+            return res.status(404).json({
+                success: false,
+                message: 'האירוע לא נמצא'
+            });
+        }
+        
+        // קריאה לשירות ה-AI
+        const result = await aiService.getPerformanceInsights(eventId, eventData, businessId);
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId,
+            eventId,
+            tokensUsed: result.metadata?.tokensUsed || 0
+        });
+        
+        res.json(result);
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בהפקת המלצות AI',
             error: error.message
         });
     }

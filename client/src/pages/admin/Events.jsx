@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
 import { eventsAPI } from '../../services/api';
+import AIInsightsCard from '../../components/AIInsightsCard';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
@@ -197,6 +198,16 @@ const Events = () => {
         {error && (
           <div className="bg-bg-card border border-red-600/30 text-red-400 px-4 py-3 rounded-lg mb-4">
             {error}
+          </div>
+        )}
+
+        {/* AI Insights - מוצג רק אם יש אירועים */}
+        {events.length > 0 && (
+          <div className="mb-8">
+            <AIInsightsCard 
+              eventId={events[0]._id} 
+              eventName={events[0].name}
+            />
           </div>
         )}
 

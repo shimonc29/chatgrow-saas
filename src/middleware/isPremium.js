@@ -31,6 +31,7 @@ const isPremium = async (req, res, next) => {
         upgradeRequired: true,
         featuresList: {
           premium: [
+            'AI Performance Coach - המלצות חכמות לאירועים',
             'דוחות מלאים והיסטוריה מורחבת',
             'אינטגרציה עם Google Calendar',
             'תזכורות SMS ללקוחות',
