@@ -136,6 +136,66 @@ router.get('/status', authenticateToken, async (req, res) => {
   }
 });
 
+// Tranzila registration request
+router.post('/tranzila-request', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+    const { fullName, businessName, businessId, contactEmail, contactPhone } = req.body;
+
+    if (!fullName || !businessName || !businessId || !contactEmail || !contactPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'נא למלא את כל השדות הנדרשים'
+      });
+    }
+
+    const user = await Subscriber.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'משתמש לא נמצא'
+      });
+    }
+
+    // Save request details to user profile
+    user.profile = user.profile || {};
+    user.profile.tranzilaRequest = {
+      fullName,
+      businessName,
+      businessId,
+      contactEmail,
+      contactPhone,
+      requestDate: new Date(),
+      status: 'pending'
+    };
+
+    await user.save();
+
+    logInfo('Tranzila registration request submitted', {
+      userId,
+      fullName,
+      businessName,
+      contactEmail
+    });
+
+    res.json({
+      success: true,
+      message: 'בקשת ההרשמה נשלחה בהצלחה'
+    });
+
+  } catch (error) {
+    logError('Tranzila registration request failed', {
+      userId: req.user.userId || req.user.id,
+      error: error.message
+    });
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בשליחת הבקשה'
+    });
+  }
+});
+
 async function createPartnerAccount(businessDetails) {
   const provider = process.env.PAYMENT_PROVIDER || 'meshulam';
   

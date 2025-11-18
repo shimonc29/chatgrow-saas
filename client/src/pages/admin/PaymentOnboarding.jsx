@@ -5,14 +5,12 @@ const PaymentOnboarding = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [onboardingStatus, setOnboardingStatus] = useState(null);
-  const [selectedProvider, setSelectedProvider] = useState('cardcom');
   const [formData, setFormData] = useState({
-    partnerAccountId: '',
     businessName: '',
     businessId: '',
     contactEmail: '',
     contactPhone: '',
-    tranzilaTerminal: ''
+    fullName: ''
   });
 
   useEffect(() => {
@@ -38,20 +36,27 @@ const PaymentOnboarding = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      await axios.post('/api/payment-onboarding/register', {
-        provider: selectedProvider,
+      
+      // שליחת בקשה להרשמה ל-Tranzila
+      await axios.post('/api/payment-onboarding/tranzila-request', {
         ...formData
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const successMessage = selectedProvider === 'tranzila' 
-        ? '✅ ההרשמה ל-Tranzila הושלמה בהצלחה! עכשיו תוכל לקבל 100% מהתשלומים ישירות לחשבון שלך ללא עמלת פלטפורמה!'
-        : '✅ ההרשמה הושלמה בהצלחה! עכשיו תוכל לקבל 95% מהתשלומים ישירות לחשבון שלך.';
-      alert(successMessage);
-      await checkOnboardingStatus();
+      
+      alert('✅ הבקשה נשלחה בהצלחה! נציג מטעמנו יצור איתך קשר בקרוב לסיום ההרשמה ל-Tranzila.');
+      
+      // ניקוי הטופס
+      setFormData({
+        businessName: '',
+        businessId: '',
+        contactEmail: '',
+        contactPhone: '',
+        fullName: ''
+      });
     } catch (error) {
-      console.error('Failed to register:', error);
-      alert(`❌ שגיאה בהרשמה: ${error.response?.data?.message || error.message}`);
+      console.error('Failed to submit request:', error);
+      alert(`❌ שגיאה בשליחת הבקשה: ${error.response?.data?.message || error.message}`);
     } finally {
       setSaving(false);
     }
@@ -156,142 +161,54 @@ const PaymentOnboarding = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-text-primary mb-2">הרשמה למערכת תשלומים 💳</h1>
+            <h1 className="text-3xl font-bold text-text-primary mb-2">הרשמה ל-Tranzila 💳</h1>
             <p className="text-text-secondary">
-              בחר את ספק התשלומים המועדף עליך - קבל 95% (Cardcom/GROW) או 100% (Tranzila) מהתשלומים
+              קבל 100% מהתשלומים ישירות לחשבונך - ללא עמלת פלטפורמה!
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-accent-teal to-accent-hover text-white rounded-lg p-6 mb-8">
-            <h3 className="text-xl font-bold mb-4">איך זה עובד?</h3>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-bold mb-4">למה Tranzila?</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-4xl mb-2">1️⃣</div>
-                <div className="text-sm font-semibold mb-1">הרשמה</div>
-                <div className="text-xs opacity-90">מלא את הפרטים ותפתח חשבון partner</div>
+                <div className="text-4xl mb-2">💯</div>
+                <div className="text-sm font-semibold mb-1">100% שלך</div>
+                <div className="text-xs opacity-90">כל התשלומים ישירות לחשבונך</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl mb-2">2️⃣</div>
-                <div className="text-sm font-semibold mb-1">קבלת תשלומים</div>
-                <div className="text-xs opacity-90">הלקוחות משלמים דרך הפלטפורמה</div>
+                <div className="text-4xl mb-2">🚫</div>
+                <div className="text-sm font-semibold mb-1">ללא עמלות</div>
+                <div className="text-xs opacity-90">אין עמלת פלטפורמה - רק עמלת Tranzila</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl mb-2">3️⃣</div>
-                <div className="text-sm font-semibold mb-1">העברה אוטומטית</div>
-                <div className="text-xs opacity-90">95% מועבר ישירות לחשבונך</div>
+                <div className="text-4xl mb-2">🔒</div>
+                <div className="text-sm font-semibold mb-1">מאובטח</div>
+                <div className="text-xs opacity-90">סליקה ישירה דרך הטרמינל שלך</div>
               </div>
             </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h4 className="font-semibold text-blue-900 mb-2">📝 טופס בקשה להרשמה ל-Tranzila</h4>
+            <p className="text-sm text-blue-800">
+              מלא את הפרטים ונציג מטעמנו יצור איתך קשר לסיום תהליך ההרשמה והפעלת החשבון
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
-                בחר ספק תשלומים
+                שם מלא <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-3 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedProvider('cardcom')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    selectedProvider === 'cardcom'
-                      ? 'border-accent-teal bg-accent-teal bg-opacity-10'
-                      : 'border-gray-300 hover:border-accent-teal'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">💳</div>
-                    <div className="font-semibold">Cardcom</div>
-                    <div className="text-xs text-text-secondary mt-1">ספק תשלומים מוביל</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedProvider('grow')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    selectedProvider === 'grow'
-                      ? 'border-accent-teal bg-accent-teal bg-opacity-10'
-                      : 'border-gray-300 hover:border-accent-teal'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🌱</div>
-                    <div className="font-semibold">GROW (Meshulam)</div>
-                    <div className="text-xs text-text-secondary mt-1">פתרון תשלומים מתקדם</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedProvider('tranzila')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    selectedProvider === 'tranzila'
-                      ? 'border-accent-teal bg-accent-teal bg-opacity-10'
-                      : 'border-gray-300 hover:border-accent-teal'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🔷</div>
-                    <div className="font-semibold">Tranzila</div>
-                    <div className="text-xs text-text-secondary mt-1">ללא עמלת פלטפורמה</div>
-                  </div>
-                </button>
-              </div>
+              <input
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="שם מלא של איש הקשר"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
+              />
             </div>
-
-            {selectedProvider === 'tranzila' ? (
-              <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">🔗 הרשמה ל-Tranzila Affiliate</h4>
-                  <p className="text-sm text-blue-800 mb-3">
-                    עליך להירשם דרך קישור האפיליאייט של ChatGrow כדי לקבל טרמינל משלך:
-                  </p>
-                  <a
-                    href="https://www.tranzila.com/affiliate/chatgrow"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
-                  >
-                    🚀 לחץ כאן להרשמה ב-Tranzila
-                  </a>
-                  <p className="text-xs text-blue-700 mt-2">
-                    לאחר ההרשמה תקבל מספר טרמינל - הזן אותו למטה
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    מספר טרמינל Tranzila <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.tranzilaTerminal}
-                    onChange={(e) => setFormData({ ...formData, tranzilaTerminal: e.target.value })}
-                    placeholder="הזן את מספר הטרמינל שקיבלת מ-Tranzila"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
-                  />
-                  <p className="text-xs text-text-secondary mt-1">
-                    מספר הטרמינל נמצא במייל האישור שקיבלת מ-Tranzila
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  מזהה חשבון Partner <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.partnerAccountId}
-                  onChange={(e) => setFormData({ ...formData, partnerAccountId: e.target.value })}
-                  placeholder="הזן את מזהה ה-Partner Account שקיבלת מהספק"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
-                />
-                <p className="text-xs text-text-secondary mt-1">
-                  צריך להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} ולקבל Partner Account ID
-                </p>
-              </div>
-            )}
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
@@ -350,34 +267,22 @@ const PaymentOnboarding = () => {
               </div>
             </div>
 
-            {selectedProvider === 'tranzila' ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-semibold text-green-900 mb-2">✅ יתרונות Tranzila:</h4>
-                <ul className="text-green-800 text-sm space-y-1">
-                  <li>• <strong>ללא עמלת פלטפורמה</strong> - 100% מהתשלומים אליך</li>
-                  <li>• כל הכסף עובר ישירות לחשבון הבנק שלך</li>
-                  <li>• אין פיצול תשלומים - סליקה ישירה דרך הטרמינל שלך</li>
-                  <li>• התשלומים מנוהלים במערכת Tranzila שלך</li>
-                </ul>
-              </div>
-            ) : (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-semibold text-yellow-900 mb-2">⚠️ לתשומת ליבך:</h4>
-                <ul className="text-yellow-800 text-sm space-y-1">
-                  <li>• יש להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} כ-Partner</li>
-                  <li>• עמלת הפלטפורמה היא 5% מכל תשלום</li>
-                  <li>• תקבל חשבונית חודשית אוטומטית</li>
-                  <li>• ההרשמה כפופה לאישור ספק התשלומים</li>
-                </ul>
-              </div>
-            )}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-900 mb-2">✅ יתרונות Tranzila:</h4>
+              <ul className="text-green-800 text-sm space-y-1">
+                <li>• <strong>ללא עמלת פלטפורמה</strong> - 100% מהתשלומים אליך</li>
+                <li>• כל הכסף עובר ישירות לחשבון הבנק שלך</li>
+                <li>• אין פיצול תשלומים - סליקה ישירה דרך הטרמינל שלך</li>
+                <li>• התשלומים מנוהלים במערכת Tranzila שלך</li>
+              </ul>
+            </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-gradient-to-r from-accent-teal to-accent-hover text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'שומר...' : selectedProvider === 'tranzila' ? '✅ השלם הרשמה וקבל 100% מהתשלומים' : '✅ השלם הרשמה וקבל 95% מהתשלומים'}
+              {saving ? 'שולח בקשה...' : '📝 שלח בקשה להרשמה ל-Tranzila'}
             </button>
           </form>
         </div>

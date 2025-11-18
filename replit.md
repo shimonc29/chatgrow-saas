@@ -18,7 +18,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Frontend Framework**: React 19 with Vite.
 - **Styling**: Tailwind CSS v3 with full RTL.
 - **Design Theme**: Clean, professional teal-light color scheme.
-- **Key Admin Pages**: Payment Onboarding (Cardcom/GROW/Tranzila with affiliate link), Subscription Management, Platform Fees Dashboard (Super Admin only).
+- **Key Admin Pages**: Payment Onboarding (Tranzila only - registration request form), Subscription Management, Platform Fees Dashboard (Super Admin only).
 - **Color Palette**: BG Light (#F8F9FA), BG Card (#FFFFFF), Accent Teal (#00798C), Accent Hover (#035368), Text Primary (#212529), Text Secondary (#6C757D).
 - **Logo**: Crown icon (👑).
 - **Components**: Modular layout using Sidebar, MainLayout, and PrivateRoute.
@@ -31,7 +31,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Authentication**: JWT for security, AuthContext, Protected Routes.
 - **Freemium Model**: Enforced 200-customer limit for FREE users via middleware; premium features (Google Calendar, SMS, reports) gated for TRIAL/ACTIVE subscribers.
 - **Marketplace Payments**: 95%/5% split logic with Cardcom/GROW integration; 5% platform fee applied when `user.paymentProviderId` exists. Platform fees are automated monthly via Green Invoice/iCount.
-- **Tranzila Affiliate Integration**: Alternative payment model where providers use their own Tranzila terminal (via affiliate signup) for direct payment processing without platform fee splitting. Payments go 100% to the provider's account. Configured via `user.tranzilaTerminal` field.
+- **Tranzila Integration**: Exclusive payment provider model where providers submit registration requests through the platform. After manual approval and terminal setup, providers receive 100% of payments directly without platform fee splitting. Registration requests are saved in `user.profile.tranzilaRequest` and processed manually by the platform team.
 - **Multi-Tenant Provider System**: `ProviderSettings` model allows per-business configuration of Email (SendGrid/SMTP), SMS (Twilio), and Payment (Cardcom/GROW/Tranzila) providers.
 - **Notifications**: `NotificationService` for Email and SMS with provider-swapping, templates, and delivery tracking.
 - **Payments & Invoicing**: `PaymentService` and `InvoiceService` support Israeli providers (Cardcom, GROW, Tranzila), generate Hebrew PDF invoices, and automate workflows.
