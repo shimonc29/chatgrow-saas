@@ -4,6 +4,7 @@ const ProviderSettings = require('../models/ProviderSettings');
 const Subscriber = require('../models/Subscriber');
 const CardcomProvider = require('../providers/payments/CardcomProvider');
 const MeshulamProvider = require('../providers/payments/MeshulamProvider');
+const TranzilaProvider = require('../providers/payments/TranzilaProvider');
 const { logInfo, logError } = require('../utils/logger');
 
 class PaymentService {
@@ -12,6 +13,18 @@ class PaymentService {
      */
     async getProviderForUser(userId) {
         try {
+            const user = await Subscriber.findById(userId);
+            
+            if (!user) {
+                throw new Error('User not found.');
+            }
+
+            if (user.tranzilaTerminal) {
+                return new TranzilaProvider({
+                    terminal: user.tranzilaTerminal
+                });
+            }
+
             const settings = await ProviderSettings.findOne({ userId, isActive: true });
             
             if (!settings) {
@@ -54,8 +67,6 @@ class PaymentService {
     async createPayment(userId, customerId, paymentData) {
         try {
             const provider = await this.getProviderForUser(userId);
-            const settings = await ProviderSettings.findOne({ userId });
-            const gateway = settings.getActivePaymentGateway();
             const user = await Subscriber.findById(userId);
 
             if (!user) {
@@ -64,13 +75,24 @@ class PaymentService {
 
             await provider.initialize();
 
+            const isTranzila = !!user.tranzilaTerminal;
+            let providerType = 'tranzila';
+            let currency = paymentData.currency || 'ILS';
+
+            if (!isTranzila) {
+                const settings = await ProviderSettings.findOne({ userId });
+                const gateway = settings.getActivePaymentGateway();
+                providerType = gateway.type;
+                currency = paymentData.currency || gateway.settings.currency || 'ILS';
+            }
+
             const payment = new Payment({
                 userId,
                 customerId,
                 amount: paymentData.amount,
-                currency: paymentData.currency || gateway.settings.currency || 'ILS',
+                currency,
                 method: paymentData.method || 'credit_card',
-                provider: gateway.type,
+                provider: providerType,
                 description: paymentData.description,
                 status: 'pending',
                 metadata: paymentData.metadata
@@ -78,7 +100,7 @@ class PaymentService {
 
             await payment.save();
 
-            const hasSplitPayment = !!user.paymentProviderId;
+            const hasSplitPayment = !isTranzila && !!user.paymentProviderId;
             const platformFeePercentage = hasSplitPayment ? parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || '5') : 0;
             const platformFee = hasSplitPayment ? Math.round((paymentData.amount * platformFeePercentage) / 100) : 0;
             const amountToTransfer = hasSplitPayment ? paymentData.amount - platformFee : paymentData.amount;
@@ -108,6 +130,12 @@ class PaymentService {
                     amountToTransfer,
                     partnerAccountId: user.paymentProviderId
                 };
+            } else if (isTranzila) {
+                payment.metadata = {
+                    ...(payment.metadata || {}),
+                    tranzilaTerminal: user.tranzilaTerminal,
+                    directPayment: true
+                };
             }
             
             await payment.save();
@@ -115,11 +143,12 @@ class PaymentService {
             logInfo('Payment created successfully', {
                 paymentId: payment._id,
                 userId,
-                provider: gateway.type,
+                provider: providerType,
                 amount: payment.amount,
                 platformFee,
                 amountToTransfer,
-                splitPayment: hasSplitPayment
+                splitPayment: hasSplitPayment,
+                isTranzila
             });
 
             return {
