@@ -76,6 +76,9 @@ class Subscriber {
         this.currentCustomerCount = data.currentCustomerCount || data.current_customer_count || 0;
         this.isWhitelabel = data.isWhitelabel || data.is_whitelabel || false;
         this.paymentProviderId = data.paymentProviderId || data.payment_provider_id || null;
+        this.tranzilaTerminal = data.tranzilaTerminal || data.tranzila_terminal || null;
+        this.tranzilaToken = data.tranzilaToken || data.tranzila_token || null;
+        this.commissionRate = data.commissionRate || data.commission_rate || null;
         this.createdAt = data.createdAt;
         this.updatedAt = data.updatedAt;
     }
@@ -98,8 +101,10 @@ class Subscriber {
                 connected_providers = $8, is_email_verified = $9,
                 email_verification_token = $10, subscription_status = $11,
                 max_customers = $12, current_customer_count = $13,
-                is_whitelabel = $14, payment_provider_id = $15, updated_at = NOW()
-                WHERE id = $16 RETURNING *
+                is_whitelabel = $14, payment_provider_id = $15,
+                tranzila_terminal = $16, tranzila_token = $17, commission_rate = $18,
+                updated_at = NOW()
+                WHERE id = $19 RETURNING *
             `;
             const values = [
                 this.email, this.password, JSON.stringify(this.profile),
@@ -108,7 +113,9 @@ class Subscriber {
                 JSON.stringify(this.connectedProviders), this.isEmailVerified,
                 this.emailVerificationToken, this.subscriptionStatus,
                 this.maxCustomers, this.currentCustomerCount,
-                this.isWhitelabel, this.paymentProviderId, this.id
+                this.isWhitelabel, this.paymentProviderId,
+                this.tranzilaTerminal, this.tranzilaToken, this.commissionRate,
+                this.id
             ];
             const result = await pool.query(query, values);
             return new Subscriber(result.rows[0]);
@@ -120,8 +127,9 @@ class Subscriber {
                     analytics, registrations, connected_providers,
                     is_email_verified, email_verification_token,
                     subscription_status, max_customers, current_customer_count,
-                    is_whitelabel, payment_provider_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                    is_whitelabel, payment_provider_id,
+                    tranzila_terminal, tranzila_token, commission_rate
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                 RETURNING *
             `;
             const values = [
@@ -131,7 +139,8 @@ class Subscriber {
                 JSON.stringify(this.connectedProviders), this.isEmailVerified,
                 this.emailVerificationToken, this.subscriptionStatus,
                 this.maxCustomers, this.currentCustomerCount,
-                this.isWhitelabel, this.paymentProviderId
+                this.isWhitelabel, this.paymentProviderId,
+                this.tranzilaTerminal, this.tranzilaToken, this.commissionRate
             ];
             const result = await pool.query(query, values);
             return new Subscriber(result.rows[0]);
@@ -228,6 +237,9 @@ class Subscriber {
                     current_customer_count INTEGER DEFAULT 0,
                     is_whitelabel BOOLEAN DEFAULT FALSE,
                     payment_provider_id VARCHAR(255),
+                    tranzila_terminal VARCHAR(255),
+                    tranzila_token VARCHAR(255),
+                    commission_rate DECIMAL(5,2),
                     created_at TIMESTAMP DEFAULT NOW(),
                     updated_at TIMESTAMP DEFAULT NOW()
                 );
@@ -251,7 +263,10 @@ class Subscriber {
                 ADD COLUMN IF NOT EXISTS max_customers INTEGER DEFAULT 200,
                 ADD COLUMN IF NOT EXISTS current_customer_count INTEGER DEFAULT 0,
                 ADD COLUMN IF NOT EXISTS is_whitelabel BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS payment_provider_id VARCHAR(255);
+                ADD COLUMN IF NOT EXISTS payment_provider_id VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS tranzila_terminal VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS tranzila_token VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2);
 
                 CREATE INDEX IF NOT EXISTS idx_subscribers_subscription_status ON subscribers(subscription_status);
             `;
