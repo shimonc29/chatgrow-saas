@@ -2,7 +2,7 @@
 
 ## Overview
 
-ChatGrow is a multi-tenant SaaS platform designed for managing small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users. It incorporates marketplace-style payment splitting, where the platform takes a 5% fee. Key features include a React 19 admin dashboard with Hebrew RTL support, Google Calendar integration, Object Storage, a landing page builder, a Super Admin panel for analytics, and comprehensive subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
+ChatGrow is a multi-tenant SaaS platform designed for managing small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users. It incorporates marketplace-style payment splitting, where the platform takes a 5% fee. Key features include a React 19 admin dashboard with Hebrew RTL support, Google Calendar integration, Object Storage, a landing page builder, AI Performance Coach for event optimization, a Super Admin panel for analytics, and comprehensive subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
 
 ## User Preferences
 
@@ -42,6 +42,13 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Public API Routes**: Secure, unauthenticated endpoints for public event registration and appointment booking.
 - **Customer Auto-Creation**: Creates/updates customer records from public registrations.
 - **Full CRUD Functionality**: Comprehensive operations for all administrative entities.
+- **AI Performance Coach**: Premium-only feature powered by OpenAI GPT-4o-mini via Replit AI Integrations. Analyzes historical event data (last 10 events + platform averages) to provide:
+  - **Pricing Optimizer**: Data-driven recommendations for optimal ticket pricing
+  - **Timing Optimizer**: Insights on best days/times for events based on attendance patterns
+  - **Conversion Rate Optimizer**: Specific actionable suggestions to improve registration page performance
+  - **Services**: `aiService.js` (OpenAI integration), `eventDataService.js` (analytics aggregation)
+  - **Route**: `/api/events/:eventId/ai-insights` (protected by isPremium middleware)
+  - **UI**: `AIInsightsCard.jsx` with premium gating (FREE users see upgrade prompt)
 - **Centralized Media Library System**: Replit Object Storage integration with centralized media management. Features include:
   - **Media Model**: MongoDB-based media storage with metadata (filename, URL, size, type, tags, user reference)
   - **Media Library Page**: Admin UI for uploading, managing, and deleting images with search and filtering
@@ -87,6 +94,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Google Calendar Integration**: OAuth 2.0 (requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
 - **Object Storage**: Replit Object Storage (requires `PRIVATE_OBJECT_DIR`).
 - **Super Admin Access Control**: `SUPER_ADMIN_EMAILS` environment variable.
+- **Replit AI Integrations**: Built-in OpenAI integration for AI Performance Coach (no API key required - billed to Replit credits).
 - **Communication Services**: Nodemailer, SendGrid, Twilio.
 - **Payment Gateways**: Cardcom, Meshulam (GROW), Tranzila (Affiliate Model - direct payments, no platform fee).
 - **Accounting Software Integration**: Green Invoice, iCount.
