@@ -66,7 +66,7 @@ const SubscriptionManagement = () => {
     <div className="min-h-screen bg-bg-light p-8" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">ניהול מנוי 📋</h1>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">המנוי שלי 📋</h1>
           <p className="text-text-secondary">נהל את המנוי ואת מגבלות השימוש שלך</p>
         </div>
 
@@ -183,6 +183,14 @@ const SubscriptionManagement = () => {
                 <span className="text-red-500 mr-2">✗</span>
                 <span className="text-text-secondary line-through">תשלומים אוטומטיים מטרנזילה</span>
               </li>
+              <li className="flex items-start">
+                <span className="text-red-500 mr-2">✗</span>
+                <span className="text-text-secondary line-through">מאמן ביצועים AI</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-red-500 mr-2">✗</span>
+                <span className="text-text-secondary line-through">המלצות AI לתמחור ותזמון</span>
+              </li>
             </ul>
             {!premiumStatus && (
               <div className="text-center text-2xl font-bold text-accent-teal">
@@ -232,6 +240,18 @@ const SubscriptionManagement = () => {
                   <span className="mr-2">✓</span>
                   <span>תמיכה טכנית מהירה</span>
                 </li>
+                <li className="flex items-start">
+                  <span className="mr-2">🤖</span>
+                  <span className="font-medium">מאמן ביצועים AI</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">🤖</span>
+                  <span>המלצות AI לתמחור ותזמון אירועים</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">🤖</span>
+                  <span>אופטימיזציה של שיעורי המרה</span>
+                </li>
               </ul>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">₪99/חודש</div>
@@ -265,6 +285,7 @@ const SubscriptionManagement = () => {
                   <li>✓ חיבור ליומן Google Calendar</li>
                   <li>✓ תזכורות SMS</li>
                   <li>✓ תמיכה טכנית מהירה</li>
+                  <li>🤖 מאמן ביצועים AI עם המלצות חכמות</li>
                 </ul>
               </div>
             </div>
