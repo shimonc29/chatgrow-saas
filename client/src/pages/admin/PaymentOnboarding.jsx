@@ -11,7 +11,8 @@ const PaymentOnboarding = () => {
     businessName: '',
     businessId: '',
     contactEmail: '',
-    contactPhone: ''
+    contactPhone: '',
+    tranzilaTerminal: ''
   });
 
   useEffect(() => {
@@ -153,7 +154,7 @@ const PaymentOnboarding = () => {
               <label className="block text-sm font-medium text-text-primary mb-2">
                 בחר ספק תשלומים
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => setSelectedProvider('cardcom')}
@@ -184,25 +185,79 @@ const PaymentOnboarding = () => {
                     <div className="text-xs text-text-secondary mt-1">פתרון תשלומים מתקדם</div>
                   </div>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProvider('tranzila')}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    selectedProvider === 'tranzila'
+                      ? 'border-accent-teal bg-accent-teal bg-opacity-10'
+                      : 'border-gray-300 hover:border-accent-teal'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">🔷</div>
+                    <div className="font-semibold">Tranzila</div>
+                    <div className="text-xs text-text-secondary mt-1">ללא עמלת פלטפורמה</div>
+                  </div>
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                מזהה חשבון Partner <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.partnerAccountId}
-                onChange={(e) => setFormData({ ...formData, partnerAccountId: e.target.value })}
-                placeholder="הזן את מזהה ה-Partner Account שקיבלת מהספק"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
-              />
-              <p className="text-xs text-text-secondary mt-1">
-                צריך להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} ולקבל Partner Account ID
-              </p>
-            </div>
+            {selectedProvider === 'tranzila' ? (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">🔗 הרשמה ל-Tranzila Affiliate</h4>
+                  <p className="text-sm text-blue-800 mb-3">
+                    עליך להירשם דרך קישור האפיליאייט של ChatGrow כדי לקבל טרמינל משלך:
+                  </p>
+                  <a
+                    href="https://www.tranzila.com/affiliate/chatgrow"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+                  >
+                    🚀 לחץ כאן להרשמה ב-Tranzila
+                  </a>
+                  <p className="text-xs text-blue-700 mt-2">
+                    לאחר ההרשמה תקבל מספר טרמינל - הזן אותו למטה
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-2">
+                    מספר טרמינל Tranzila <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.tranzilaTerminal}
+                    onChange={(e) => setFormData({ ...formData, tranzilaTerminal: e.target.value })}
+                    placeholder="הזן את מספר הטרמינל שקיבלת מ-Tranzila"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
+                  />
+                  <p className="text-xs text-text-secondary mt-1">
+                    מספר הטרמינל נמצא במייל האישור שקיבלת מ-Tranzila
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  מזהה חשבון Partner <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.partnerAccountId}
+                  onChange={(e) => setFormData({ ...formData, partnerAccountId: e.target.value })}
+                  placeholder="הזן את מזהה ה-Partner Account שקיבלת מהספק"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
+                />
+                <p className="text-xs text-text-secondary mt-1">
+                  צריך להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} ולקבל Partner Account ID
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">
@@ -261,22 +316,34 @@ const PaymentOnboarding = () => {
               </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="font-semibold text-yellow-900 mb-2">⚠️ לתשומת ליבך:</h4>
-              <ul className="text-yellow-800 text-sm space-y-1">
-                <li>• יש להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} כ-Partner</li>
-                <li>• עמלת הפלטפורמה היא 5% מכל תשלום</li>
-                <li>• תקבל חשבונית חודשית אוטומטית</li>
-                <li>• ההרשמה כפופה לאישור ספק התשלומים</li>
-              </ul>
-            </div>
+            {selectedProvider === 'tranzila' ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-900 mb-2">✅ יתרונות Tranzila:</h4>
+                <ul className="text-green-800 text-sm space-y-1">
+                  <li>• <strong>ללא עמלת פלטפורמה</strong> - 100% מהתשלומים אליך</li>
+                  <li>• כל הכסף עובר ישירות לחשבון הבנק שלך</li>
+                  <li>• אין פיצול תשלומים - סליקה ישירה דרך הטרמינל שלך</li>
+                  <li>• התשלומים מנוהלים במערכת Tranzila שלך</li>
+                </ul>
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 className="font-semibold text-yellow-900 mb-2">⚠️ לתשומת ליבך:</h4>
+                <ul className="text-yellow-800 text-sm space-y-1">
+                  <li>• יש להירשם קודם ב-{selectedProvider === 'cardcom' ? 'Cardcom' : 'GROW'} כ-Partner</li>
+                  <li>• עמלת הפלטפורמה היא 5% מכל תשלום</li>
+                  <li>• תקבל חשבונית חודשית אוטומטית</li>
+                  <li>• ההרשמה כפופה לאישור ספק התשלומים</li>
+                </ul>
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={saving}
               className="w-full bg-gradient-to-r from-accent-teal to-accent-hover text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'שומר...' : '✅ השלם הרשמה וקבל 95% מהתשלומים'}
+              {saving ? 'שומר...' : selectedProvider === 'tranzila' ? '✅ השלם הרשמה וקבל 100% מהתשלומים' : '✅ השלם הרשמה וקבל 95% מהתשלומים'}
             </button>
           </form>
         </div>
