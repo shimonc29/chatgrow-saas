@@ -9,13 +9,22 @@ const authenticateToken = auth.authenticate();
 router.post('/register', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
-    const { provider, partnerAccountId, businessName, businessId, contactEmail, contactPhone } = req.body;
+    const { provider, partnerAccountId, businessName, businessId, contactEmail, contactPhone, tranzilaTerminal } = req.body;
 
-    if (!partnerAccountId || !businessName || !businessId || !contactEmail || !contactPhone) {
-      return res.status(400).json({
-        success: false,
-        message: 'נא למלא את כל השדות הנדרשים'
-      });
+    if (provider === 'tranzila') {
+      if (!tranzilaTerminal || !businessName || !businessId || !contactEmail || !contactPhone) {
+        return res.status(400).json({
+          success: false,
+          message: 'נא למלא את כל השדות הנדרשים (טרמינל, שם עסק, ח.פ, אימייל, טלפון)'
+        });
+      }
+    } else {
+      if (!partnerAccountId || !businessName || !businessId || !contactEmail || !contactPhone) {
+        return res.status(400).json({
+          success: false,
+          message: 'נא למלא את כל השדות הנדרשים'
+        });
+      }
     }
 
     const user = await Subscriber.findById(userId);
@@ -27,36 +36,57 @@ router.post('/register', authenticateToken, async (req, res) => {
       });
     }
 
-    if (user.paymentProviderId) {
+    if (user.paymentProviderId || user.tranzilaTerminal) {
       return res.status(400).json({
         success: false,
         message: 'חשבון סליקה כבר קיים למשתמש זה',
-        paymentProviderId: user.paymentProviderId
+        paymentProviderId: user.paymentProviderId,
+        tranzilaTerminal: user.tranzilaTerminal
       });
     }
 
-    user.paymentProviderId = partnerAccountId;
     user.profile = user.profile || {};
     user.profile.paymentProvider = provider;
     user.profile.businessName = businessName;
     user.profile.businessId = businessId;
     user.profile.contactEmail = contactEmail;
     user.profile.contactPhone = contactPhone;
-    await user.save();
 
-    logInfo('Payment provider onboarding completed', {
-      userId,
-      provider,
-      paymentProviderId: partnerAccountId,
-      businessName
-    });
+    if (provider === 'tranzila') {
+      user.tranzilaTerminal = tranzilaTerminal;
+      await user.save();
 
-    res.json({
-      success: true,
-      message: 'ההרשמה הושלמה בהצלחה',
-      paymentProviderId: partnerAccountId,
-      provider
-    });
+      logInfo('Tranzila payment provider onboarding completed', {
+        userId,
+        provider,
+        tranzilaTerminal,
+        businessName
+      });
+
+      res.json({
+        success: true,
+        message: 'ההרשמה ל-Tranzila הושלמה בהצלחה',
+        tranzilaTerminal,
+        provider
+      });
+    } else {
+      user.paymentProviderId = partnerAccountId;
+      await user.save();
+
+      logInfo('Payment provider onboarding completed', {
+        userId,
+        provider,
+        paymentProviderId: partnerAccountId,
+        businessName
+      });
+
+      res.json({
+        success: true,
+        message: 'ההרשמה הושלמה בהצלחה',
+        paymentProviderId: partnerAccountId,
+        provider
+      });
+    }
 
   } catch (error) {
     logError('Payment onboarding failed', {
@@ -83,10 +113,13 @@ router.get('/status', authenticateToken, async (req, res) => {
       });
     }
 
+    const isOnboarded = !!(user.paymentProviderId || user.tranzilaTerminal);
+
     res.json({
       success: true,
-      isOnboarded: !!user.paymentProviderId,
+      isOnboarded,
       paymentProviderId: user.paymentProviderId || null,
+      tranzilaTerminal: user.tranzilaTerminal || null,
       provider: user.profile?.paymentProvider || null,
       businessName: user.profile?.businessName || null
     });
