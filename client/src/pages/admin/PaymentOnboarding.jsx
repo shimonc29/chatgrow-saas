@@ -270,10 +270,8 @@ const PaymentOnboarding = () => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="font-semibold text-green-900 mb-2">✅ יתרונות Tranzila:</h4>
               <ul className="text-green-800 text-sm space-y-1">
-                <li>• <strong>ללא עמלת פלטפורמה</strong> - 100% מהתשלומים אליך</li>
-                <li>• כל הכסף עובר ישירות לחשבון הבנק שלך</li>
-                <li>• אין פיצול תשלומים - סליקה ישירה דרך הטרמינל שלך</li>
-                <li>• התשלומים מנוהלים במערכת Tranzila שלך</li>
+                <li>• עמלת סליקה נמוכה</li>
+                <li>• חשבוניות וקבלות אוטומטיות</li>
               </ul>
             </div>
 

@@ -101,7 +101,7 @@ const ProviderSettings = () => {
             ⚙️ הגדרות ספקים
           </h1>
           <p className="text-text-secondary">
-            הגדר את ספקי האימייל, SMS ותשלום שלך
+            הגדר את ספקי האימייל, SMS וחשבוניות שלך
           </p>
         </div>
 
@@ -110,7 +110,6 @@ const ProviderSettings = () => {
           {[
             { id: 'email', label: '📧 אימייל', icon: '📧' },
             { id: 'sms', label: '📱 SMS', icon: '📱' },
-            { id: 'payment', label: '💳 תשלום', icon: '💳' },
             { id: 'invoice', label: '🧾 חשבוניות', icon: '🧾' }
           ].map(tab => (
             <button
@@ -413,188 +412,6 @@ const ProviderSettings = () => {
           </div>
         )}
 
-        {/* Payment Gateway Settings */}
-        {activeTab === 'payment' && (
-          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10 space-y-6">
-            <h2 className="text-2xl font-bold text-accent-teal mb-4">💳 הגדרות תשלום</h2>
-            
-            {/* Cardcom */}
-            <div className="border border-accent-teal/20 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <label className="flex items-center gap-2 text-text-primary font-semibold text-lg">
-                  <input
-                    type="checkbox"
-                    checked={settings.paymentGateways.cardcom.enabled}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      paymentGateways: {
-                        ...settings.paymentGateways,
-                        cardcom: { ...settings.paymentGateways.cardcom, enabled: e.target.checked }
-                      }
-                    })}
-                    className="w-5 h-5"
-                  />
-                  <span>Cardcom</span>
-                </label>
-              </div>
-
-              {settings.paymentGateways.cardcom.enabled && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-text-primary mb-2">Terminal Number</label>
-                    <input
-                      type="text"
-                      value={settings.paymentGateways.cardcom.terminalNumber || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          cardcom: { ...settings.paymentGateways.cardcom, terminalNumber: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-text-primary mb-2">API Username</label>
-                    <input
-                      type="text"
-                      value={settings.paymentGateways.cardcom.apiUsername || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          cardcom: { ...settings.paymentGateways.cardcom, apiUsername: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-text-primary mb-2">API Password</label>
-                    <input
-                      type="password"
-                      value={settings.paymentGateways.cardcom.apiPassword || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          cardcom: { ...settings.paymentGateways.cardcom, apiPassword: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2 text-text-primary">
-                      <input
-                        type="checkbox"
-                        checked={settings.paymentGateways.cardcom.testMode}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          paymentGateways: {
-                            ...settings.paymentGateways,
-                            cardcom: { ...settings.paymentGateways.cardcom, testMode: e.target.checked }
-                          }
-                        })}
-                        className="w-5 h-5"
-                      />
-                      <span>מצב בדיקה (Sandbox)</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* GROW */}
-            <div className="border border-accent-teal/20 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <label className="flex items-center gap-2 text-text-primary font-semibold text-lg">
-                  <input
-                    type="checkbox"
-                    checked={settings.paymentGateways.grow.enabled}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      paymentGateways: {
-                        ...settings.paymentGateways,
-                        grow: { ...settings.paymentGateways.grow, enabled: e.target.checked }
-                      }
-                    })}
-                    className="w-5 h-5"
-                  />
-                  <span>GROW (Meshulam)</span>
-                </label>
-              </div>
-
-              {settings.paymentGateways.grow.enabled && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-text-primary mb-2">API Key</label>
-                    <input
-                      type="password"
-                      value={settings.paymentGateways.grow.apiKey || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          grow: { ...settings.paymentGateways.grow, apiKey: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-text-primary mb-2">User ID</label>
-                    <input
-                      type="text"
-                      value={settings.paymentGateways.grow.userId || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          grow: { ...settings.paymentGateways.grow, userId: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-text-primary mb-2">Page Code</label>
-                    <input
-                      type="text"
-                      value={settings.paymentGateways.grow.pageCode || ''}
-                      onChange={(e) => setSettings({
-                        ...settings,
-                        paymentGateways: {
-                          ...settings.paymentGateways,
-                          grow: { ...settings.paymentGateways.grow, pageCode: e.target.value }
-                        }
-                      })}
-                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
-                    />
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2 text-text-primary">
-                      <input
-                        type="checkbox"
-                        checked={settings.paymentGateways.grow.testMode}
-                        onChange={(e) => setSettings({
-                          ...settings,
-                          paymentGateways: {
-                            ...settings.paymentGateways,
-                            grow: { ...settings.paymentGateways.grow, testMode: e.target.checked }
-                          }
-                        })}
-                        className="w-5 h-5"
-                      />
-                      <span>מצב בדיקה (Sandbox)</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Invoice Settings */}
         {activeTab === 'invoice' && (
