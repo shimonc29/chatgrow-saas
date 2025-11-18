@@ -58,7 +58,6 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics with full management capabilities:
   - **Subscription Management**: Update subscription status (FREE/TRIAL/ACTIVE), modify customer quotas, suspend/activate accounts, delete subscribers
   - **Customer Management**: Add customers manually to any business, delete customers across businesses, transfer customers between businesses
-  - **Platform Fees**: Track 5% marketplace fees, view onboarded businesses, monthly/yearly revenue analytics
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
@@ -84,7 +83,7 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Database Strategy**: Hybrid with PostgreSQL (users/subscribers) and MongoDB Atlas (events, customers, appointments, payments, invoices, analytics, WhatsApp).
 - **Multi-Tenant Architecture**: Isolated data per business client, with Super Admin system-wide access.
 - **Access Control**: Three tiers: FREE (200 customer limit, basic), PREMIUM (unlimited customers, advanced features), Super Admin (system-wide access).
-- **Business Model**: Freemium (200-customer limit), Marketplace Revenue (5% platform fee for Cardcom/GROW), Affiliate Model (Tranzila - 100% direct payments), automated platform fee billing.
+- **Business Model**: Freemium (200-customer limit), Affiliate Model (Tranzila - 100% direct payments to business owners).
 - **Modularity**: Structured backend (models, routes, services) and frontend (pages, components, contexts).
 - **Development Setup**: Single `fullstack` workflow with Vite proxy.
 
