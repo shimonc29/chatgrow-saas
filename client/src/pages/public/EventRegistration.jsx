@@ -9,6 +9,7 @@ function EventRegistration() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [paymentOptions, setPaymentOptions] = useState(null);
     
     const [formData, setFormData] = useState({
         firstName: '',
@@ -21,6 +22,7 @@ function EventRegistration() {
 
     useEffect(() => {
         fetchEvent();
+        fetchPaymentOptions();
     }, [id]);
 
     const fetchEvent = async () => {
@@ -37,6 +39,26 @@ function EventRegistration() {
             setError(err.response?.data?.message || 'שגיאה בטעינת האירוע');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPaymentOptions = async () => {
+        try {
+            const response = await axios.get(`/api/public/events/${id}/payment-options`);
+            if (response.data.success) {
+                setPaymentOptions(response.data.paymentOptions);
+                
+                // Set default provider based on available options
+                if (response.data.paymentOptions.tranzila) {
+                    setFormData(prev => ({ ...prev, provider: 'tranzila' }));
+                } else if (response.data.paymentOptions.external) {
+                    setFormData(prev => ({ ...prev, provider: 'external' }));
+                } else {
+                    setFormData(prev => ({ ...prev, provider: 'manual' }));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching payment options:', err);
         }
     };
 
@@ -270,22 +292,29 @@ function EventRegistration() {
                                         </select>
                                     </div>
 
-                                    <div className="mb-4">
-                                        <label className="block text-text-primary font-medium mb-2">
-                                            ספק תשלום
-                                        </label>
-                                        <select
-                                            name="provider"
-                                            value={formData.provider}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 bg-white border border-gray-300 text-text-primary rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
-                                        >
-                                            <option value="manual">תשלום ידני</option>
-                                            <option value="cardcom">Cardcom</option>
-                                            <option value="meshulam">Meshulam (Grow)</option>
-                                            <option value="tranzila">Tranzila</option>
-                                        </select>
-                                    </div>
+                                    {paymentOptions && (
+                                        <div className="mb-4">
+                                            <label className="block text-text-primary font-medium mb-2">
+                                                ספק תשלום
+                                            </label>
+                                            <select
+                                                name="provider"
+                                                value={formData.provider}
+                                                onChange={handleChange}
+                                                className="w-full px-4 py-2 bg-white border border-gray-300 text-text-primary rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent"
+                                            >
+                                                {paymentOptions.manual && (
+                                                    <option value="manual">תשלום ידני</option>
+                                                )}
+                                                {paymentOptions.tranzila && (
+                                                    <option value="tranzila">Tranzila</option>
+                                                )}
+                                                {paymentOptions.external && (
+                                                    <option value="external">{paymentOptions.externalLabel}</option>
+                                                )}
+                                            </select>
+                                        </div>
+                                    )}
 
                                     <div className="bg-gradient-to-r from-accent-teal/10 to-accent-teal/5 border border-accent-teal/30 p-4 rounded-lg">
                                         <div className="text-sm text-text-secondary mb-2">סכום לתשלום:</div>

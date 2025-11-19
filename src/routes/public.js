@@ -63,6 +63,62 @@ function normalizeLocation(location) {
     return location; // String fallback
 }
 
+// Get available payment options for an event
+router.get('/events/:id/payment-options', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const event = await Event.findById(req.params.id);
+        
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: 'אירוע לא נמצא'
+            });
+        }
+
+        // Check if business owner has Tranzila
+        const user = await Subscriber.findById(event.businessId);
+        const hasTranzila = !!(user && user.tranzilaTerminal);
+
+        // Check if external payment is configured
+        const providerSettings = await ProviderSettings.findOne({ userId: event.businessId });
+        const hasExternalPayment = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.externalPayment?.enabled && 
+            providerSettings.paymentGateways?.externalPayment?.paymentUrl
+        );
+
+        const externalPaymentLabel = providerSettings?.paymentGateways?.externalPayment?.description || 'תשלום חיצוני';
+
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            eventId: event._id,
+            hasTranzila,
+            hasExternalPayment
+        });
+
+        res.json({
+            success: true,
+            paymentOptions: {
+                manual: true,
+                tranzila: hasTranzila,
+                external: hasExternalPayment,
+                externalLabel: externalPaymentLabel
+            }
+        });
+
+    } catch (error) {
+        logError('Failed to get payment options', { error: error.message, eventId: req.params.id });
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת אפשרויות תשלום'
+        });
+    }
+});
+
 // Get public event details
 router.get('/events/:id', async (req, res) => {
     const startTime = Date.now();
