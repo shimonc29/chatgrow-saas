@@ -98,7 +98,13 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Access Control**: Three tiers: FREE (200 customer limit, basic), PREMIUM (unlimited customers, advanced features), Super Admin (system-wide access).
 - **Business Model**: Freemium (200-customer limit), Affiliate Model (Tranzila - 100% direct payments to business owners).
 - **Modularity**: Structured backend (models, routes, services) and frontend (pages, components, contexts).
-- **Development Setup**: Single `fullstack` workflow with Vite proxy.
+- **Development Setup**: Single `fullstack` workflow with Vite proxy (bash start-dev.sh).
+- **Production Deployment**: 
+  - Build: `npm run build` (Vite builds frontend to `dist/`)
+  - Run: `npm start` (NODE_ENV=production, serves both API and static files)
+  - Backend serves static files from `dist/` when NODE_ENV=production
+  - Deployment target: Reserved VM (vm)
+  - Port: 5000 (automatically set by Replit in production)
 
 ## External Dependencies
 

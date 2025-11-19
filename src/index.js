@@ -401,7 +401,7 @@ try {
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
-    const clientBuildPath = path.join(__dirname, '../client/dist');
+    const clientBuildPath = path.join(__dirname, '../dist');
     console.log('📁 Serving static files from:', clientBuildPath);
     
     app.use(express.static(clientBuildPath));

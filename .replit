@@ -6,7 +6,9 @@ channel = "stable-25_05"
 packages = ["redis"]
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["npm", "start"]
+deploymentTarget = "vm"
+build = ["npm", "run", "build"]
 
 [workflows]
 runButton = "Project"
