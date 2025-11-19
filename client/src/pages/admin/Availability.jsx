@@ -35,7 +35,6 @@ const Availability = () => {
   ];
 
   useEffect(() => {
-    fetchAvailability();
     fetchSubscription();
     fetchGoogleCalendarStatus();
     fetchAppointmentsAndEvents();
@@ -50,6 +49,7 @@ const Availability = () => {
       setSubscription(response.data);
     } catch (err) {
       console.error('Error fetching subscription:', err);
+      setSubscription({ subscriptionStatus: 'FREE', maxCustomers: 200 });
     }
   };
 
@@ -169,7 +169,8 @@ const Availability = () => {
       setServices(res.data.services || []);
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      alert('❌ שגיאה בטעינת הגדרות זמינות');
+      setAvailability(null);
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -484,7 +485,7 @@ const Availability = () => {
                                 <span>{event.time}</span>
                               </div>
                               <div className="flex items-center justify-between text-xs text-text-secondary">
-                                <span>📍 {event.location}</span>
+                                <span>📍 {typeof event.location === 'object' ? event.location?.address || 'לא צוין' : event.location || 'לא צוין'}</span>
                                 <span>👥 {event.participants?.length || 0}/{event.maxParticipants}</span>
                               </div>
                               {event.price && (
