@@ -38,6 +38,7 @@ const Availability = () => {
     fetchSubscription();
     fetchGoogleCalendarStatus();
     fetchAppointmentsAndEvents();
+    fetchAvailability();
   }, []);
 
   const fetchSubscription = async () => {
