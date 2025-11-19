@@ -13,6 +13,55 @@ const { incrementCustomerCount } = require('../middleware/customerLimit');
 const { logInfo, logError, logApiRequest } = require('../utils/logger');
 const { getServiceDetails, isValidServiceType, getAllServices } = require('../config/serviceTypes');
 
+// Helper: Format event date and time with timezone awareness
+function formatEventDateTime(startDateTime, timeZone = 'Asia/Jerusalem') {
+    const dateTimeOptions = { 
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    };
+    
+    const parts = new Intl.DateTimeFormat('en-CA', dateTimeOptions).formatToParts(new Date(startDateTime));
+    const date = `${parts.find(p => p.type === 'year').value}-${parts.find(p => p.type === 'month').value}-${parts.find(p => p.type === 'day').value}`;
+    const time = `${parts.find(p => p.type === 'hour').value}:${parts.find(p => p.type === 'minute').value}`;
+    
+    return { date, time };
+}
+
+// Helper: Normalize location display for frontend
+function normalizeLocation(location) {
+    if (!location) return 'לא צוין';
+    
+    if (typeof location === 'object') {
+        // Online events
+        if (location.type === 'online' && location.onlineLink) {
+            return location.onlineLink;
+        }
+        
+        // Physical address
+        if (location.address) {
+            const addr = location.address;
+            const addressParts = [addr.street, addr.city, addr.state].filter(Boolean);
+            if (addressParts.length > 0) {
+                return addressParts.join(', ');
+            }
+        }
+        
+        // Fallback to additionalInfo
+        if (location.additionalInfo) {
+            return location.additionalInfo;
+        }
+        
+        return 'לא צוין';
+    }
+    
+    return location; // String fallback
+}
+
 // Get public event details
 router.get('/events/:id', async (req, res) => {
     const startTime = Date.now();
@@ -36,19 +85,22 @@ router.get('/events/:id', async (req, res) => {
         }
 
         // Return public event details (hide sensitive business info)
+        // Map Event model fields to the format expected by frontend
+        const { date: dateString, time: timeString } = formatEventDateTime(event.startDateTime, event.timeZone);
+        
         const publicEvent = {
             _id: event._id,
-            title: event.title,
+            title: event.name,
             description: event.description,
-            date: event.date,
-            time: event.time,
-            location: event.location,
-            price: event.price,
-            currency: event.currency || 'ILS',
+            date: dateString,
+            time: timeString,
+            location: normalizeLocation(event.location),
+            price: event.pricing?.amount || 0,
+            currency: event.pricing?.currency || 'ILS',
             maxParticipants: event.maxParticipants,
             currentParticipants: event.participants ? event.participants.length : 0,
             availableSpots: event.maxParticipants - (event.participants ? event.participants.length : 0),
-            imageUrl: event.imageUrl,
+            imageUrl: event.branding?.logoUrl,
             status: event.status
         };
 
@@ -115,8 +167,8 @@ router.post('/events/:id/register', async (req, res) => {
         }
 
         // Server-side price validation - NEVER trust client input!
-        // Always use the event's own price field
-        const amount = event.price || 0;
+        // Always use the event's own price field from pricing object
+        const amount = event.pricing?.amount || 0;
 
         // Create or update customer
         let existingCustomer = await Customer.findOne({
@@ -125,9 +177,11 @@ router.post('/events/:id/register', async (req, res) => {
         });
 
         if (!existingCustomer) {
+            // Query PostgreSQL Subscriber by ID
             const user = await Subscriber.findById(event.businessId);
             
             if (!user) {
+                logError('Business owner not found', { businessId: event.businessId, eventId: event._id });
                 return res.status(404).json({
                     success: false,
                     message: 'בעל העסק לא נמצא'
@@ -149,7 +203,7 @@ router.post('/events/:id/register', async (req, res) => {
                 lastName: customer.lastName,
                 email: customer.email,
                 phone: customer.phone,
-                notes: `נרשם לאירוע: ${event.title}`
+                notes: `נרשם לאירוע: ${event.name}`
             });
             await existingCustomer.save();
             
@@ -183,7 +237,7 @@ router.post('/events/:id/register', async (req, res) => {
                     businessId: event.businessId,
                     customerId: existingCustomer._id,
                     amount: parseFloat(amount),
-                    currency: event.currency || 'ILS',
+                    currency: event.pricing?.currency || 'ILS',
                     paymentMethod: paymentMethod || 'credit_card',
                     status: 'pending',
                     customer: {
@@ -195,11 +249,11 @@ router.post('/events/:id/register', async (req, res) => {
                         name: 'manual',
                         displayName: 'תשלום ידני'
                     },
-                    notes: `תשלום עבור אירוע: ${event.title}`,
+                    notes: `תשלום עבור אירוע: ${event.name}`,
                     metadata: {
                         source: 'event_registration',
                         eventId: event._id.toString(),
-                        eventTitle: event.title
+                        eventTitle: event.name
                     },
                     relatedTo: {
                         type: 'event',
@@ -212,7 +266,7 @@ router.post('/events/:id/register', async (req, res) => {
                 // For gateway payments (Cardcom, Meshulam, Tranzila)
                 const paymentData = {
                     amount,
-                    currency: event.currency || 'ILS',
+                    currency: event.pricing?.currency || 'ILS',
                     paymentMethod: paymentMethod || 'credit_card',
                     provider,
                     customer: {
@@ -224,11 +278,11 @@ router.post('/events/:id/register', async (req, res) => {
                         type: 'event',
                         id: event._id
                     },
-                    notes: `תשלום עבור אירוע: ${event.title}`,
+                    notes: `תשלום עבור אירוע: ${event.name}`,
                     metadata: {
                         source: 'event_registration',
                         eventId: event._id.toString(),
-                        eventTitle: event.title
+                        eventTitle: event.name
                     },
                     successUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/success?type=event&id=${event._id}`,
                     errorUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/error?type=event&id=${event._id}`
@@ -245,12 +299,16 @@ router.post('/events/:id/register', async (req, res) => {
                         paymentUrl: result.paymentUrl,
                         payment: payment,
                         customer: existingCustomer,
-                        event: {
-                            _id: event._id,
-                            title: event.title,
-                            date: event.date,
-                            time: event.time
-                        },
+                        event: (() => {
+                            const { date, time } = formatEventDateTime(event.startDateTime, event.timeZone);
+                            return {
+                                _id: event._id,
+                                title: event.name,
+                                date,
+                                time,
+                                location: normalizeLocation(event.location)
+                            };
+                        })(),
                         message: 'מעבר לעמוד תשלום...'
                     });
                 }
@@ -305,13 +363,9 @@ router.post('/events/:id/register', async (req, res) => {
             };
             
             const eventForNotification = {
-                name: event.title,
-                startDateTime: new Date(`${event.date}T${event.time || '00:00'}`),
-                location: {
-                    address: {
-                        city: event.location
-                    }
-                },
+                name: event.name,
+                startDateTime: event.startDateTime,
+                location: event.location,
                 pricing: {
                     type: amount > 0 ? 'paid' : 'free',
                     amount: amount
@@ -333,13 +387,16 @@ router.post('/events/:id/register', async (req, res) => {
             success: true,
             message: 'נרשמת בהצלחה לאירוע!',
             registration: {
-                event: {
-                    _id: event._id,
-                    title: event.title,
-                    date: event.date,
-                    time: event.time,
-                    location: event.location
-                },
+                event: (() => {
+                    const { date, time } = formatEventDateTime(event.startDateTime, event.timeZone);
+                    return {
+                        _id: event._id,
+                        title: event.name,
+                        date,
+                        time,
+                        location: normalizeLocation(event.location)
+                    };
+                })(),
                 customer: {
                     _id: existingCustomer._id,
                     name: `${customer.firstName} ${customer.lastName}`,
