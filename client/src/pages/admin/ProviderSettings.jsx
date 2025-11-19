@@ -42,7 +42,13 @@ const ProviderSettings = () => {
       alert('✅ ההגדרות נשמרו בהצלחה!');
     } catch (error) {
       console.error('Failed to save settings:', error);
-      alert('❌ שגיאה בשמירת ההגדרות');
+      
+      // Handle specific error codes
+      if (error.response?.data?.code === 'INVALID_PAYMENT_URL') {
+        alert('❌ ' + error.response.data.message);
+      } else {
+        alert('❌ שגיאה בשמירת ההגדרות: ' + (error.response?.data?.message || error.message));
+      }
     } finally {
       setSaving(false);
     }

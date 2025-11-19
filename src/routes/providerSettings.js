@@ -8,6 +8,29 @@ const { logInfo, logError } = require('../utils/logger');
 
 const authenticateToken = auth.authenticate();
 
+// Helper: Validate external payment URL
+function isValidExternalPaymentUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  
+  try {
+    const parsedUrl = new URL(url);
+    
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return false;
+    }
+    
+    // Must have a valid hostname
+    if (!parsedUrl.hostname || parsedUrl.hostname.length === 0) {
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // Get current user's provider settings
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -44,6 +67,17 @@ router.put('/', authenticateToken, async (req, res) => {
           success: false,
           message: 'תזכורות SMS זמינות רק במנוי פרימיום',
           code: 'SMS_PREMIUM_REQUIRED'
+        });
+      }
+    }
+
+    // Validate external payment URL if provided
+    if (paymentGateways?.externalPayment?.enabled && paymentGateways?.externalPayment?.paymentUrl) {
+      if (!isValidExternalPaymentUrl(paymentGateways.externalPayment.paymentUrl)) {
+        return res.status(400).json({
+          success: false,
+          message: 'קישור תשלום חיצוני לא תקין - חייב להיות URL מלא עם http או https',
+          code: 'INVALID_PAYMENT_URL'
         });
       }
     }
