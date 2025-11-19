@@ -1105,7 +1105,7 @@ router.get('/subscription', async (req, res) => {
         }
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024');
-        const userId = decoded.subscriberId || decoded.userId;
+        const userId = decoded.subscriberId || decoded.userId || decoded.providerId;
         
         let subscriber = await Subscriber.findById(userId);
         
