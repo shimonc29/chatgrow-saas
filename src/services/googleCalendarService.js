@@ -1,6 +1,6 @@
 const { google } = require('googleapis');
 const ProviderSettings = require('../models/ProviderSettings');
-const { logInfo, logError } = require('../utils/logger');
+const { logInfo, logError, logWarning } = require('../utils/logger');
 const encryptionUtils = require('../utils/encryption');
 
 class GoogleCalendarService {
@@ -10,7 +10,7 @@ class GoogleCalendarService {
     this.redirectUri = process.env.GOOGLE_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3000'}/api/google-calendar/callback`;
     
     if (!this.clientId || !this.clientSecret) {
-      logError('Google Calendar credentials not configured');
+      logWarning('Google Calendar credentials not configured (optional feature - premium users only)');
     }
   }
 
