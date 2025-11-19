@@ -351,9 +351,6 @@ try {
     app.use('/api/subscribers', subscriberRoutes);
     console.log('✅ Subscriber routes applied');
     
-    app.use('/dashboard', dashboardRoutes);
-    console.log('✅ Dashboard routes applied');
-    
     app.use('/health', healthRoutes);
     console.log('✅ Health routes applied');
     
@@ -411,7 +408,8 @@ if (process.env.NODE_ENV === 'production') {
     app.get('*', (req, res, next) => {
         // Skip if it's an API route
         if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || 
-            req.path.startsWith('/health') || req.path.startsWith('/dashboard')) {
+            req.path.startsWith('/health') || req.path.startsWith('/logs') || 
+            req.path.startsWith('/provider')) {
             return next();
         }
         res.sendFile(path.join(clientBuildPath, 'index.html'));
