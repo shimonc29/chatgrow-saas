@@ -86,6 +86,13 @@ const providerSettingsSchema = new mongoose.Schema({
         default: 'ILS'
       },
       testMode: { type: Boolean, default: true }
+    },
+    
+    // External Payment Link
+    externalPayment: {
+      enabled: { type: Boolean, default: false },
+      paymentUrl: { type: String },
+      description: { type: String, default: 'תשלום חיצוני' }
     }
   },
 
@@ -146,6 +153,9 @@ providerSettingsSchema.methods.getActivePaymentGateway = function() {
   }
   if (this.paymentGateways.grow.enabled) {
     return { type: 'grow', settings: this.paymentGateways.grow };
+  }
+  if (this.paymentGateways.externalPayment.enabled) {
+    return { type: 'external', settings: this.paymentGateways.externalPayment };
   }
   return null;
 };
