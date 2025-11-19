@@ -306,7 +306,7 @@ const Appointments = () => {
                       value={formData.customerName}
                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="שם מלא"
                     />
                   </div>
@@ -317,7 +317,7 @@ const Appointments = () => {
                       value={formData.service}
                       onChange={(e) => setFormData({ ...formData, service: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="למשל: ייעוץ, טיפול, פגישה"
                     />
                   </div>
@@ -329,7 +329,7 @@ const Appointments = () => {
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         required
-                        className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       />
                     </div>
                     <div>
@@ -339,7 +339,7 @@ const Appointments = () => {
                         value={formData.time}
                         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                         required
-                        className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       />
                     </div>
                   </div>
@@ -349,7 +349,7 @@ const Appointments = () => {
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows="3"
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="הערות על התור..."
                     />
                   </div>

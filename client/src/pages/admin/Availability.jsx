@@ -11,6 +11,9 @@ const Availability = () => {
   const [subscription, setSubscription] = useState(null);
   const [googleCalendarStatus, setGoogleCalendarStatus] = useState(null);
   const [googleCalendarLoading, setGoogleCalendarLoading] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
   const [newService, setNewService] = useState({
     name: '',
@@ -35,6 +38,7 @@ const Availability = () => {
     fetchAvailability();
     fetchSubscription();
     fetchGoogleCalendarStatus();
+    fetchAppointmentsAndEvents();
   }, []);
 
   const fetchSubscription = async () => {
@@ -114,6 +118,27 @@ const Availability = () => {
       alert('❌ שגיאה בניתוק יומן Google');
     } finally {
       setGoogleCalendarLoading(false);
+    }
+  };
+
+  const fetchAppointmentsAndEvents = async () => {
+    setCalendarLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const headers = { Authorization: `Bearer ${token}` };
+      const [appointmentsRes, eventsRes] = await Promise.all([
+        axios.get('/api/appointments', { headers }),
+        axios.get('/api/events', { headers })
+      ]);
+
+      setAppointments(appointmentsRes.data || []);
+      setEvents(eventsRes.data || []);
+    } catch (err) {
+      console.error('Error fetching calendar data:', err);
+    } finally {
+      setCalendarLoading(false);
     }
   };
 
@@ -342,6 +367,16 @@ const Availability = () => {
               🗓️ יומן זמינות
             </button>
             <button
+              onClick={() => setActiveTab('calendar')}
+              className={`flex-1 px-6 py-4 font-medium transition-all ${
+                activeTab === 'calendar'
+                  ? 'text-accent-teal border-b-2 border-accent-teal bg-white'
+                  : 'text-text-secondary hover:text-accent-teal hover:bg-gray-50'
+              }`}
+            >
+              📆 לוח שנה
+            </button>
+            <button
               onClick={() => setActiveTab('services')}
               className={`flex-1 px-6 py-4 font-medium transition-all ${
                 activeTab === 'services'
@@ -354,6 +389,119 @@ const Availability = () => {
           </div>
 
           <div className="p-6">
+            {activeTab === 'calendar' && (
+              <div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-accent-teal mb-4">📆 לוח השנה שלך</h3>
+                  <p className="text-text-secondary mb-4">
+                    כאן תוכל לראות את כל התורים והאירועים הקרובים שלך במקום אחד
+                  </p>
+                  <button
+                    onClick={fetchAppointmentsAndEvents}
+                    disabled={calendarLoading}
+                    className="px-4 py-2 bg-accent-teal text-white rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50"
+                  >
+                    {calendarLoading ? '🔄 טוען...' : '🔄 רענן לוח שנה'}
+                  </button>
+                </div>
+
+                {calendarLoading ? (
+                  <div className="text-center py-12">
+                    <div className="text-4xl mb-4">⏳</div>
+                    <p className="text-text-secondary">טוען נתונים...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xl font-semibold text-accent-teal flex items-center gap-2">
+                          <span>📋</span>
+                          <span>תורים קרובים</span>
+                          <span className="text-sm font-normal text-text-secondary">({appointments.length})</span>
+                        </h4>
+                      </div>
+                      {appointments.length === 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-8 text-center">
+                          <div className="text-4xl mb-3">📋</div>
+                          <p className="text-text-secondary">אין תורים קרובים</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {appointments
+                            .sort((a, b) => new Date(a.date) - new Date(b.date))
+                            .slice(0, 9)
+                            .map((appointment) => (
+                            <div key={appointment._id} className="bg-white border border-accent-teal/30 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex justify-between items-start mb-2">
+                                <h5 className="font-semibold text-primary">{appointment.customerName}</h5>
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">תור</span>
+                              </div>
+                              <p className="text-sm text-text-secondary mb-2">{appointment.service}</p>
+                              <div className="flex items-center gap-2 text-sm text-accent-teal">
+                                <span>📅</span>
+                                <span>{new Date(appointment.date).toLocaleDateString('he-IL')}</span>
+                                <span>🕐</span>
+                                <span>{appointment.time}</span>
+                              </div>
+                              {appointment.notes && (
+                                <p className="text-xs text-text-secondary mt-2 line-clamp-2">{appointment.notes}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xl font-semibold text-accent-teal flex items-center gap-2">
+                          <span>🎉</span>
+                          <span>אירועים קרובים</span>
+                          <span className="text-sm font-normal text-text-secondary">({events.length})</span>
+                        </h4>
+                      </div>
+                      {events.length === 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-8 text-center">
+                          <div className="text-4xl mb-3">🎉</div>
+                          <p className="text-text-secondary">אין אירועים קרובים</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {events
+                            .sort((a, b) => new Date(a.date) - new Date(b.date))
+                            .slice(0, 9)
+                            .map((event) => (
+                            <div key={event._id} className="bg-white border border-accent-teal/30 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex justify-between items-start mb-2">
+                                <h5 className="font-semibold text-primary line-clamp-1">{event.name}</h5>
+                                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">אירוע</span>
+                              </div>
+                              <p className="text-sm text-text-secondary mb-2 line-clamp-2">{event.description}</p>
+                              <div className="flex items-center gap-2 text-sm text-accent-teal mb-2">
+                                <span>📅</span>
+                                <span>{new Date(event.date).toLocaleDateString('he-IL')}</span>
+                                <span>🕐</span>
+                                <span>{event.time}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-text-secondary">
+                                <span>📍 {event.location}</span>
+                                <span>👥 {event.participants?.length || 0}/{event.maxParticipants}</span>
+                              </div>
+                              {event.price && (
+                                <div className="text-sm font-semibold text-accent-teal mt-2">
+                                  💰 ₪{event.price}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === 'schedule' && availability && (
               <div>
                 <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">

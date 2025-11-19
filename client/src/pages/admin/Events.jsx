@@ -306,7 +306,7 @@ const Events = () => {
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="למשל: סדנת בישול איטלקי"
                     />
                   </div>
@@ -317,7 +317,7 @@ const Events = () => {
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       required
                       rows="3"
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="תיאור קצר של האירוע..."
                     />
                   </div>
@@ -328,7 +328,7 @@ const Events = () => {
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
@@ -338,7 +338,7 @@ const Events = () => {
                       value={formData.time}
                       onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -348,7 +348,7 @@ const Events = () => {
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="כתובת מלאה"
                     />
                   </div>
@@ -360,7 +360,7 @@ const Events = () => {
                       onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
                       required
                       min="1"
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
@@ -372,7 +372,7 @@ const Events = () => {
                       required
                       min="0"
                       step="0.01"
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                     />
                   </div>
                 </div>
