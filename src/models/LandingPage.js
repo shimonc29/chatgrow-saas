@@ -70,7 +70,8 @@ const landingPageSchema = new mongoose.Schema({
     primaryColor: { type: String, default: '#8B5CF6' },
     secondaryColor: { type: String, default: '#EC4899' },
     backgroundColor: { type: String, default: '#FFFFFF' },
-    fontFamily: { type: String, default: 'Heebo' }
+    fontFamily: { type: String, default: 'Heebo' },
+    buttonStyle: { type: String, default: 'rounded-lg' }
   },
   
   // Connected Entity

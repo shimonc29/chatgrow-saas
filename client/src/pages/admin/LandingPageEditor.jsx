@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
 import MediaPicker from '../../components/MediaPicker';
 import axios from 'axios';
+import { COLOR_SCHEMES, FONT_FAMILIES, BUTTON_STYLES } from '../../constants/landingPageStyles';
 
 const TEMPLATES = {
   modern: {
@@ -70,7 +71,8 @@ const LandingPageEditor = () => {
       primaryColor: '#8B5CF6',
       secondaryColor: '#EC4899',
       backgroundColor: '#FFFFFF',
-      fontFamily: 'Heebo'
+      fontFamily: 'Heebo',
+      buttonStyle: 'rounded-lg'
     },
     linkedTo: {
       type: 'none',
@@ -232,6 +234,25 @@ const LandingPageEditor = () => {
         hero: {
           ...prev.content.hero,
           ctaColor: template.colors.primary
+        }
+      }
+    }));
+  };
+
+  const applyColorScheme = (scheme) => {
+    setFormData(prev => ({
+      ...prev,
+      styling: {
+        ...prev.styling,
+        primaryColor: scheme.primaryColor,
+        secondaryColor: scheme.secondaryColor,
+        backgroundColor: scheme.backgroundColor
+      },
+      content: {
+        ...prev.content,
+        hero: {
+          ...prev.content.hero,
+          ctaColor: scheme.primaryColor
         }
       }
     }));
@@ -577,7 +598,39 @@ const LandingPageEditor = () => {
             <div className="bg-bg-light border border-accent-teal/30 rounded-xl shadow-lg p-4 sm:p-6 hover:border-accent-teal/50 hover:shadow-accent-teal/20 transition-all">
               <h3 className="text-lg sm:text-xl font-bold text-accent-teal mb-4">🎨 עיצוב וצבעים</h3>
               
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Color Schemes */}
+              <div className="mb-6">
+                <label className="block text-sm sm:text-base text-accent-teal font-medium mb-3">ערכות צבעים מוכנות</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {COLOR_SCHEMES.map((scheme) => (
+                    <button
+                      key={scheme.id}
+                      onClick={() => applyColorScheme(scheme)}
+                      className="flex flex-col items-center gap-2 p-3 bg-white/5 border border-accent-teal/30 rounded-lg hover:bg-white/10 hover:border-accent-teal transition-all"
+                      title={scheme.name}
+                    >
+                      <div className="flex gap-1">
+                        <div 
+                          className="w-6 h-6 rounded"
+                          style={{ backgroundColor: scheme.primaryColor }}
+                        />
+                        <div 
+                          className="w-6 h-6 rounded"
+                          style={{ backgroundColor: scheme.secondaryColor }}
+                        />
+                        <div 
+                          className="w-6 h-6 rounded border border-gray-500"
+                          style={{ backgroundColor: scheme.backgroundColor }}
+                        />
+                      </div>
+                      <span className="text-xs text-center text-white">{scheme.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Manual Colors */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div>
                   <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">צבע ראשי</label>
                   <input
@@ -604,6 +657,47 @@ const LandingPageEditor = () => {
                     onChange={(e) => updateStyling('backgroundColor', e.target.value)}
                     className="w-full h-10 bg-bg-light border border-accent-teal/30 rounded-lg"
                   />
+                </div>
+              </div>
+
+              {/* Font Selection */}
+              <div className="mb-6">
+                <label className="block text-sm sm:text-base text-accent-teal font-medium mb-2">גופן</label>
+                <select
+                  value={formData.styling.fontFamily}
+                  onChange={(e) => updateStyling('fontFamily', e.target.value)}
+                  className="w-full px-4 py-2 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal"
+                >
+                  {FONT_FAMILIES.map((font) => (
+                    <option key={font.id} value={font.id} style={{ fontFamily: font.value }}>
+                      {font.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Button Style */}
+              <div>
+                <label className="block text-sm sm:text-base text-accent-teal font-medium mb-3">סגנון כפתורים</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {BUTTON_STYLES.map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => updateStyling('buttonStyle', style.id)}
+                      className={`p-3 border-2 rounded-lg transition-all ${
+                        formData.styling.buttonStyle === style.id
+                          ? 'border-accent-teal bg-accent-teal/20'
+                          : 'border-accent-teal/30 bg-white/5 hover:border-accent-teal/50'
+                      }`}
+                    >
+                      <div 
+                        className={`${style.classes} bg-accent-teal text-white text-xs font-bold text-center mb-1`}
+                      >
+                        לחץ כאן
+                      </div>
+                      <span className="text-xs text-white block text-center">{style.name}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
