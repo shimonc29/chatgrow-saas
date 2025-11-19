@@ -85,7 +85,7 @@ const AIInsightsCard = ({ eventId, eventName }) => {
             </ul>
             <button 
               className="bg-gradient-to-r from-accent-teal to-accent-hover text-white py-2 px-6 rounded-lg hover:shadow-lg transition-all duration-200 font-semibold"
-              onClick={() => navigate('/subscription-management')}
+              onClick={() => navigate('/subscription')}
             >
               🚀 שדרג ל-Premium וקבל AI Coach
             </button>

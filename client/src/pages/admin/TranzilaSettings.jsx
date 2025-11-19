@@ -176,7 +176,7 @@ const TranzilaSettings = () => {
                     שדרג את המנוי שלך כדי להפעיל תכונה זו!
                   </p>
                   <a 
-                    href="/admin/subscription"
+                    href="/subscription"
                     className="inline-block bg-accent-teal text-white px-6 py-2 rounded-lg font-semibold hover:bg-accent-hover transition-all"
                   >
                     🚀 שדרג לפרימיום
