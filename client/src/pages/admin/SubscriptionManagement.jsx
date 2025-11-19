@@ -4,6 +4,7 @@ import axios from 'axios';
 const SubscriptionManagement = () => {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -20,6 +21,22 @@ const SubscriptionManagement = () => {
       console.error('Failed to fetch subscription:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpgradeToPremium = async () => {
+    try {
+      setUpgrading(true);
+      
+      // כאן יתווסף API call לטרנזילה שייצור עמוד תשלום חוזר (₪99/חודש)
+      // לאחר הרשמה מוצלחת לתשלום חוזר, המשתמש יעודכן לסטטוס ACTIVE
+      
+      alert('🚧 אינטגרציה עם טרנזילה בבנייה\n\nבקרוב תוכל לשדרג למנוי פרימיום בתשלום חוזר של ₪99/חודש כולל מע״מ דרך טרנזילה.\n\nאחרי אישור התשלום, המנוי שלך ישודרג אוטומטית לפרימיום! 🚀');
+    } catch (error) {
+      console.error('Upgrade failed:', error);
+      alert('❌ שגיאה בתהליך השדרוג. נסה שוב מאוחר יותר.');
+    } finally {
+      setUpgrading(false);
     }
   };
 
@@ -255,9 +272,14 @@ const SubscriptionManagement = () => {
               </ul>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">₪99/חודש</div>
+                <p className="text-white text-sm mb-3 opacity-90">כולל מע"מ • תשלום חוזר דרך Tranzila</p>
                 {!premiumStatus ? (
-                  <button className="w-full bg-white text-accent-teal py-3 px-6 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
-                    🚀 שדרג עכשיו
+                  <button 
+                    onClick={handleUpgradeToPremium}
+                    disabled={upgrading}
+                    className="w-full bg-white text-accent-teal py-3 px-6 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {upgrading ? '⏳ מעבד...' : '🚀 שדרג עכשיו'}
                   </button>
                 ) : (
                   <div className="bg-white bg-opacity-20 py-3 px-6 rounded-lg font-semibold">
