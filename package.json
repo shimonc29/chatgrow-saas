@@ -4,7 +4,8 @@
   "description": "ChatGrow - Advanced Chat Application",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "NODE_ENV=production node src/index.js",
+    "start:prod": "bash start-prod.sh",
     "dev": "vite",
     "dev:backend": "nodemon src/index.js --watch src",
     "build": "vite build",

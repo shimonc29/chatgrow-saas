@@ -5,6 +5,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
@@ -397,6 +398,25 @@ try {
 
 
 // Queue endpoints removed - using NotificationService instead
+
+// Serve static files from React app in production
+if (process.env.NODE_ENV === 'production') {
+    const clientBuildPath = path.join(__dirname, '../client/dist');
+    console.log('📁 Serving static files from:', clientBuildPath);
+    
+    app.use(express.static(clientBuildPath));
+    
+    // Catch-all route to serve index.html for client-side routing (React Router)
+    // This MUST come after all API routes but before 404 handler
+    app.get('*', (req, res, next) => {
+        // Skip if it's an API route
+        if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || 
+            req.path.startsWith('/health') || req.path.startsWith('/dashboard')) {
+            return next();
+        }
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+}
 
 // Error handling middleware
 app.use((error, req, res, next) => {
