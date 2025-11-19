@@ -1105,9 +1105,26 @@ router.get('/subscription', async (req, res) => {
         }
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key-chatgrow-2024');
-        const subscriber = await Subscriber.findById(decoded.subscriberId || decoded.userId);
+        const userId = decoded.subscriberId || decoded.userId;
+        
+        let subscriber = await Subscriber.findById(userId);
         
         if (!subscriber) {
+            const ServiceProvider = require('../models/ServiceProvider');
+            const provider = await ServiceProvider.findById(userId);
+            
+            if (provider) {
+                return res.json({
+                    success: true,
+                    subscriptionStatus: 'FREE',
+                    maxCustomers: 200,
+                    currentCustomerCount: 0,
+                    isWhitelabel: false,
+                    paymentProviderId: null,
+                    isLegacyUser: true
+                });
+            }
+            
             return res.status(404).json({ success: false, message: 'מנוי לא נמצא' });
         }
         
