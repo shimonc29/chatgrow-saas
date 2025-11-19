@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Availability = () => {
-  const [activeTab, setActiveTab] = useState('schedule');
+  const [activeTab, setActiveTab] = useState('calendar');
   const [availability, setAvailability] = useState(null);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,10 +133,20 @@ const Availability = () => {
         axios.get('/api/events', { headers })
       ]);
 
-      setAppointments(appointmentsRes.data || []);
-      setEvents(eventsRes.data || []);
+      const appointmentsData = Array.isArray(appointmentsRes.data) 
+        ? appointmentsRes.data 
+        : (appointmentsRes.data?.data || appointmentsRes.data?.appointments || []);
+      
+      const eventsData = Array.isArray(eventsRes.data) 
+        ? eventsRes.data 
+        : (eventsRes.data?.data || eventsRes.data?.events || []);
+
+      setAppointments(appointmentsData);
+      setEvents(eventsData);
     } catch (err) {
       console.error('Error fetching calendar data:', err);
+      setAppointments([]);
+      setEvents([]);
     } finally {
       setCalendarLoading(false);
     }
@@ -357,16 +367,6 @@ const Availability = () => {
         <div className="bg-bg-card rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex border-b border-gray-200">
             <button
-              onClick={() => setActiveTab('schedule')}
-              className={`flex-1 px-6 py-4 font-medium transition-all ${
-                activeTab === 'schedule'
-                  ? 'text-accent-teal border-b-2 border-accent-teal bg-white'
-                  : 'text-text-secondary hover:text-accent-teal hover:bg-gray-50'
-              }`}
-            >
-              🗓️ יומן זמינות
-            </button>
-            <button
               onClick={() => setActiveTab('calendar')}
               className={`flex-1 px-6 py-4 font-medium transition-all ${
                 activeTab === 'calendar'
@@ -499,119 +499,6 @@ const Availability = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {activeTab === 'schedule' && availability && (
-              <div>
-                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-primary mb-2">💡 הגדרות כלליות</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm text-text-secondary mb-1">זמן מרווח בין תורים (דקות)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={availability.bufferTime}
-                        onChange={(e) => setAvailability({ ...availability, bufferTime: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-text-secondary mb-1">ניתן להזמין עד (ימים מראש)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="365"
-                        value={availability.maxAdvanceBookingDays}
-                        onChange={(e) => setAvailability({ ...availability, maxAdvanceBookingDays: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-text-secondary mb-1">הזמנה מינימום (שעות מראש)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={availability.minAdvanceBookingHours}
-                        onChange={(e) => setAvailability({ ...availability, minAdvanceBookingHours: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {daysOfWeek.map((day, dayIndex) => {
-                    const daySchedule = availability.weeklySchedule.find(d => d.dayOfWeek === day.value);
-                    if (!daySchedule) return null;
-
-                    return (
-                      <div key={day.value} className="border border-gray-200 rounded-lg p-4 bg-white">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={daySchedule.isAvailable}
-                                onChange={() => handleDayToggle(dayIndex)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-teal/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-teal"></div>
-                            </label>
-                            <span className="text-lg font-semibold text-primary">{day.label}</span>
-                          </div>
-                          {daySchedule.isAvailable && (
-                            <button
-                              onClick={() => addTimeSlot(dayIndex)}
-                              className="px-3 py-1 bg-accent-teal text-white rounded-lg hover:bg-accent-hover transition-colors text-sm"
-                            >
-                              + הוסף טווח שעות
-                            </button>
-                          )}
-                        </div>
-
-                        {daySchedule.isAvailable && (
-                          <div className="space-y-2">
-                            {daySchedule.timeSlots.map((slot, slotIndex) => (
-                              <div key={slotIndex} className="flex items-center gap-3 bg-gray-50 p-3 rounded">
-                                <label className="text-sm text-text-secondary min-w-[60px]">משעה:</label>
-                                <input
-                                  type="time"
-                                  value={slot.startTime}
-                                  onChange={(e) => handleTimeSlotChange(dayIndex, slotIndex, 'startTime', e.target.value)}
-                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal"
-                                />
-                                <label className="text-sm text-text-secondary">עד שעה:</label>
-                                <input
-                                  type="time"
-                                  value={slot.endTime}
-                                  onChange={(e) => handleTimeSlotChange(dayIndex, slotIndex, 'endTime', e.target.value)}
-                                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-accent-teal"
-                                />
-                                <button
-                                  onClick={() => removeTimeSlot(dayIndex, slotIndex)}
-                                  className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={saveSchedule}
-                    className="px-6 py-3 bg-gradient-to-l from-accent-teal to-accent-hover text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
-                  >
-                    💾 שמור זמינות
-                  </button>
-                </div>
               </div>
             )}
 
