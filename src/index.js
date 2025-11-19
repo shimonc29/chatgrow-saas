@@ -347,7 +347,7 @@ try {
     app.use('/provider', providerRoutes);
     console.log('✅ Provider routes applied');
     
-    app.use('/subscribers', subscriberRoutes);
+    app.use('/api/subscribers', subscriberRoutes);
     console.log('✅ Subscriber routes applied');
     
     app.use('/dashboard', dashboardRoutes);
