@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
@@ -45,15 +45,59 @@ const Sidebar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleLinkClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   return (
-    <aside className="w-64 bg-gradient-to-b from-bg-light via-bg-card to-bg-light border-l border-accent-teal/30 min-h-screen flex flex-col">
-      {/* Logo/Brand */}
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`
+        w-64 bg-gradient-to-b from-bg-light via-bg-card to-bg-light border-l border-accent-teal/30 min-h-screen flex flex-col
+        fixed md:static right-0 top-0 z-50
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+      `}>
+      {/* Logo/Brand with Close Button (Mobile) */}
       <div className="p-6 border-b border-accent-teal/30">
-        <h1 className="text-2xl font-bold">
-          <span className="text-2xl">👑</span>{' '}
-          <span className="bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent">ChatGrow</span>
-        </h1>
-        <p className="text-sm text-text-secondary mt-1">מערכת ניהול</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">
+              <span className="text-2xl">👑</span>{' '}
+              <span className="bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent">ChatGrow</span>
+            </h1>
+            <p className="text-sm text-text-secondary mt-1">מערכת ניהול</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="md:hidden p-2 rounded-lg hover:bg-bg-card transition-colors"
+            aria-label="סגור תפריט"
+          >
+            <svg className="w-6 h-6 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* User Info */}
@@ -80,6 +124,7 @@ const Sidebar = () => {
             <li>
               <Link
                 to="/super-admin"
+                onClick={handleLinkClick}
                 className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
                   isActive('/super-admin')
                     ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
@@ -95,6 +140,7 @@ const Sidebar = () => {
             <li key={item.path}>
               <Link
                 to={item.path}
+                onClick={handleLinkClick}
                 className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
                   isActive(item.path)
                     ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
@@ -120,6 +166,7 @@ const Sidebar = () => {
         </button>
       </div>
     </aside>
+    </>
   );
 };
 
