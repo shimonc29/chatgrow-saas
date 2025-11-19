@@ -7,8 +7,8 @@ const ProviderSettings = () => {
   const [settings, setSettings] = useState({
     emailProvider: { type: 'none', enabled: false, sendgrid: {}, smtp: {} },
     smsProvider: { type: 'none', enabled: false, twilio: {} },
-    paymentProvider: { type: 'none', enabled: false, cardcom: {}, grow: {} },
-    invoicingProvider: { type: 'none', enabled: false, greenInvoice: {}, iCount: {} }
+    paymentGateways: { cardcom: {}, grow: {}, externalPayment: { enabled: false, paymentUrl: '', description: 'תשלום חיצוני' } },
+    invoiceSettings: {}
   });
   const [activeTab, setActiveTab] = useState('email');
   const [testEmail, setTestEmail] = useState('');
@@ -110,6 +110,7 @@ const ProviderSettings = () => {
           {[
             { id: 'email', label: '📧 אימייל', icon: '📧' },
             { id: 'sms', label: '📱 SMS', icon: '📱' },
+            { id: 'payment', label: '💳 תשלום', icon: '💳' },
             { id: 'invoice', label: '🧾 חשבוניות', icon: '🧾' }
           ].map(tab => (
             <button
@@ -412,6 +413,102 @@ const ProviderSettings = () => {
           </div>
         )}
 
+
+        {/* Payment Settings */}
+        {activeTab === 'payment' && (
+          <div className="bg-bg-card border border-accent-teal/30 rounded-lg p-6 shadow-lg shadow-accent-teal/10">
+            <h2 className="text-2xl font-bold text-accent-teal mb-4">💳 הגדרות תשלום</h2>
+            
+            <div className="mb-6 p-4 bg-accent-teal/5 border border-accent-teal/20 rounded-lg">
+              <p className="text-text-secondary text-sm">
+                ⓘ הגדר קישור לדף תשלום חיצוני (כמו Bit, PayBox וכו') לקבלת תשלומים מלקוחות.
+                <br />
+                לקוחות שירשמו לאירועים או תורים יופנו לקישור זה לביצוע התשלום.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="flex items-center gap-2 text-text-primary mb-4">
+                <input
+                  type="checkbox"
+                  checked={settings.paymentGateways?.externalPayment?.enabled || false}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    paymentGateways: {
+                      ...settings.paymentGateways,
+                      externalPayment: {
+                        ...settings.paymentGateways.externalPayment,
+                        enabled: e.target.checked
+                      }
+                    }
+                  })}
+                  className="w-5 h-5"
+                />
+                <span className="font-semibold">הפעל קישור תשלום חיצוני</span>
+              </label>
+
+              {settings.paymentGateways?.externalPayment?.enabled && (
+                <div className="space-y-4 mr-7">
+                  <div>
+                    <label className="block text-text-primary mb-2">
+                      קישור לדף תשלום <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={settings.paymentGateways?.externalPayment?.paymentUrl || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        paymentGateways: {
+                          ...settings.paymentGateways,
+                          externalPayment: {
+                            ...settings.paymentGateways.externalPayment,
+                            paymentUrl: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                      placeholder="https://example.com/payment או https://bit.ly/my-payment"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-text-secondary mt-1">
+                      הזן קישור מלא כולל https://
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-text-primary mb-2">תיאור (אופציונלי)</label>
+                    <input
+                      type="text"
+                      value={settings.paymentGateways?.externalPayment?.description || 'תשלום חיצוני'}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        paymentGateways: {
+                          ...settings.paymentGateways,
+                          externalPayment: {
+                            ...settings.paymentGateways.externalPayment,
+                            description: e.target.value
+                          }
+                        }
+                      })}
+                      className="w-full bg-bg-light border border-accent-teal/50 text-text-primary px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-accent-teal"
+                      placeholder="תשלום באמצעות Bit"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-blue-900 mb-2">💡 אפשרויות תשלום נוספות</h3>
+              <p className="text-sm text-blue-800 mb-2">
+                רוצה לקבל תשלומים ישירות דרך Tranzila? 
+              </p>
+              <p className="text-sm text-blue-700">
+                עבור ל<a href="/admin/tranzila-settings" className="font-semibold underline mx-1">הגדרות Tranzila</a>לשלוח בקשת הצטרפות.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Invoice Settings */}
         {activeTab === 'invoice' && (
