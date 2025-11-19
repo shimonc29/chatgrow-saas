@@ -139,11 +139,6 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to all /api routes
 app.use('/api', apiLimiter);
 
-// Basic root route
-app.get('/', (req, res) => {
-  res.redirect('/dashboard');
-});
-
 // API info endpoint
 app.get('/api', (req, res) => {
     res.json({
