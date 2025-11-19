@@ -7,6 +7,7 @@ const Payment = require('../models/Payment');
 const LandingPage = require('../models/LandingPage');
 const Availability = require('../models/Availability');
 const Subscriber = require('../models/Subscriber');
+const ProviderSettings = require('../models/ProviderSettings');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
 const { incrementCustomerCount } = require('../middleware/customerLimit');
@@ -262,6 +263,67 @@ router.post('/events/:id/register', async (req, res) => {
                 });
 
                 await payment.save();
+            } else if (provider === 'external') {
+                // For external payment link
+                const providerSettings = await ProviderSettings.findOne({ userId: event.businessId });
+                
+                if (!providerSettings || !providerSettings.paymentGateways?.externalPayment?.enabled || !providerSettings.paymentGateways?.externalPayment?.paymentUrl) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'קישור תשלום חיצוני לא מוגדר'
+                    });
+                }
+
+                payment = new Payment({
+                    businessId: event.businessId,
+                    customerId: existingCustomer._id,
+                    amount: parseFloat(amount),
+                    currency: event.pricing?.currency || 'ILS',
+                    paymentMethod: paymentMethod || 'credit_card',
+                    status: 'pending',
+                    customer: {
+                        name: `${customer.firstName} ${customer.lastName}`,
+                        email: customer.email,
+                        phone: customer.phone
+                    },
+                    provider: {
+                        name: 'external',
+                        displayName: providerSettings.paymentGateways.externalPayment.description || 'תשלום חיצוני'
+                    },
+                    notes: `תשלום עבור אירוע: ${event.name}`,
+                    metadata: {
+                        source: 'event_registration',
+                        eventId: event._id.toString(),
+                        eventTitle: event.name,
+                        externalPaymentUrl: providerSettings.paymentGateways.externalPayment.paymentUrl
+                    },
+                    relatedTo: {
+                        type: 'event',
+                        id: event._id
+                    }
+                });
+
+                await payment.save();
+
+                // Return external payment URL
+                return res.status(201).json({
+                    success: true,
+                    requiresRedirect: true,
+                    paymentUrl: providerSettings.paymentGateways.externalPayment.paymentUrl,
+                    payment: payment,
+                    customer: existingCustomer,
+                    event: (() => {
+                        const { date, time } = formatEventDateTime(event.startDateTime, event.timeZone);
+                        return {
+                            _id: event._id,
+                            title: event.name,
+                            date,
+                            time,
+                            location: normalizeLocation(event.location)
+                        };
+                    })(),
+                    message: 'מעבר לדף תשלום...'
+                });
             } else {
                 // For gateway payments (Cardcom, Meshulam, Tranzila)
                 const paymentData = {

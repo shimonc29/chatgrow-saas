@@ -54,12 +54,13 @@ const paymentSchema = new mongoose.Schema({
     provider: {
         name: {
             type: String,
-            enum: ['cardcom', 'meshulam', 'tranzila', 'stripe', 'manual'],
+            enum: ['cardcom', 'meshulam', 'tranzila', 'stripe', 'manual', 'external'],
             required: true
         },
         transactionId: String,
         authNumber: String,
         confirmationCode: String,
+        displayName: String,
         metadata: mongoose.Schema.Types.Mixed
     },
 
