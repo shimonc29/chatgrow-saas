@@ -226,7 +226,7 @@ const Customers = () => {
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="שם פרטי ומשפחה"
                     />
                   </div>
@@ -236,7 +236,7 @@ const Customers = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="example@mail.com"
                       dir="ltr"
                     />
@@ -248,7 +248,7 @@ const Customers = () => {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="05X-XXX-XXXX"
                       dir="ltr"
                     />
@@ -259,7 +259,7 @@ const Customers = () => {
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       rows="3"
-                      className="w-full px-4 py-3 bg-bg-light border border-accent-teal/30 text-white rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 bg-white border border-accent-teal/30 text-gray-900 rounded-lg focus:ring-2 focus:ring-accent-teal focus:border-transparent outline-none"
                       placeholder="הערות על הלקוח..."
                     />
                   </div>
