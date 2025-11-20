@@ -79,7 +79,7 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       )}
 
       <aside className={`
-        w-64 bg-gradient-to-b from-bg-light via-bg-card to-bg-light border-l border-accent-teal/30 min-h-screen flex flex-col
+        w-64 bg-gradient-to-b from-bg-light via-bg-card to-bg-light border-l border-accent-teal/30 h-screen flex flex-col
         fixed md:static right-0 top-0 z-50
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
           {isSuperAdmin && (
             <li>
