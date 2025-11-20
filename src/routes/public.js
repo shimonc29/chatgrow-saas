@@ -93,8 +93,8 @@ router.get('/events/:id/payment-options', async (req, res) => {
         
         const hasMeshulam = !!(
             providerSettings && 
-            providerSettings.paymentGateways?.grow?.enabled &&
-            providerSettings.paymentGateways?.grow?.apiKey
+            providerSettings.paymentGateways?.meshulam?.enabled &&
+            providerSettings.paymentGateways?.meshulam?.apiKey
         );
         
         const hasExternalPayment = !!(
@@ -801,8 +801,8 @@ router.get('/appointments/payment-options', async (req, res) => {
         
         const hasMeshulam = !!(
             providerSettings && 
-            providerSettings.paymentGateways?.grow?.enabled &&
-            providerSettings.paymentGateways?.grow?.apiKey
+            providerSettings.paymentGateways?.meshulam?.enabled &&
+            providerSettings.paymentGateways?.meshulam?.apiKey
         );
         
         const hasExternalPayment = !!(
