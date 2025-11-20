@@ -772,6 +772,79 @@ router.get('/appointments/available', async (req, res) => {
     }
 });
 
+// Get available payment options for appointments
+router.get('/appointments/payment-options', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { businessId } = req.query;
+        
+        if (!businessId) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש businessId'
+            });
+        }
+
+        // Check if business owner has Tranzila
+        const user = await Subscriber.findById(businessId);
+        const hasTranzila = !!(user && user.tranzilaTerminal);
+
+        // Check payment gateways configured in ProviderSettings
+        const providerSettings = await ProviderSettings.findOne({ userId: businessId });
+        
+        const hasCardcom = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.cardcom?.enabled &&
+            providerSettings.paymentGateways?.cardcom?.terminalNumber
+        );
+        
+        const hasMeshulam = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.grow?.enabled &&
+            providerSettings.paymentGateways?.grow?.apiKey
+        );
+        
+        const hasExternalPayment = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.externalPayment?.enabled && 
+            providerSettings.paymentGateways?.externalPayment?.paymentUrl
+        );
+
+        const externalPaymentLabel = providerSettings?.paymentGateways?.externalPayment?.description || 'תשלום חיצוני';
+
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            businessId,
+            hasTranzila,
+            hasCardcom,
+            hasMeshulam,
+            hasExternalPayment
+        });
+
+        res.json({
+            success: true,
+            paymentOptions: {
+                manual: true,
+                tranzila: hasTranzila,
+                cardcom: hasCardcom,
+                meshulam: hasMeshulam,
+                external: hasExternalPayment,
+                externalLabel: externalPaymentLabel
+            }
+        });
+
+    } catch (error) {
+        logError('Failed to get appointment payment options', { error: error.message, businessId: req.query.businessId });
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת אפשרויות תשלום'
+        });
+    }
+});
+
 // Book an appointment (public)
 router.post('/appointments/book', async (req, res) => {
     const startTime = Date.now();
