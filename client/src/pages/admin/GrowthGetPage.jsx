@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import {
   LineChart, Line, BarChart, Bar, FunnelChart, Funnel,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
@@ -24,10 +24,10 @@ const GrowthGetPage = () => {
       setError('');
 
       const [summaryRes, sourcesRes, timelineRes, aiRes] = await Promise.all([
-        axios.get(`/api/growth/get/summary?period=${period}`),
-        axios.get(`/api/growth/get/sources?period=${period}`),
-        axios.get(`/api/growth/get/timeline?period=${period}`),
-        axios.get(`/api/growth/get/ai-insights?period=${period}`)
+        api.get(`/growth/get/summary?period=${period}`),
+        api.get(`/growth/get/sources?period=${period}`),
+        api.get(`/growth/get/timeline?period=${period}`),
+        api.get(`/growth/get/ai-insights?period=${period}`)
       ]);
 
       setSummary(summaryRes.data.data);

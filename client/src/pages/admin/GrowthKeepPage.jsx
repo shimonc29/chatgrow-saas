@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { 
   BarChart, Bar, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -51,15 +51,10 @@ const GrowthKeepPage = () => {
   const fetchRetentionData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       const [summaryRes, opportunitiesRes] = await Promise.all([
-        axios.get(`/api/growth/keep/summary?days=${selectedPeriod}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('/api/growth/keep/win-back-opportunities', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get(`/growth/keep/summary?days=${selectedPeriod}`),
+        api.get('/growth/keep/win-back-opportunities')
       ]);
 
       setSummary(summaryRes.data.data);
@@ -76,14 +71,11 @@ const GrowthKeepPage = () => {
 
   const fetchCustomersByFilter = async () => {
     try {
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       if (selectedSegment) params.append('segment', selectedSegment);
       if (selectedRisk) params.append('churnRisk', selectedRisk);
 
-      const response = await axios.get(`/api/growth/keep/segments?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/growth/keep/segments?${params.toString()}`);
 
       setCustomers(response.data.data || []);
     } catch (error) {
@@ -94,14 +86,12 @@ const GrowthKeepPage = () => {
   const fetchAIInsights = async () => {
     try {
       setAiLoading(true);
-      const token = localStorage.getItem('token');
 
-      const response = await axios.post('/api/growth/keep/ai-insights', 
+      const response = await api.post('/growth/keep/ai-insights', 
         { 
           segment: selectedSegment,
           customersData: customers.slice(0, 10)
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       setAiInsights(response.data.data.insights);

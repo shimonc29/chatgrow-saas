@@ -14,6 +14,7 @@ function AppointmentBooking() {
     const [services, setServices] = useState([]);
     const [availableSlots, setAvailableSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
+    const [paymentOptions, setPaymentOptions] = useState(null);
     
     const [formData, setFormData] = useState({
         firstName: '',
@@ -35,6 +36,7 @@ function AppointmentBooking() {
             setLoading(false);
         } else {
             fetchServices();
+            fetchPaymentOptions();
             
             // Capture and store source tracking
             const tracking = getSourceTracking();
@@ -58,6 +60,30 @@ function AppointmentBooking() {
             setError('שגיאה בטעינת רשימת השירותים');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPaymentOptions = async () => {
+        try {
+            const response = await axios.get(`/api/public/appointments/payment-options?businessId=${businessId}`);
+            if (response.data.success) {
+                setPaymentOptions(response.data.paymentOptions);
+                
+                // Set default provider based on available options (priority order)
+                if (response.data.paymentOptions.tranzila) {
+                    setFormData(prev => ({ ...prev, provider: 'tranzila' }));
+                } else if (response.data.paymentOptions.cardcom) {
+                    setFormData(prev => ({ ...prev, provider: 'cardcom' }));
+                } else if (response.data.paymentOptions.meshulam) {
+                    setFormData(prev => ({ ...prev, provider: 'meshulam' }));
+                } else if (response.data.paymentOptions.external) {
+                    setFormData(prev => ({ ...prev, provider: 'external' }));
+                } else {
+                    setFormData(prev => ({ ...prev, provider: 'manual' }));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching payment options:', err);
         }
     };
 
@@ -441,22 +467,35 @@ function AppointmentBooking() {
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-gray-300 font-medium mb-2">
-                                            ספק תשלום
-                                        </label>
-                                        <select
-                                            name="provider"
-                                            value={formData.provider}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                        >
-                                            <option value="manual">תשלום ידני</option>
-                                            <option value="tranzila">Tranzila</option>
-                                            <option value="cardcom">Cardcom</option>
-                                            <option value="meshulam">Meshulam (GROW)</option>
-                                        </select>
-                                    </div>
+                                    {paymentOptions && (
+                                        <div>
+                                            <label className="block text-gray-300 font-medium mb-2">
+                                                ספק תשלום
+                                            </label>
+                                            <select
+                                                name="provider"
+                                                value={formData.provider}
+                                                onChange={handleChange}
+                                                className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                            >
+                                                {paymentOptions.manual && (
+                                                    <option value="manual">תשלום ידני</option>
+                                                )}
+                                                {paymentOptions.tranzila && (
+                                                    <option value="tranzila">Tranzila</option>
+                                                )}
+                                                {paymentOptions.cardcom && (
+                                                    <option value="cardcom">Cardcom</option>
+                                                )}
+                                                {paymentOptions.meshulam && (
+                                                    <option value="meshulam">Meshulam (GROW)</option>
+                                                )}
+                                                {paymentOptions.external && (
+                                                    <option value="external">{paymentOptions.externalLabel}</option>
+                                                )}
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-6 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-600/30 p-6 rounded-lg">

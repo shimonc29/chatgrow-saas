@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -38,7 +38,7 @@ export default function GrowthGrowPage() {
       setError(null);
 
       const [summaryRes] = await Promise.all([
-        axios.get('/api/growth/grow/summary')
+        api.get('/growth/grow/summary')
       ]);
 
       setSummary(summaryRes.data.data);
@@ -57,7 +57,7 @@ export default function GrowthGrowPage() {
   const loadAIInsights = async () => {
     try {
       setAiLoading(true);
-      const response = await axios.get('/api/growth/grow/ai-insights');
+      const response = await api.get('/growth/grow/ai-insights');
       setAiInsights(response.data.data);
     } catch (err) {
       console.error('Error loading AI insights:', err);
@@ -68,7 +68,7 @@ export default function GrowthGrowPage() {
 
   const handleUpdateOpportunityStatus = async (opportunityId, status, actualValue = null) => {
     try {
-      await axios.put(`/api/growth/grow/${opportunityId}/status`, {
+      await api.put(`/growth/grow/${opportunityId}/status`, {
         status,
         actualValue
       });
@@ -82,7 +82,7 @@ export default function GrowthGrowPage() {
   const handleIdentifyOpportunities = async () => {
     try {
       setLoading(true);
-      await axios.post('/api/growth/grow/identify');
+      await api.post('/growth/grow/identify');
       await loadData();
       alert('זיהוי הזדמנויות הושלם בהצלחה!');
     } catch (err) {
