@@ -9,6 +9,7 @@ const invoiceService = require('./invoiceService');
 const strategicReportService = require('./strategicReportService');
 const dataBrokerService = require('./dataBrokerService');
 const growthGetService = require('./growthGetService');
+const growthKeepService = require('./growthKeepService');
 
 class CronService {
     constructor() {
@@ -33,6 +34,7 @@ class CronService {
             this.scheduleDataCleanup();
             this.scheduleWeeklyStrategicReports();
             this.scheduleDailyGrowthAggregation();
+            this.scheduleDailyCustomerHealthCalculation();
 
             this.isInitialized = true;
             logInfo('CronService initialized successfully', {
@@ -834,6 +836,67 @@ class CronService {
             logInfo('Completed Growth acquisition aggregation for all businesses');
         } catch (error) {
             logError('Failed to aggregate Growth acquisition data', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Schedule daily Customer Health calculation
+     * Runs daily at 04:00 AM
+     */
+    scheduleDailyCustomerHealthCalculation() {
+        const job = cron.schedule('0 4 * * *', async () => {
+            try {
+                logInfo('Running daily Customer Health calculation job');
+                await this.calculateCustomerHealthForAllBusinesses();
+            } catch (error) {
+                logError('Daily Customer Health calculation job failed', error);
+            }
+        });
+
+        this.jobs.set('customerHealthCalculation', job);
+        logInfo('Scheduled daily Customer Health calculation job (daily at 04:00)');
+    }
+
+    /**
+     * Calculate Customer Health for all businesses
+     */
+    async calculateCustomerHealthForAllBusinesses() {
+        try {
+            const Subscriber = require('../models/Subscriber');
+            const businesses = await Subscriber.findAll();
+
+            logInfo('Starting Customer Health calculation for all businesses', {
+                businessCount: businesses.length
+            });
+
+            for (const business of businesses) {
+                try {
+                    const subscriptionStatus = business.subscription_status || 'FREE';
+                    
+                    if (!['ACTIVE', 'TRIAL'].includes(subscriptionStatus)) {
+                        logInfo('Skipping Customer Health calculation for non-premium business', {
+                            businessId: business.id,
+                            subscriptionStatus
+                        });
+                        continue;
+                    }
+
+                    await growthKeepService.calculateCustomerHealth(business.id);
+                    logInfo('Customer Health calculated successfully', {
+                        businessId: business.id
+                    });
+                } catch (error) {
+                    logError('Failed to calculate Customer Health for business', {
+                        businessId: business.id,
+                        error: error.message
+                    });
+                }
+            }
+
+            logInfo('Completed Customer Health calculation for all businesses');
+        } catch (error) {
+            logError('Failed to calculate Customer Health', error);
             throw error;
         }
     }
