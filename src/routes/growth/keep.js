@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const growthKeepService = require('../../services/growthKeepService');
 const auth = require('../../middleware/auth');
-const { isPremium } = require('../../middleware/subscription');
+const { isPremium } = require('../../middleware/isPremium');
 const { logInfo, logError } = require('../../utils/logger');
 
 router.get('/summary', auth.authenticate(), isPremium, async (req, res) => {
