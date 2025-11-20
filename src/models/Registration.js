@@ -158,6 +158,33 @@ const registrationSchema = new mongoose.Schema({
     },
     referralCode: String,
     
+    // Lead source tracking (for acquisition analytics)
+    sourceKey: {
+        type: String,
+        trim: true,
+        index: true
+    },
+    utmSource: {
+        type: String,
+        trim: true
+    },
+    utmMedium: {
+        type: String,
+        trim: true
+    },
+    utmCampaign: {
+        type: String,
+        trim: true
+    },
+    utmTerm: {
+        type: String,
+        trim: true
+    },
+    utmContent: {
+        type: String,
+        trim: true
+    },
+    
     // Metadata
     metadata: {
         type: mongoose.Schema.Types.Mixed,
