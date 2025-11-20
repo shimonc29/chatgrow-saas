@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Customer = require('../models/Customer');
-const { authenticateToken } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 const { logInfo } = require('../utils/logger');
 
 /**
@@ -9,7 +9,7 @@ const { logInfo } = require('../utils/logger');
  * GET /api/debug/sample-leads?limit=10
  * Returns recent customers with their source tracking data
  */
-router.get('/sample-leads', authenticateToken, async (req, res) => {
+router.get('/sample-leads', authMiddleware.authenticate(), async (req, res) => {
     try {
         const { limit = 10 } = req.query;
         const businessId = req.user.id;
@@ -63,7 +63,7 @@ router.get('/sample-leads', authenticateToken, async (req, res) => {
  * GET /api/debug/source-stats
  * Returns aggregated statistics by sourceKey
  */
-router.get('/source-stats', authenticateToken, async (req, res) => {
+router.get('/source-stats', authMiddleware.authenticate(), async (req, res) => {
     try {
         const businessId = req.user.id;
 
