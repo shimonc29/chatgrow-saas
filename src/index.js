@@ -237,6 +237,7 @@ try {
     app.use('/api/uploads', require('./routes/uploads'));
     app.use('/api/media', require('./routes/media'));
     app.use('/api/strategic-reports', require('./routes/strategicReports'));
+    app.use('/api/growth/get', require('./routes/growth/get'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);

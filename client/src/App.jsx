@@ -20,6 +20,7 @@ import MediaLibrary from './pages/admin/MediaLibrary';
 import SuperAdmin from './pages/admin/SuperAdmin';
 import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
 import SubscriptionManagement from './pages/admin/SubscriptionManagement';
+import GrowthGetPage from './pages/admin/GrowthGetPage';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -178,6 +179,15 @@ function App() {
             element={
               <PrivateRoute>
                 <SubscriptionManagement />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/growth/get" 
+            element={
+              <PrivateRoute>
+                <GrowthGetPage />
               </PrivateRoute>
             } 
           />

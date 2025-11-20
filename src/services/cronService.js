@@ -8,6 +8,7 @@ const paymentService = require('./paymentService');
 const invoiceService = require('./invoiceService');
 const strategicReportService = require('./strategicReportService');
 const dataBrokerService = require('./dataBrokerService');
+const growthGetService = require('./growthGetService');
 
 class CronService {
     constructor() {
@@ -31,6 +32,7 @@ class CronService {
             this.scheduleMonthlyPlatformFeeInvoices();
             this.scheduleDataCleanup();
             this.scheduleWeeklyStrategicReports();
+            this.scheduleDailyGrowthAggregation();
 
             this.isInitialized = true;
             logInfo('CronService initialized successfully', {
@@ -778,6 +780,60 @@ class CronService {
             logError('Failed to generate strategic report for business', error, {
                 businessId: business.id
             });
+            throw error;
+        }
+    }
+
+    /**
+     * Schedule daily Growth GET acquisition aggregation
+     * Runs daily at 03:00 AM
+     */
+    scheduleDailyGrowthAggregation() {
+        const job = cron.schedule('0 3 * * *', async () => {
+            try {
+                logInfo('Running daily Growth acquisition aggregation job');
+                await this.aggregateGrowthAcquisitionData();
+            } catch (error) {
+                logError('Daily Growth aggregation job failed', error);
+            }
+        });
+
+        this.jobs.set('growthAggregation', job);
+        logInfo('Scheduled daily Growth acquisition aggregation job (daily at 03:00)');
+    }
+
+    /**
+     * Aggregate acquisition data for all businesses
+     */
+    async aggregateGrowthAcquisitionData() {
+        try {
+            const Subscriber = require('../models/Subscriber');
+            const businesses = await Subscriber.findAll();
+
+            logInfo('Starting Growth acquisition aggregation for all businesses', {
+                businessCount: businesses.length
+            });
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            for (const business of businesses) {
+                try {
+                    await growthGetService.aggregateDailyStats(business.id, yesterday);
+                    logInfo('Growth acquisition aggregated successfully', {
+                        businessId: business.id
+                    });
+                } catch (error) {
+                    logError('Failed to aggregate Growth data for business', {
+                        businessId: business.id,
+                        error: error.message
+                    });
+                }
+            }
+
+            logInfo('Completed Growth acquisition aggregation for all businesses');
+        } catch (error) {
+            logError('Failed to aggregate Growth acquisition data', error);
             throw error;
         }
     }

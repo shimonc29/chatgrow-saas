@@ -43,6 +43,10 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     { path: '/provider-settings', icon: '🔧', label: 'הגדרות ספקים' },
   ];
 
+  const growthMenuItems = [
+    { path: '/growth/get', icon: '📈', label: 'GET - רכישת לקוחות' },
+  ];
+
   const isActive = (path) => location.pathname === path;
 
   const handleLinkClick = () => {
@@ -137,6 +141,29 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             </li>
           )}
           {menuItems.map((item) => (
+            <li key={item.path}>
+              <Link
+                to={item.path}
+                onClick={handleLinkClick}
+                className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive(item.path)
+                    ? 'bg-gradient-to-r from-accent-teal to-accent-hover text-white font-semibold shadow-lg shadow-accent-teal/30'
+                    : 'text-text-primary hover:bg-bg-card hover:text-accent-teal'
+                }`}
+              >
+                <span className="text-xl">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
+          
+          {/* Growth Section */}
+          <li className="pt-4 mt-4 border-t border-accent-teal/20">
+            <div className="px-4 py-2 text-xs font-bold text-text-secondary uppercase tracking-wider">
+              צמיחה (Growth)
+            </div>
+          </li>
+          {growthMenuItems.map((item) => (
             <li key={item.path}>
               <Link
                 to={item.path}
