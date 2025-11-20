@@ -57,9 +57,13 @@ function EventRegistration() {
             if (response.data.success) {
                 setPaymentOptions(response.data.paymentOptions);
                 
-                // Set default provider based on available options
+                // Set default provider based on available options (priority order)
                 if (response.data.paymentOptions.tranzila) {
                     setFormData(prev => ({ ...prev, provider: 'tranzila' }));
+                } else if (response.data.paymentOptions.cardcom) {
+                    setFormData(prev => ({ ...prev, provider: 'cardcom' }));
+                } else if (response.data.paymentOptions.meshulam) {
+                    setFormData(prev => ({ ...prev, provider: 'meshulam' }));
                 } else if (response.data.paymentOptions.external) {
                     setFormData(prev => ({ ...prev, provider: 'external' }));
                 } else {
@@ -322,6 +326,12 @@ function EventRegistration() {
                                                 )}
                                                 {paymentOptions.tranzila && (
                                                     <option value="tranzila">Tranzila</option>
+                                                )}
+                                                {paymentOptions.cardcom && (
+                                                    <option value="cardcom">Cardcom</option>
+                                                )}
+                                                {paymentOptions.meshulam && (
+                                                    <option value="meshulam">Meshulam (GROW)</option>
                                                 )}
                                                 {paymentOptions.external && (
                                                     <option value="external">{paymentOptions.externalLabel}</option>

@@ -452,9 +452,9 @@ function AppointmentBooking() {
                                             className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                                         >
                                             <option value="manual">תשלום ידני</option>
-                                            <option value="cardcom">Cardcom</option>
-                                            <option value="meshulam">Meshulam (Grow)</option>
                                             <option value="tranzila">Tranzila</option>
+                                            <option value="cardcom">Cardcom</option>
+                                            <option value="meshulam">Meshulam (GROW)</option>
                                         </select>
                                     </div>
                                 </div>

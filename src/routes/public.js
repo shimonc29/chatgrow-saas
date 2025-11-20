@@ -82,8 +82,21 @@ router.get('/events/:id/payment-options', async (req, res) => {
         const user = await Subscriber.findById(event.businessId);
         const hasTranzila = !!(user && user.tranzilaTerminal);
 
-        // Check if external payment is configured
+        // Check payment gateways configured in ProviderSettings
         const providerSettings = await ProviderSettings.findOne({ userId: event.businessId });
+        
+        const hasCardcom = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.cardcom?.enabled &&
+            providerSettings.paymentGateways?.cardcom?.terminalNumber
+        );
+        
+        const hasMeshulam = !!(
+            providerSettings && 
+            providerSettings.paymentGateways?.grow?.enabled &&
+            providerSettings.paymentGateways?.grow?.apiKey
+        );
+        
         const hasExternalPayment = !!(
             providerSettings && 
             providerSettings.paymentGateways?.externalPayment?.enabled && 
@@ -95,6 +108,8 @@ router.get('/events/:id/payment-options', async (req, res) => {
         logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
             eventId: event._id,
             hasTranzila,
+            hasCardcom,
+            hasMeshulam,
             hasExternalPayment
         });
 
@@ -103,6 +118,8 @@ router.get('/events/:id/payment-options', async (req, res) => {
             paymentOptions: {
                 manual: true,
                 tranzila: hasTranzila,
+                cardcom: hasCardcom,
+                meshulam: hasMeshulam,
                 external: hasExternalPayment,
                 externalLabel: externalPaymentLabel
             }
