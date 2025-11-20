@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   const growthMenuItems = [
     { path: '/growth/get', icon: '📈', label: 'GET - רכישת לקוחות' },
+    { path: '/growth/keep', icon: '🤝', label: 'KEEP - שימור לקוחות' },
   ];
 
   const isActive = (path) => location.pathname === path;

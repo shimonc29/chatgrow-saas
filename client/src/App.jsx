@@ -21,6 +21,7 @@ import SuperAdmin from './pages/admin/SuperAdmin';
 import CheckSuperAdmin from './pages/admin/CheckSuperAdmin';
 import SubscriptionManagement from './pages/admin/SubscriptionManagement';
 import GrowthGetPage from './pages/admin/GrowthGetPage';
+import GrowthKeepPage from './pages/admin/GrowthKeepPage';
 
 import EventRegistration from './pages/public/EventRegistration';
 import AppointmentBooking from './pages/public/AppointmentBooking';
@@ -188,6 +189,15 @@ function App() {
             element={
               <PrivateRoute>
                 <GrowthGetPage />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/growth/keep" 
+            element={
+              <PrivateRoute>
+                <GrowthKeepPage />
               </PrivateRoute>
             } 
           />
