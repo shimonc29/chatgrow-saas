@@ -1,0 +1,467 @@
+You are an expert full-stack developer working on an existing SaaS project called **ChatGrow** hosted on Replit.
+
+### 🔹 High-level context
+
+ChatGrow is a **multi-tenant SaaS** for small–medium businesses, with:
+
+- Backend: Node.js / Express, JWT auth, MongoDB Atlas (+ PostgreSQL / Neon for users & subscriptions), CRON (node-cron), NotificationService (Email/SMS), AI Performance Coach, multi-tenant architecture.
+- Frontend: React 19 + Vite + Tailwind CSS (RTL support, “teal/light” theme), sidebar navigation, admin dashboard, public marketing page.
+- Implemented features include:
+  - Customers CRUD with FREE (200 customers) vs PREMIUM (unlimited).
+  - Events CRUD (physical/online) with public registration pages, capacity limits, statuses (draft/published/cancelled).
+  - Appointments CRUD with public availability pages and Google Calendar sync (PREMIUM).
+  - Payments: manual, Tranzila integration, external payment link with security validation, multi-currency, tenant-specific config.
+  - Invoices & Receipts: PDF RTL, VAT calculation, email sending, automatic & manual creation.
+  - Landing Page Builder: multiple templates, color schemes, Hebrew fonts, CTA styles, live preview, media library & picker, SEO meta tags & OG, analytics (views, visitors, conversions), cloning.
+  - AI & Automation: AI Performance Coach, weekly AI strategy reports (for PREMIUM) running with CRON, reminders, automatic payments, weekly/monthly reports, platform-fee invoices.
+  - NotificationService: email (SendGrid/SMTP), SMS (Twilio), templates in Hebrew, delivery tracking.
+  - Super Admin panel: subscription management, tenant limits, enable/disable accounts, cross-business customer management, platform analytics.
+  - Security: JWT, bcrypt, rate limiting, Helmet, CORS, Joi validation, URL validation (anti XSS/phishing).
+  - Storage: Replit Object Storage for media, media library UI, MediaPicker, multi-tenant separation.
+
+Do **not** break existing features. You must **extend** the system.
+
+---
+
+## 🎯 Goal: Implement a full **Get – Keep – Grow** Growth Model inside ChatGrow
+
+We want to add a new **Growth module** that helps each business manage:
+
+1. **GET** – acquire new customers (leads → bookings → payments)
+2. **KEEP** – retain existing customers (loyalty & churn prevention)
+3. **GROW** – increase revenue from existing customers (upsell, cross-sell, referrals)
+
+Everything must respect multi-tenancy (each business sees only its own data).
+
+---
+
+## 🧱 Architecture requirements
+
+1. **Add a new section in the app called “Growth”** in the sidebar.
+2. Inside “Growth”, create three tabs/pages:
+   - `Get`  – acquisition funnel
+   - `Keep` – retention & loyalty
+   - `Grow` – upsell & referrals
+
+3. Use **existing stacks & conventions**:
+   - Backend: create new routes under `/api/growth/*` (or similar consistent structure).
+   - Models: MongoDB schemas with `tenantId`/`businessId` references.
+   - Frontend: React + Tailwind, RTL support, use existing layout & card styles.
+   - Charts: use the same charting library already used in the project (if none – add Recharts or Chart.js in the minimal way and reuse).
+
+4. Use **existing services** where relevant:
+   - `NotificationService` for emails/SMS.
+   - Existing CRON setup (`node-cron`) for scheduled jobs.
+   - Existing AI utilities / Performance Coach infrastructure for AI insights.
+
+---
+
+## 🟦 Part A: “GET” – Acquisition Dashboard & Funnel
+
+### 1. Data model
+
+Create a new MongoDB model, for example `AcquisitionSourceStats`:
+
+- `tenantId` / `businessId`
+- `sourceKey` (string, e.g., `"landing-page:main"`, `"event:summer-bootcamp"`, `"referral"`, `"facebook-ads"`)
+- `sourceType` (enum: `"landing_page" | "event" | "appointment" | "manual" | "referral" | "other"`)
+- `period` (e.g. `"day"`, `"week"`, `"month"`)
+- `periodStart` / `periodEnd` (Date)
+- Metrics:
+  - `views` (number)
+  - `leads` (number)
+  - `appointments` (number)
+  - `registrations` (number)
+  - `payments` (number)
+  - `revenue` (number)
+- `createdAt`, `updatedAt`
+
+Optionally, you can aggregate from existing collections (LandingPages, Events, Appointments, Payments) instead of writing every event.
+
+### 2. Backend endpoints (GET)
+
+Add new endpoints under `/api/growth/get`:
+
+- `GET /api/growth/get/summary?period=30d`
+  - Returns aggregate funnel metrics for the last N days:
+    - total views, total leads, total bookings, total payers, total revenue.
+    - per source breakdown.
+
+- `GET /api/growth/get/sources?period=30d`
+  - Returns list grouped by `sourceKey` with:
+    - `sourceKey`, `sourceType`
+    - `views`, `leads`, `appointments`, `payments`, `conversionRate`, `revenue`.
+
+- `GET /api/growth/get/timeline?period=30d`
+  - Time series per day/week with:
+    - `date`, `leads`, `bookings`, `payments`, `revenue`.
+
+All endpoints must:
+- Extract authenticated user and `tenantId/businessId` from JWT.
+- Filter data only for that tenant.
+- Validate inputs with Joi.
+
+### 3. Aggregation logic
+
+Create a service (e.g. `growthGetService`) that:
+
+- Reads from existing collections:
+  - Landing page analytics (views, conversions).
+  - Events & registrations.
+  - Appointments.
+  - Payments/Invoices (for revenue).
+- Aggregates them by source (e.g., each Landing Page has a `sourceKey` or ID; Events too).
+- Periodically (e.g. nightly CRON) compute and store summary rows into `AcquisitionSourceStats` for performance.
+
+Create a CRON job (using existing CRON structure) that runs daily:
+- Computes stats for each tenant for the last day.
+- Optionally, backfills for last 7/30 days if needed.
+
+### 4. Frontend: Get page
+
+Create a new React page/component, e.g. `GrowthGetPage.tsx`, with:
+
+- **Top summary cards**:
+  - Total leads (period)
+  - Total bookings
+  - Total payments
+  - Total revenue
+  - Funnel conversion rate (leads → payers)
+
+- **Funnel chart**: bar chart or funnel-like visualization:
+  - Views → Leads → Bookings → Payments.
+
+- **Sources table**:
+  Columns:
+  - מקור (source name)
+  - סוג מקור (type)
+  - צפיות
+  - לידים
+  - פגישות / הרשמות
+  - משלמים
+  - אחוז המרה (leads→paying)
+  - הכנסות
+
+Allow filtering by period: 7 days / 30 days / 90 days via buttons or a select.
+
+- **AI Acquisition Coach panel**:
+  - Call a backend endpoint like `GET /api/growth/get/ai-insights?period=30d`.
+  - Backend will use existing AI utilities to generate short Hebrew insights:
+    - Which sources bring the best customers.
+    - Which landing page performs worst.
+    - Suggested changes (e.g. “increase budget on X”, “pause Y”).
+
+---
+
+## 🟨 Part B: “KEEP” – Retention, Loyalty & Churn Prevention
+
+### 1. Data model: Customer Health
+
+Extend the existing Customer model or create a related model, e.g. `CustomerHealth`:
+
+Fields:
+
+- `tenantId` / `businessId`
+- `customerId` (reference to existing Customer)
+- Metrics (numbers, computed regularly):
+  - `totalBookings`
+  - `totalEvents`
+  - `totalRevenue`
+  - `lastActivityAt` (Date)
+  - `avgDaysBetweenPurchases`
+  - `feedbackScore` (optional, 1–5)
+  - `engagementScore` (open rates, clicks, attendance)
+- Derived:
+  - `loyaltyScore` (0–100)
+  - `riskLevel` (enum: `"green" | "yellow" | "red"`)
+- `createdAt`, `updatedAt`
+
+### 2. Backend logic & CRON
+
+Implement a service `growthKeepService` that:
+
+- For each tenant, once per day/week (CRON):
+  - Reads:
+    - Customers
+    - Events/appointments
+    - Payments/invoices
+    - Feedbacks (if exist)
+  - Computes loyalty score & risk level based on:
+    - Recency, Frequency, Monetary (RFM logic)
+    - Feedback
+    - No activity for X days
+  - Writes/updates `CustomerHealth` records.
+
+Scoring example (simple initial version, tunable later):
+- Start at 50.
+- +20 if purchases in last 30 days, +10 if in last 90 days.
+- +10 if total purchases > 3, +10 if total revenue > threshold.
+- -20 if no purchase > 90 days.
+- -10 if feedback < 3.
+- Risk:
+  - `green` if score >= 70
+  - `yellow` if 40–69
+  - `red` if < 40
+
+### 3. Backend endpoints (KEEP)
+
+- `GET /api/growth/keep/summary`
+  - Total customers, % green/yellow/red.
+  - Churn risk count.
+  - Repeat-customer rate.
+
+- `GET /api/growth/keep/customers?risk=all|green|yellow|red`
+  - Paginated list of customers with health metrics.
+
+- `GET /api/growth/keep/ai-insights`
+  - Uses AI to create Hebrew recommendations:
+    - “Which segment is most at risk”
+    - “Which group buys the most”
+    - “Suggested retention campaigns (email/SMS)”
+
+- `POST /api/growth/keep/automation`
+  - Define basic automations (MVP can be hard-coded rules).
+  - For now, create a few pre-defined automations; you can leave deeper builder for future.
+
+### 4. Automations (using existing NotificationService & CRON)
+
+Implement at least these built-in automations:
+
+1. **Win-back**:
+   - Customers with `riskLevel = 'red'` and `lastActivityAt` > 90 days.
+   - Send automatic email/SMS:
+     - e.g. “היי, מתגעגעים אליך. יש לנו הטבה מיוחדת עבורך…”
+
+2. **Thank you + next step**:
+   - Immediately after a completed payment:
+     - Send email/SMS thanking and maybe linking to another service or follow-up.
+
+3. **Post-event feedback request**:
+   - After an event/appointment:
+     - Send message asking for feedback (1–5) and store this in `feedbackScore`.
+
+Automations should be implemented as reusable functions that:
+
+- Query relevant customers.
+- Use `NotificationService` to send messages.
+- Respect tenant-specific email/SMS settings.
+
+### 5. Frontend: Keep page
+
+Create `GrowthKeepPage.tsx` with:
+
+- Summary section:
+  - Total customers
+  - % Green / Yellow / Red
+  - Repeat customers rate
+  - Average LTV
+
+- Segment cards:
+  - Box for Green customers (loyal)
+  - Box for Yellow (attention needed)
+  - Box for Red (at-risk)
+
+- Table of customers:
+  - Name
+  - Email/Phone
+  - Last activity
+  - Total revenue
+  - LoyaltyScore
+  - RiskLevel badge (colored)
+
+- Button actions (for future):
+  - “Run Win-back campaign on Red customers” (MVP can just call backend that sends messages).
+
+- Panel “AI Retention Coach”:
+  - Shows AI-generated text from `/api/growth/keep/ai-insights`.
+
+---
+
+## 🟩 Part C: “GROW” – Upsell, Cross-sell & Referrals
+
+### 1. Data model: Upsell & Referrals
+
+Create a Mongo model `UpsellSuggestion`:
+
+- `tenantId` / `businessId`
+- `customerId`
+- `baseProductId` (event/service/plan that customer already bought)
+- `suggestedProductId` (what to upsell)
+- `suggestionType` (enum: `"upsell" | "cross_sell" | "bundle"`)
+- `status` (enum: `"pending" | "sent" | "accepted" | "declined"`)
+- `createdAt`, `updatedAt`
+
+Create a simple `Referral` model:
+
+- `tenantId` / `businessId`
+- `referrerCustomerId`
+- `referralCode` (string, unique per customer)
+- `referredCustomerId` (optional, after signup)
+- `referredLeadId` (optional)
+- `status` (enum: `"generated" | "lead" | "customer"`)
+- `rewardGiven` (boolean)
+- Timestamps
+
+### 2. Backend logic (GROW)
+
+Implement `growthGrowService`:
+
+- Analyze customer purchases & events:
+  - For each customer, look at services/events they bought.
+  - Suggest upgrades (upsell):
+    - e.g., from single session → package
+    - from basic event → premium package
+  - Suggest cross-sell:
+    - If they bought `serviceA`, propose `serviceB`.
+
+- For MVP, you can define simple rules:
+  - If customer purchased same service ≥ 2 times → suggest package.
+  - If customer attended event type X → suggest related event/package.
+
+- Periodically pre-compute suggestions via CRON:
+  - E.g., weekly create `UpsellSuggestion` records.
+
+- Referral system:
+  - For each customer, ensure an existing or newly generated `referralCode`.
+  - Provide endpoints to:
+    - Get referral link for current tenant.
+    - Track new leads/customers who came with this code.
+    - Mark rewards as given (MVP: manual).
+
+### 3. Backend endpoints (GROW)
+
+- `GET /api/growth/grow/summary`
+  - Shows:
+    - total upsell opportunities
+    - total accepted
+    - upsell revenue
+    - referrals count & revenue.
+
+- `GET /api/growth/grow/suggestions?status=pending`
+  - List of UpsellSuggestion records with customer & product names.
+
+- `POST /api/growth/grow/suggestions/:id/send`
+  - Sends an email/SMS to customer with a personalized offer.
+  - Uses `NotificationService`.
+  - Marks status as `"sent"`.
+
+- `GET /api/growth/grow/referrals`
+  - List referral stats per customer:
+    - customer, referralCode, referred count, converted count.
+
+- `GET /api/growth/grow/ai-insights`
+  - AI engine returns:
+    - Which products to promote.
+    - Which bundles to create.
+    - Which customers are best for upsell/cross-sell.
+
+### 4. Frontend: Grow page
+
+Create `GrowthGrowPage.tsx` with:
+
+- Summary cards:
+  - Upsell revenue
+  - Potential upsell revenue (value of all pending suggestions)
+  - Number of referrals
+  - Revenue from referrals
+
+- Table “Upsell Opportunities”:
+  - Customer name
+  - Current service
+  - Suggested service
+  - Suggestion type (Upsell/Cross-sell)
+  - Potential extra revenue
+  - Actions:
+    - “View offer”
+    - “Send offer via Email/SMS”
+
+- Section “Referrals”:
+  - List top referrers (customer name + number of referrals + revenue).
+  - Show each tenant’s referral link pattern (e.g., `https://app.chatgrow.../?ref=CODE`).
+
+- Panel “AI Growth Coach”:
+  - Show output of `/api/growth/grow/ai-insights`.
+
+---
+
+## 🧠 AI Integration
+
+Use the existing AI Performance Coach infrastructure to add three new endpoints:
+
+1. `/api/growth/get/ai-insights`
+2. `/api/growth/keep/ai-insights`
+3. `/api/growth/grow/ai-insights`
+
+Each endpoint will:
+
+- Fetch aggregated metrics for the tenant.
+- Prepare a short, structured prompt for the AI (in Hebrew) explaining:
+  - “GET”: sources, conversions, revenue.
+  - “KEEP”: loyalty scores, churn risk, segment sizes.
+  - “GROW`: upsell opportunities, best customers, referral stats.
+- Return an object like:
+  - `{ title: string, recommendations: string[], summary: string }`
+
+Frontend will render this nicely in cards / bullet lists.
+
+---
+
+## 🔐 Multi-tenancy & Security
+
+- Every new model must include `tenantId` or `businessId`.
+- Every new route must:
+  - Use JWT auth.
+  - Resolve the tenant from the current user.
+  - Filter queries by that tenant.
+- Validate all input with existing validation patterns (Joi or similar).
+- Do not expose data between tenants.
+
+---
+
+## 🔁 Coding instructions
+
+1. Scan the existing codebase to:
+   - Find current structure for routes (Express routers).
+   - Find where CRON jobs are defined.
+   - Find existing models and patterns for multi-tenant handling.
+   - Reuse existing patterns for:
+     - Services layer
+     - Controllers
+     - Error handling and logging
+     - React routing and layout components.
+
+2. Implement the **Growth module** incrementally but consistently:
+   - Step 1: Backend models & routes for Get/Keep/Grow summary endpoints.
+   - Step 2: Aggregation services + CRON jobs.
+   - Step 3: Frontend pages for Get/Keep/Grow with basic tables and cards.
+   - Step 4: Add charts and AI insights panels.
+   - Step 5: Add basic automations (Win-back, feedback, upsell send).
+
+3. Maintain coding style:
+   - Use TypeScript if the project does.
+   - Use consistent folder naming.
+   - Write clean, documented code (JSDoc or comments) for new services.
+   - Keep UI RTL friendly and visually aligned with existing design.
+
+4. When in doubt, prefer:
+   - Simple, clear implementation over over-engineering.
+   - Re-use of existing utilities and patterns.
+   - Creating small, focused components (both backend services & frontend components).
+
+---
+
+### Final task
+
+Start now by:
+
+1. Adding the new **Growth** item and inner routes (Get/Keep/Grow) in the frontend navigation.
+2. Creating skeleton pages and basic API stubs.
+3. Then, flesh out the backend logic, CRON jobs, and AI insights as described above.
+
+Your goal is that a business owner can open the **Growth** section and immediately see:
+
+- How they **GET** customers,
+- How well they **KEEP** them,
+- And how they can **GROW** revenue from them.
+
+Make sure everything is implemented in **Hebrew UI**, but keep code and identifiers in English.
