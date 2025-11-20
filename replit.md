@@ -84,6 +84,12 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
     - **API Routes**: /api/growth/get/* (summary, sources, timeline, ai-insights)
     - **Frontend**: GrowthGetPage with Recharts data visualization, funnel analysis, and AI Acquisition Coach
     - **CRON**: Daily aggregation job (03:00 AM) for automated metrics collection
+  - **Phase 2 - KEEP (Retention)**: RFM analysis, customer health scoring, churn prediction, and win-back campaigns
+    - **CustomerHealth Model**: MongoDB model with RFM scores (Recency, Frequency, Monetary), 11 customer segments (Champions, Loyal, At Risk, Lost, etc.), 4 churn risk levels, engagement trends
+    - **growthKeepService**: Customer health calculation with RFM scoring algorithm, retention summary, segment filtering, win-back opportunity identification, personalized recommendations
+    - **API Routes**: /api/growth/keep/* (summary, segments, calculate, win-back-opportunities, ai-insights) - all premium-gated
+    - **Frontend**: GrowthKeepPage with summary cards, segment pie chart, risk bar chart, win-back opportunities table, AI Retention Coach
+    - **CRON**: Daily Customer Health calculation (04:00 AM) for ACTIVE/TRIAL businesses only
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
