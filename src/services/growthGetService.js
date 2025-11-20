@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const Appointment = require('../models/Appointment');
 const Payment = require('../models/Payment');
 const Customer = require('../models/Customer');
+const ConversionEvent = require('../models/ConversionEvent');
 const { logInfo, logError } = require('../utils/logger');
 
 class GrowthGetService {
@@ -37,15 +38,20 @@ class GrowthGetService {
       const sourceKey = `landing-page:${page.slug}`;
       
       const viewsInPeriod = page.analytics?.uniqueVisitors?.filter(v => 
-        new Date(v) >= periodStart && new Date(v) <= periodEnd
+        new Date(v.timestamp) >= periodStart && new Date(v.timestamp) <= periodEnd
       ).length || 0;
       
-      const conversionsInPeriod = page.analytics?.conversions || 0;
+      const conversionsInPeriod = await ConversionEvent.countDocuments({
+        businessId,
+        sourceKey,
+        createdAt: { $gte: periodStart, $lte: periodEnd }
+      });
       
       const paymentsInPeriod = await Payment.countDocuments({
         businessId,
         'metadata.source': sourceKey,
-        createdAt: { $gte: periodStart, $lte: periodEnd }
+        createdAt: { $gte: periodStart, $lte: periodEnd },
+        status: 'completed'
       });
       
       const revenueInPeriod = await Payment.aggregate([

@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const growthGetService = require('../../services/growthGetService');
-const { authenticateToken } = require('../../middleware/authMiddleware');
+const auth = require('../../middleware/auth');
 const { logInfo, logError } = require('../../utils/logger');
 const aiService = require('../../services/aiService');
+
+const authenticateToken = auth.authenticate();
 
 router.use(authenticateToken);
 

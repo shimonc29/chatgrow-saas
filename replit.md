@@ -76,6 +76,14 @@ ChatGrow utilizes a Node.js and Express.js backend with a microservices-like app
 - **Super Admin Panel**: Restricted panel for platform owner (via `SUPER_ADMIN_EMAILS`) displaying system-wide statistics and subscriber analytics with full management capabilities:
   - **Subscription Management**: Update subscription status (FREE/TRIAL/ACTIVE), modify customer quotas, suspend/activate accounts, delete subscribers
   - **Customer Management**: Add customers manually to any business, delete customers across businesses, transfer customers between businesses
+- **Growth Module (GET-KEEP-GROW Model)**: Business intelligence system for customer acquisition, retention, and upselling:
+  - **Phase 1 - GET (Acquisition)**: Tracks customer acquisition sources, conversion funnels, and AI insights
+    - **ConversionEvent Model**: Timestamped conversion tracking across all sources (landing pages, events, appointments)
+    - **AcquisitionSourceStats Model**: Daily aggregation of acquisition metrics (leads, bookings, payments, revenue)
+    - **growthGetService**: Aggregation logic with time-filtered queries and AI-powered insights
+    - **API Routes**: /api/growth/get/* (summary, sources, timeline, ai-insights)
+    - **Frontend**: GrowthGetPage with Recharts data visualization, funnel analysis, and AI Acquisition Coach
+    - **CRON**: Daily aggregation job (03:00 AM) for automated metrics collection
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.

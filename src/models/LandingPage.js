@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const ConversionEvent = require('./ConversionEvent');
 
 const landingPageSchema = new mongoose.Schema({
   businessId: {
@@ -155,9 +156,19 @@ landingPageSchema.methods.trackView = async function(ipAddress) {
 };
 
 // Track conversion
-landingPageSchema.methods.trackConversion = async function() {
+landingPageSchema.methods.trackConversion = async function(metadata = {}) {
   this.analytics.conversions += 1;
   await this.save();
+  
+  await ConversionEvent.create({
+    businessId: this.businessId,
+    sourceType: 'landing_page',
+    sourceKey: `landing-page:${this.slug}`,
+    landingPageId: this._id,
+    metadata,
+    ipAddress: metadata.ipAddress || null,
+    userAgent: metadata.userAgent || null
+  });
 };
 
 const LandingPage = mongoose.model('LandingPage', landingPageSchema);
