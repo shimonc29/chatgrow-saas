@@ -44,6 +44,7 @@ ChatGrow uses a Node.js/Express.js backend with a microservices-like approach an
 - **Centralized Media Library**: Replit Object Storage integration for image management, including a Media Model, Admin UI, and a reusable MediaPicker component.
 - **Super Admin Panel**: Restricted panel for platform owners (`SUPER_ADMIN_EMAILS`) to manage subscriptions, quotas, and customer data system-wide.
 - **Growth Module (GET-KEEP-GROW Model)**: Business intelligence system for acquisition (GET - tracking, AI insights), retention (KEEP - RFM analysis, churn prediction, win-back), and expansion (GROW - upselling, cross-selling, package upgrades with 5 detection algorithms).
+- **Lead Source Tracking System**: Comprehensive attribution tracking across all customer touchpoints with sourceKey (e.g., `landing-page:slug`, `event:id`, `appointment:businessId`), UTM parameters (utm_source, utm_medium, utm_campaign, utm_term, utm_content), and referralCode stored at customer creation. Frontend captures URL parameters via `sourceTracking.js` utility; backend persists in Customer/Registration/Appointment models; growthGetService aggregates by sourceKey for acquisition funnel analytics.
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.
