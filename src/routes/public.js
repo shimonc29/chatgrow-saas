@@ -8,6 +8,7 @@ const LandingPage = require('../models/LandingPage');
 const Availability = require('../models/Availability');
 const Subscriber = require('../models/Subscriber');
 const ProviderSettings = require('../models/ProviderSettings');
+const ConversionEvent = require('../models/ConversionEvent');
 const paymentService = require('../services/paymentService');
 const notificationService = require('../services/notificationService');
 const { incrementCustomerCount } = require('../middleware/customerLimit');
@@ -187,7 +188,7 @@ router.post('/events/:id/register', async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const { customer, paymentMethod, provider } = req.body;
+        const { customer, paymentMethod, provider, sourceKey, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referralCode } = req.body;
 
         if (!customer || !customer.firstName || !customer.lastName || !customer.email || !customer.phone) {
             return res.status(400).json({
@@ -260,7 +261,15 @@ router.post('/events/:id/register', async (req, res) => {
                 lastName: customer.lastName,
                 email: customer.email,
                 phone: customer.phone,
-                notes: `נרשם לאירוע: ${event.name}`
+                notes: `נרשם לאירוע: ${event.name}`,
+                // Lead source tracking
+                sourceKey: sourceKey || `event:${event._id}`,
+                utmSource,
+                utmMedium,
+                utmCampaign,
+                utmTerm,
+                utmContent,
+                referralCode
             });
             await existingCustomer.save();
             
@@ -751,7 +760,7 @@ router.post('/appointments/book', async (req, res) => {
     const startTime = Date.now();
     
     try {
-        const { businessId, customer, serviceType, dateTime, notes, paymentMethod, provider } = req.body;
+        const { businessId, customer, serviceType, dateTime, notes, paymentMethod, provider, sourceKey, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referralCode } = req.body;
 
         if (!businessId || !customer || !customer.firstName || !customer.lastName || !customer.email || !customer.phone || !serviceType || !dateTime) {
             return res.status(400).json({
@@ -837,7 +846,15 @@ router.post('/appointments/book', async (req, res) => {
                 lastName: customer.lastName,
                 email: customer.email,
                 phone: customer.phone,
-                notes: `הזמין תור: ${serviceType}`
+                notes: `הזמין תור: ${serviceType}`,
+                // Lead source tracking
+                sourceKey: sourceKey || `appointment:${businessId}`,
+                utmSource,
+                utmMedium,
+                utmCampaign,
+                utmTerm,
+                utmContent,
+                referralCode
             });
             await existingCustomer.save();
             
@@ -1090,6 +1107,7 @@ router.post('/landing/:slug/convert', async (req, res) => {
     
     try {
         const { slug } = req.params;
+        const { sourceKey, utmSource, utmMedium, utmCampaign, utmTerm, utmContent, referralCode } = req.body;
         
         const page = await LandingPage.findOne({ slug, status: 'published' });
         
@@ -1102,10 +1120,33 @@ router.post('/landing/:slug/convert', async (req, res) => {
         
         await page.trackConversion();
         
+        // Create ConversionEvent for analytics tracking with source data
+        const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+        const userAgent = req.get('User-Agent') || 'unknown';
+        
+        await ConversionEvent.create({
+            businessId: page.businessId,
+            sourceType: 'landing_page',
+            sourceKey: sourceKey || `landing-page:${slug}`,
+            landingPageId: page._id,
+            metadata: {
+                utmSource,
+                utmMedium,
+                utmCampaign,
+                utmTerm,
+                utmContent,
+                referralCode,
+                slug
+            },
+            ipAddress,
+            userAgent
+        });
+        
         logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
             slug,
             pageId: page._id,
-            conversions: page.analytics.conversions
+            conversions: page.analytics.conversions,
+            sourceKey: sourceKey || `landing-page:${slug}`
         });
         
         res.json({ 

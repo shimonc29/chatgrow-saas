@@ -240,6 +240,7 @@ try {
     app.use('/api/growth/get', require('./routes/growth/get'));
     app.use('/api/growth/keep', require('./routes/growth/keep'));
     app.use('/api/growth/grow', require('./routes/growth/grow'));
+    app.use('/api/debug', require('./routes/debug'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);
