@@ -35,6 +35,7 @@ class CronService {
             this.scheduleWeeklyStrategicReports();
             this.scheduleDailyGrowthAggregation();
             this.scheduleDailyCustomerHealthCalculation();
+            this.scheduleDailyGrowthOpportunityIdentification();
 
             this.isInitialized = true;
             logInfo('CronService initialized successfully', {
@@ -897,6 +898,75 @@ class CronService {
             logInfo('Completed Customer Health calculation for all businesses');
         } catch (error) {
             logError('Failed to calculate Customer Health', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Schedule daily Growth opportunity identification
+     * Runs daily at 05:00 AM
+     */
+    scheduleDailyGrowthOpportunityIdentification() {
+        const job = cron.schedule('0 5 * * *', async () => {
+            try {
+                logInfo('Running daily Growth opportunity identification job');
+                await this.identifyGrowthOpportunitiesForAllBusinesses();
+            } catch (error) {
+                logError('Daily Growth opportunity identification job failed', error);
+            }
+        });
+
+        this.jobs.set('growthOpportunityIdentification', job);
+        logInfo('Scheduled daily Growth opportunity identification job (daily at 05:00)');
+    }
+
+    /**
+     * Identify Growth opportunities for all businesses
+     */
+    async identifyGrowthOpportunitiesForAllBusinesses() {
+        try {
+            const growthGrowService = require('./growthGrowService');
+            const Subscriber = require('../models/Subscriber');
+            const businesses = await Subscriber.findAll();
+
+            logInfo('Starting Growth opportunity identification for all businesses', {
+                businessCount: businesses.length
+            });
+
+            let totalOpportunities = 0;
+
+            for (const business of businesses) {
+                try {
+                    const subscriptionStatus = business.subscription_status || 'FREE';
+                    
+                    if (!['ACTIVE', 'TRIAL'].includes(subscriptionStatus)) {
+                        logInfo('Skipping Growth opportunity identification for non-premium business', {
+                            businessId: business.id,
+                            subscriptionStatus
+                        });
+                        continue;
+                    }
+
+                    const count = await growthGrowService.identifyGrowthOpportunities(business.id);
+                    totalOpportunities += count;
+                    
+                    logInfo('Growth opportunities identified successfully', {
+                        businessId: business.id,
+                        opportunitiesFound: count
+                    });
+                } catch (error) {
+                    logError('Failed to identify Growth opportunities for business', {
+                        businessId: business.id,
+                        error: error.message
+                    });
+                }
+            }
+
+            logInfo('Completed Growth opportunity identification for all businesses', {
+                totalOpportunities
+            });
+        } catch (error) {
+            logError('Failed to identify Growth opportunities', error);
             throw error;
         }
     }

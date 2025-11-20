@@ -239,6 +239,7 @@ try {
     app.use('/api/strategic-reports', require('./routes/strategicReports'));
     app.use('/api/growth/get', require('./routes/growth/get'));
     app.use('/api/growth/keep', require('./routes/growth/keep'));
+    app.use('/api/growth/grow', require('./routes/growth/grow'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);
