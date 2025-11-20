@@ -1,0 +1,317 @@
+You are an expert full-stack developer working on the existing multi-tenant SaaS project **ChatGrow**.
+
+Your tasks now are **twofold**:
+
+1) VERIFY that the new Growth module (Get–Keep–Grow) pulls its data from the correct existing collections and services.  
+2) ADD full **lead source tracking** (sourceKey + UTM fields + optional referralCode) into the data flow so that we can later aggregate by acquisition source.
+
+Do NOT remove or break any existing features. Extend the code using the current patterns (Express services/controllers, Mongo models, React + Tailwind frontend, node-cron, NotificationService, AI utilities, etc).
+
+---
+
+## PART 1 – Ensure the Growth module pulls data from the right places
+
+### A. Locate existing models and collections
+
+1. Search the backend code for the main Mongo models:
+   - `Customer` / `Customers`
+   - `Event` / `Events` and registrations/participants
+   - `Appointment` / `Appointments`
+   - `Payment` / `Payments`
+   - `Invoice` / `Invoices`
+   - `LandingPage` / `LandingPages`
+   - `LandingPageAnalytics` (or any similar analytics collection)
+
+2. Confirm that each model includes a `tenantId` / `businessId` field for multi-tenancy.
+   - If some models do NOT have this, add it carefully and ensure new records are created with the tenantId taken from the authenticated user.
+
+### B. Wire the Growth services to these models
+
+For each Growth service:
+
+#### Get (Acquisition)
+
+Create or update a service file like `growthGetService` that:
+
+- For a given `tenantId` and date range:
+  - Counts **leads** from the `Customer` collection (new customers created in the period).
+  - Counts **bookings** from `Appointments` and/or `Event registrations`.
+  - Aggregates **payments & revenue** from the `Payments` / `Invoices` collections.
+  - Pulls **views/conversions** for landing pages from the analytics collection (`LandingPageAnalytics` or similar).
+
+Use Mongo queries like:
+
+```js
+const leadsCount = await Customers.countDocuments({
+  tenantId,
+  createdAt: { $gte: from, $lte: to },
+});
+
+const bookingsCount = await Appointments.countDocuments({
+  tenantId,
+  createdAt: { $gte: from, $lte: to },
+});
+
+const payments = await Payments.aggregate([
+  { $match: { tenantId, createdAt: { $gte: from, $lte: to }, status: 'paid' } },
+  { $group: { _id: null, totalRevenue: { $sum: '$amount' }, count: { $sum: 1 } } },
+]);
+Make sure each query filters by tenantId and createdAt (or relevant date fields).
+
+If you have landing page analytics already, use them to compute views and landingPageConversions.
+
+Keep (Retention)
+In a growthKeepService:
+
+For a given tenantId, read:
+
+Customer activity from Events, Appointments, Payments and Invoices.
+
+Last activity dates and total revenue per customer.
+
+Compute:
+
+lastActivityAt
+
+totalRevenue
+
+totalBookings
+
+loyaltyScore
+
+riskLevel (green/yellow/red)
+
+Store these in a CustomerHealth collection (per tenant, per customer).
+
+Grow (Upsell & Referrals)
+In a growthGrowService:
+
+Read past purchases from Payments + Invoices.
+
+Read past events/appointments (types, products).
+
+Derive upsell opportunities based on simple rules (e.g. repeat purchases, single sessions that could be upgraded to packages).
+
+Read Referral records (we’ll create them below) and join to customers.
+
+C. Add simple logging/debug to validate data sources
+For each Growth endpoint (e.g. /api/growth/get/summary, /keep/summary, /grow/summary):
+
+Before returning the response, console.log a short debug summary:
+
+Tenant ID
+
+Date range
+
+Counts of leads/bookings/payments/etc.
+
+Add logs like:
+
+js
+Copy code
+console.log('[Growth:Get] tenantId=', tenantId, 'period=', { from, to }, {
+  leads: leadsCount,
+  bookings: bookingsCount,
+  payments: paymentStats.count,
+  revenue: paymentStats.totalRevenue,
+});
+This will help verify that the queries actually hit the correct collections and return reasonable values.
+
+PART 2 – Add lead source tracking (sourceKey + UTM + referralCode)
+Goal: every lead / customer / registration / appointment should have information about where it came from.
+
+We will add 3 types of identifiers:
+
+sourceKey – internal key for the acquisition source (e.g. lp:123, event:summer-bootcamp, manual, referral).
+
+utmSource, utmMedium, utmCampaign, utmTerm, utmContent – standard UTM fields (optional).
+
+referralCode – if the lead came via a referral link from another customer.
+
+A. Extend data models
+Customer model
+
+Add these fields to the Customer schema:
+
+js
+Copy code
+sourceKey: { type: String, default: null },
+utmSource: { type: String, default: null },
+utmMedium: { type: String, default: null },
+utmCampaign: { type: String, default: null },
+utmTerm: { type: String, default: null },
+utmContent: { type: String, default: null },
+referralCode: { type: String, default: null },
+Event registrations / appointments
+
+If there is a separate Registration or Participant model for events, and/or appointment model:
+
+Add the same fields (or at least sourceKey and referralCode), so we can track the source on event/appointment level as well.
+
+Example:
+
+js
+Copy code
+sourceKey: { type: String, default: null },
+referralCode: { type: String, default: null },
+B. Pass source & UTMs from public pages to the backend
+For:
+
+Landing page forms
+
+Public event registration forms
+
+Public appointment booking pages
+
+Do the following in the frontend:
+
+On page load, read query parameters from window.location.search.
+
+Extract:
+
+source or src parameter -> sourceKey
+
+utm_source, utm_medium, utm_campaign, etc.
+
+ref or referral -> referralCode
+
+When sending the form to the backend (create customer / registration / appointment), include these fields in the request body:
+
+js
+Copy code
+const params = new URLSearchParams(window.location.search);
+
+const payload = {
+  // existing fields like name, email, phone, etc.
+  sourceKey: params.get('source') || params.get('src') || null,
+  utmSource: params.get('utm_source') || null,
+  utmMedium: params.get('utm_medium') || null,
+  utmCampaign: params.get('utm_campaign') || null,
+  utmTerm: params.get('utm_term') || null,
+  utmContent: params.get('utm_content') || null,
+  referralCode: params.get('ref') || params.get('referral') || null,
+};
+Then send payload to the existing API endpoint for creating the customer/lead/registration.
+
+C. Update backend controllers to save the source info
+In the Express controllers that handle:
+
+New customer creation from public forms.
+
+Event registration.
+
+Appointment booking.
+
+Do the following:
+
+Allow the incoming body to contain:
+
+sourceKey
+
+UTM fields
+
+referralCode
+
+Validate them with Joi (string, optional).
+
+When creating the Customer (and related entities), save these fields:
+
+js
+Copy code
+const {
+  name,
+  email,
+  phone,
+  sourceKey,
+  utmSource,
+  utmMedium,
+  utmCampaign,
+  utmTerm,
+  utmContent,
+  referralCode,
+} = req.body;
+
+const customer = await Customers.create({
+  tenantId,
+  name,
+  email,
+  phone,
+  sourceKey: sourceKey || defaultSourceKey, // e.g. 'lp:main' if needed
+  utmSource,
+  utmMedium,
+  utmCampaign,
+  utmTerm,
+  utmContent,
+  referralCode,
+});
+Do the same for registrations/appointments if they are created in the same flow.
+
+D. Use sourceKey in Growth:Get aggregations
+In growthGetService, when aggregating per source, group by sourceKey (and/or UTM):
+
+js
+Copy code
+const bySource = await Customers.aggregate([
+  { $match: { tenantId, createdAt: { $gte: from, $lte: to } } },
+  {
+    $group: {
+      _id: '$sourceKey',
+      leads: { $sum: 1 },
+      // Note: you can later join to appointments/payments by customerId to get deeper stats
+    },
+  },
+]);
+Later, you can:
+
+Join or correlate sourceKey with landing pages, events, campaigns.
+
+Show in the Growth “Get” page which sources bring the best customers.
+
+E. Minimal verification steps
+Add a temporary debug endpoint, e.g.:
+
+GET /api/debug/sample-leads?limit=10
+
+This endpoint should:
+
+Fetch the last 10 customers for the current tenant.
+
+Return their:
+
+name, email, createdAt
+
+sourceKey
+
+utmSource / utmCampaign
+
+referralCode
+
+This is just to visually confirm that:
+
+New leads created from landing pages do store the correct source and UTMs.
+
+The Growth:Get aggregations will have data to work with.
+
+Final instructions
+Implement the model changes (Customer + Registration/Appointment + new stats models).
+
+Update the public forms (frontend) to capture and send source/UTM/referral parameters.
+
+Update backend controllers to persist those fields.
+
+Implement or update the Growth services (Get/Keep/Grow) to:
+
+Query existing collections (Customers, Events, Appointments, Payments, Invoices, LandingPageAnalytics).
+
+Aggregate data per tenant and per sourceKey.
+
+Add logging and a small debug endpoint to quickly verify that:
+
+Data is being pulled from the right collections.
+
+Lead source tracking (sourceKey + UTMs + referralCode) is correctly stored.
+
+Keep the UI in Hebrew, but keep all code (variable names, models, services) in English and consistent with the existing codebase.
+
+makefile
+Copy code
