@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { getSourceTracking, buildSourceKey, storeSourceTracking } from '../../utils/sourceTracking';
 
 function AppointmentBooking() {
     const navigate = useNavigate();
@@ -34,6 +35,14 @@ function AppointmentBooking() {
             setLoading(false);
         } else {
             fetchServices();
+            
+            // Capture and store source tracking
+            const tracking = getSourceTracking();
+            // Add sourceKey for appointment booking if not already set
+            if (!tracking.sourceKey) {
+                tracking.sourceKey = buildSourceKey('appointment', businessId);
+            }
+            storeSourceTracking(tracking);
         }
     }, [businessId]);
 
@@ -129,6 +138,9 @@ function AppointmentBooking() {
             // Combine date and time
             const dateTime = new Date(`${formData.date}T${formData.time}`);
             
+            // Get source tracking for analytics
+            const sourceTracking = getSourceTracking();
+            
             // SECURITY: Do NOT send price or duration - server validates from catalog
             const selectedService = services.find(s => s._id === formData.serviceId);
             const response = await axios.post('/api/public/appointments/book', {
@@ -144,7 +156,9 @@ function AppointmentBooking() {
                 dateTime: dateTime.toISOString(),
                 notes: formData.notes,
                 paymentMethod: formData.paymentMethod,
-                provider: formData.provider
+                provider: formData.provider,
+                // Include source tracking
+                ...sourceTracking
             });
 
             if (response.data.success) {

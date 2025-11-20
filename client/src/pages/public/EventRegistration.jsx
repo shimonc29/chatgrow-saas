@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getSourceTracking, buildSourceKey, storeSourceTracking } from '../../utils/sourceTracking';
 
 function EventRegistration() {
     const { id } = useParams();
@@ -23,6 +24,14 @@ function EventRegistration() {
     useEffect(() => {
         fetchEvent();
         fetchPaymentOptions();
+        
+        // Capture and store source tracking
+        const tracking = getSourceTracking();
+        // Add sourceKey for this event if not already set from landing page
+        if (!tracking.sourceKey) {
+            tracking.sourceKey = buildSourceKey('event', id);
+        }
+        storeSourceTracking(tracking);
     }, [id]);
 
     const fetchEvent = async () => {
@@ -82,6 +91,9 @@ function EventRegistration() {
             setSubmitting(true);
             setError('');
 
+            // Get source tracking for analytics
+            const sourceTracking = getSourceTracking();
+
             const response = await axios.post(`/api/public/events/${id}/register`, {
                 customer: {
                     firstName: formData.firstName,
@@ -90,7 +102,9 @@ function EventRegistration() {
                     phone: formData.phone
                 },
                 paymentMethod: formData.paymentMethod,
-                provider: formData.provider
+                provider: formData.provider,
+                // Include source tracking
+                ...sourceTracking
             });
 
             if (response.data.success) {

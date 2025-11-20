@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getSourceTracking, buildSourceKey, storeSourceTracking } from '../../utils/sourceTracking';
 
 const LandingPageViewer = () => {
   const { slug } = useParams();
@@ -12,6 +13,13 @@ const LandingPageViewer = () => {
 
   useEffect(() => {
     fetchPage();
+    // Capture and store source tracking when page loads
+    const tracking = getSourceTracking();
+    // Add sourceKey for this landing page if not already set
+    if (!tracking.sourceKey) {
+      tracking.sourceKey = buildSourceKey('landing-page', slug);
+    }
+    storeSourceTracking(tracking);
   }, [slug]);
 
   const fetchPage = async () => {
@@ -29,10 +37,11 @@ const LandingPageViewer = () => {
 
   const handleCTA = async () => {
     try {
-      // Track conversion
-      await axios.post(`/api/public/landing/${slug}/convert`);
+      // Track conversion with source tracking
+      const tracking = getSourceTracking();
+      await axios.post(`/api/public/landing/${slug}/convert`, tracking);
 
-      // Navigate to registration page if linked
+      // Navigate to registration page if linked (source tracking preserved in sessionStorage)
       if (page.linkedTo?.type === 'event' && page.linkedTo.id) {
         navigate(`/events/${page.linkedTo.id}/register`);
       } else if (page.linkedTo?.type === 'appointment') {
