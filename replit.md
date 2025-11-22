@@ -1,8 +1,8 @@
-# ChatGrow - מערכת SaaS לניהול עסקים קטנים-בינוניים
+# ChatGrow - מערכת SaaS לניהול קליניקות למאמנים, מטפלים ויועצים
 
 ## Overview
 
-ChatGrow is a multi-tenant SaaS platform for small-to-medium businesses, operating on a freemium model with a 200-customer limit for free users and a 5% platform fee on marketplace-style payments. It offers a React 19 admin dashboard with Hebrew RTL, Google Calendar integration, Object Storage, a landing page builder, an AI Performance Coach for event optimization, Weekly Strategic AI Reports with Redis caching, and a Super Admin panel for analytics and subscription management. The platform aims to be an all-in-one solution for business growth and customer relationship management in the SMB SaaS market.
+ChatGrow is a multi-tenant SaaS platform specifically designed for coaches, therapists, and consultants (מאמנים, מטפלים ויועצים), operating on a freemium model with a 200-customer limit for free users. The platform is positioned as a niche product for appointment-based businesses in the coaching, therapy, and consulting sectors. It offers a React 19 admin dashboard with Hebrew RTL, Google Calendar integration, Object Storage, a landing page builder, an AI Performance Coach for session optimization, Weekly Strategic AI Reports with Redis caching, and a Super Admin panel for analytics and subscription management. The platform aims to be an all-in-one solution for managing client relationships, appointments, payments, and business growth specifically tailored for the coaching/therapy/consulting market.
 
 ## User Preferences
 
@@ -18,7 +18,7 @@ ChatGrow uses a Node.js/Express.js backend with a microservices-like approach an
 - **Frontend**: React 19 with Vite, Tailwind CSS v3 (RTL).
 - **Design Theme**: Clean, professional teal-light color scheme with specific palette (BG Light, BG Card, Accent Teal, Accent Hover, Text Primary, Text Secondary) and a crown logo.
 - **Modular Components**: Sidebar, MainLayout, PrivateRoute.
-- **Marketing Home Page**: Public marketing page with sticky nav, hero, stats, benefits, features, testimonials, and CTAs.
+- **Marketing Home Page**: Public marketing page repositioned for coaches/therapists/consultants with sticky nav, hero ("המערכת שממלאת לך את היומן ומפסיקה את ה-No-Show"), problem section addressing no-shows and WhatsApp chaos, solution sections (what ChatGrow does, how it works), main features grid, why different section, pricing (FREE/PREMIUM), FAQ, and CTAs. All copy targets the coaching/therapy/consulting niche.
 - **Landing Page Builder**: Template-based with 5 designs, live preview, customizable content/styling, analytics, 8 pre-made color schemes, 6 Hebrew Google Fonts, 5 CTA button styles, MediaPicker integration, and duplicate functionality.
 - **Financial UI**: Unified UI for invoices/receipts with manual creation, PDF generation, and email delivery.
 - **Public Event Registration**: Teal-light design with 403 error handling.
