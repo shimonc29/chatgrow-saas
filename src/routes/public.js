@@ -621,6 +621,73 @@ router.post('/events/:id/register', async (req, res) => {
     }
 });
 
+// Get existing appointments for a provider (for display on booking page)
+router.get('/appointments/existing', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { providerId } = req.query;
+        
+        if (!providerId) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש providerId'
+            });
+        }
+        
+        // Get all confirmed appointments from today onwards
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const appointments = await Appointment.find({
+            businessId: providerId,
+            status: { $in: ['confirmed', 'pending'] },
+            appointmentDate: { $gte: today }
+        })
+        .sort({ appointmentDate: 1, startTime: 1 })
+        .limit(50)
+        .lean();
+        
+        // Format appointments for display
+        const formattedAppointments = appointments.map(appt => {
+            const date = new Date(appt.appointmentDate);
+            const dateStr = date.toLocaleDateString('he-IL', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit' 
+            });
+            
+            return {
+                service: appt.serviceName || appt.serviceType,
+                date: dateStr,
+                time: appt.startTime,
+                endTime: appt.endTime,
+                status: appt.status
+            };
+        });
+        
+        logApiRequest(req.method, req.originalUrl, 200, Date.now() - startTime, {
+            providerId,
+            appointmentCount: formattedAppointments.length
+        });
+        
+        res.json({
+            success: true,
+            appointments: formattedAppointments
+        });
+        
+    } catch (error) {
+        logError('Failed to fetch existing appointments', error);
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת התורים: ' + error.message
+        });
+    }
+});
+
 // Get available services catalog
 router.get('/services', async (req, res) => {
     try {

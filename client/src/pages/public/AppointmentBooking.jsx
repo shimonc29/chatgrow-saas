@@ -463,8 +463,11 @@ function AppointmentBooking() {
                                         </select>
                                     )}
                                     {formData.date && formData.serviceId && availableSlots.length === 0 && !loadingSlots && (
-                                        <div className="mt-2 text-sm text-yellow-400">
-                                            אין שעות זמינות בתאריך זה
+                                        <div className="mt-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                                            <div className="text-red-300 text-sm font-semibold">❌ אין שעות זמינות בתאריך זה</div>
+                                            <div className="text-red-400 text-xs mt-1">
+                                                אנא בחר תאריך אחר או פנה ישירות לבעל העסק
+                                            </div>
                                         </div>
                                     )}
                                 </div>
