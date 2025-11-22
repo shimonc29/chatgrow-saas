@@ -25,6 +25,17 @@ const dayAvailabilitySchema = new mongoose.Schema({
   timeSlots: [timeSlotSchema]
 });
 
+const timeRangeSchema = new mongoose.Schema({
+  startTime: {
+    type: String,
+    required: true
+  },
+  endTime: {
+    type: String,
+    required: true
+  }
+});
+
 const serviceSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -49,6 +60,32 @@ const serviceSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  allowedDaysOfWeek: {
+    type: [Number],
+    default: undefined,
+    validate: {
+      validator: function(v) {
+        if (!v) return true;
+        return v.every(day => day >= 0 && day <= 6);
+      },
+      message: 'allowedDaysOfWeek must contain values between 0-6 (Sunday-Saturday)'
+    }
+  },
+  allowedTimeRanges: {
+    type: [timeRangeSchema],
+    default: undefined
+  },
+  color: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function(v) {
+        if (!v) return true;
+        return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v);
+      },
+      message: 'color must be a valid hex color code (e.g., #FF5733)'
+    }
   }
 });
 

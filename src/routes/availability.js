@@ -16,6 +16,11 @@ const timeSlotSchema = Joi.object({
   endTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required()
 });
 
+const timeRangeSchema = Joi.object({
+  startTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required(),
+  endTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required()
+});
+
 const dayAvailabilitySchema = Joi.object({
   dayOfWeek: Joi.number().min(0).max(6).required(),
   isAvailable: Joi.boolean().default(false),
@@ -28,7 +33,12 @@ const serviceSchema = Joi.object({
   duration: Joi.number().min(5).required(),
   price: Joi.number().min(0).required(),
   currency: Joi.string().valid('ILS', 'USD', 'EUR').default('ILS'),
-  isActive: Joi.boolean().default(true)
+  isActive: Joi.boolean().default(true),
+  allowedDaysOfWeek: Joi.array().items(
+    Joi.number().min(0).max(6)
+  ).optional(),
+  allowedTimeRanges: Joi.array().items(timeRangeSchema).optional(),
+  color: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional().allow(null)
 });
 
 const availabilityCreateSchema = Joi.object({

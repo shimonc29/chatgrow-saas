@@ -10,6 +10,15 @@ I want iterative development.
 Ask before making major changes.
 I prefer detailed explanations.
 
+## Recent Changes
+
+**November 22, 2025 - Unified Schedule & Services Interface**
+- Merged Availability/Services/Calendar into single "יומן, זמינות ושירותים" page (`/schedule`)
+- Enhanced Availability model with service-specific constraints: `allowedDaysOfWeek` (0-6), `allowedTimeRanges` (HH:MM-HH:MM), `color` (hex)
+- Upgraded `/api/public/availability/slots` with smart logic: service constraints, conflict detection, per-slot minAdvance validation
+- Legacy routes `/availability` and `/calendar` now redirect to `/schedule`
+- Full backward compatibility: old services (without new fields) continue working
+
 ## System Architecture
 
 ChatGrow uses a Node.js/Express.js backend with a microservices-like approach and a React 19 SPA frontend built with Vite and Tailwind CSS v3, featuring full Hebrew RTL support.

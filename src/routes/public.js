@@ -794,17 +794,60 @@ router.get('/availability/slots', async (req, res) => {
             });
         }
         
+        if (!serviceId) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש serviceId'
+            });
+        }
+        
         const availability = await Availability.findOne({ providerId });
         
         if (!availability) {
             return res.json({
                 success: true,
-                slots: []
+                slots: [],
+                message: 'לא נמצאו הגדרות זמינות'
+            });
+        }
+        
+        const service = availability.services.id(serviceId);
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: 'שירות לא נמצא'
+            });
+        }
+        
+        if (!service.isActive) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: 'שירות זה אינו פעיל כרגע'
             });
         }
         
         const requestedDate = new Date(date);
-        const dayOfWeek = requestedDate.getDay();
+        
+        const normalizedRequestedDate = new Date(requestedDate);
+        normalizedRequestedDate.setHours(0, 0, 0, 0);
+        
+        const normalizedNow = new Date();
+        normalizedNow.setHours(0, 0, 0, 0);
+        
+        const daysDiff = Math.ceil((normalizedRequestedDate - normalizedNow) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff > availability.maxAdvanceBookingDays) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: `ניתן לקבוע תור עד ${availability.maxAdvanceBookingDays} ימים מראש`
+            });
+        }
+        
+        const minAdvanceMs = availability.minAdvanceBookingHours * 60 * 60 * 1000;
+        
+        const dayOfWeek = normalizedRequestedDate.getDay();
         
         const isBlocked = availability.blockedDates.some(blocked => {
             const blockedDate = new Date(blocked.date);
@@ -819,9 +862,19 @@ router.get('/availability/slots', async (req, res) => {
             });
         }
         
+        if (service.allowedDaysOfWeek && service.allowedDaysOfWeek.length > 0) {
+            if (!service.allowedDaysOfWeek.includes(dayOfWeek)) {
+                return res.json({
+                    success: true,
+                    slots: [],
+                    message: 'שירות זה אינו זמין ביום זה'
+                });
+            }
+        }
+        
         const daySchedule = availability.weeklySchedule.find(d => d.dayOfWeek === dayOfWeek);
         
-        if (!daySchedule || !daySchedule.isAvailable) {
+        if (!daySchedule || !daySchedule.isAvailable || !daySchedule.timeSlots || daySchedule.timeSlots.length === 0) {
             return res.json({
                 success: true,
                 slots: [],
@@ -829,39 +882,102 @@ router.get('/availability/slots', async (req, res) => {
             });
         }
         
-        let serviceDuration = 30;
-        if (serviceId) {
-            const service = availability.services.id(serviceId);
-            if (service) {
-                serviceDuration = service.duration;
-            }
+        let workingTimeSlots = daySchedule.timeSlots;
+        
+        if (service.allowedTimeRanges && service.allowedTimeRanges.length > 0) {
+            workingTimeSlots = intersectTimeRanges(daySchedule.timeSlots, service.allowedTimeRanges);
         }
         
-        const slots = [];
+        if (workingTimeSlots.length === 0) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: 'אין שעות זמינות לשירות זה ביום זה'
+            });
+        }
         
-        for (const timeSlot of daySchedule.timeSlots) {
+        const dayStart = new Date(requestedDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(requestedDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        
+        const existingAppointments = await Appointment.find({
+            businessId: providerId,
+            date: {
+                $gte: dayStart,
+                $lte: dayEnd
+            },
+            status: { $in: ['scheduled', 'confirmed'] }
+        });
+        
+        const existingEvents = await Event.find({
+            businessId: providerId,
+            startDateTime: {
+                $gte: dayStart,
+                $lte: dayEnd
+            },
+            status: 'published'
+        });
+        
+        const slots = [];
+        let totalSlotsBeforeMinAdvance = 0;
+        let slotsFilteredByMinAdvance = 0;
+        
+        for (const timeSlot of workingTimeSlots) {
             const [startHour, startMinute] = timeSlot.startTime.split(':').map(Number);
             const [endHour, endMinute] = timeSlot.endTime.split(':').map(Number);
             
             let currentMinutes = startHour * 60 + startMinute;
             const endMinutes = endHour * 60 + endMinute;
             
-            while (currentMinutes + serviceDuration <= endMinutes) {
+            while (currentMinutes + service.duration <= endMinutes) {
                 const slotHour = Math.floor(currentMinutes / 60);
                 const slotMinute = currentMinutes % 60;
                 const slotTime = `${String(slotHour).padStart(2, '0')}:${String(slotMinute).padStart(2, '0')}`;
                 
-                slots.push({
-                    time: slotTime,
-                    available: true
+                const slotEndMinutes = currentMinutes + service.duration;
+                const slotEndHour = Math.floor(slotEndMinutes / 60);
+                const slotEndMinute = slotEndMinutes % 60;
+                const slotEndTime = `${String(slotEndHour).padStart(2, '0')}:${String(slotEndMinute).padStart(2, '0')}`;
+                
+                const hasConflict = existingAppointments.some(appt => {
+                    return timeRangesOverlap(slotTime, slotEndTime, appt.startTime, appt.endTime);
+                }) || existingEvents.some(evt => {
+                    const evtDate = new Date(evt.startDateTime);
+                    const evtStartTime = `${String(evtDate.getHours()).padStart(2, '0')}:${String(evtDate.getMinutes()).padStart(2, '0')}`;
+                    const evtEndDate = new Date(evt.endDateTime || new Date(evt.startDateTime.getTime() + 60 * 60 * 1000));
+                    const evtEndTime = `${String(evtEndDate.getHours()).padStart(2, '0')}:${String(evtEndDate.getMinutes()).padStart(2, '0')}`;
+                    return timeRangesOverlap(slotTime, slotEndTime, evtStartTime, evtEndTime);
                 });
                 
-                currentMinutes += serviceDuration + availability.bufferTime;
+                if (!hasConflict) {
+                    totalSlotsBeforeMinAdvance++;
+                    const slotDateTime = new Date(requestedDate);
+                    slotDateTime.setHours(slotHour, slotMinute, 0, 0);
+                    
+                    if (slotDateTime.getTime() >= Date.now() + minAdvanceMs) {
+                        slots.push(slotDateTime.toISOString());
+                    } else {
+                        slotsFilteredByMinAdvance++;
+                    }
+                }
+                
+                currentMinutes += service.duration + availability.bufferTime;
             }
+        }
+        
+        if (slots.length === 0 && slotsFilteredByMinAdvance > 0) {
+            return res.json({
+                success: true,
+                slots: [],
+                message: `נדרש לקבוע תור לפחות ${availability.minAdvanceBookingHours} שעות מראש`
+            });
         }
         
         res.json({
             success: true,
+            date,
+            serviceId,
             slots
         });
     } catch (error) {
@@ -872,6 +988,57 @@ router.get('/availability/slots', async (req, res) => {
         });
     }
 });
+
+function intersectTimeRanges(globalRanges, serviceRanges) {
+    const result = [];
+    
+    for (const globalRange of globalRanges) {
+        for (const serviceRange of serviceRanges) {
+            const start = maxTime(globalRange.startTime, serviceRange.startTime);
+            const end = minTime(globalRange.endTime, serviceRange.endTime);
+            
+            if (start < end) {
+                result.push({ startTime: start, endTime: end });
+            }
+        }
+    }
+    
+    return result;
+}
+
+function maxTime(time1, time2) {
+    const [h1, m1] = time1.split(':').map(Number);
+    const [h2, m2] = time2.split(':').map(Number);
+    const minutes1 = h1 * 60 + m1;
+    const minutes2 = h2 * 60 + m2;
+    
+    if (minutes1 > minutes2) return time1;
+    return time2;
+}
+
+function minTime(time1, time2) {
+    const [h1, m1] = time1.split(':').map(Number);
+    const [h2, m2] = time2.split(':').map(Number);
+    const minutes1 = h1 * 60 + m1;
+    const minutes2 = h2 * 60 + m2;
+    
+    if (minutes1 < minutes2) return time1;
+    return time2;
+}
+
+function timeRangesOverlap(start1, end1, start2, end2) {
+    const [h1, m1] = start1.split(':').map(Number);
+    const [h2, m2] = end1.split(':').map(Number);
+    const [h3, m3] = start2.split(':').map(Number);
+    const [h4, m4] = end2.split(':').map(Number);
+    
+    const s1 = h1 * 60 + m1;
+    const e1 = h2 * 60 + m2;
+    const s2 = h3 * 60 + m3;
+    const e2 = h4 * 60 + m4;
+    
+    return s1 < e2 && s2 < e1;
+}
 
 // Get available appointment slots
 router.get('/appointments/available', async (req, res) => {

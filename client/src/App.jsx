@@ -12,6 +12,7 @@ import Payments from './pages/admin/Payments';
 import Financial from './pages/admin/Financial';
 import Availability from './pages/admin/Availability';
 import Calendar from './pages/admin/Calendar';
+import ScheduleAndServices from './pages/admin/ScheduleAndServices';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import TranzilaSettings from './pages/admin/TranzilaSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
@@ -98,18 +99,19 @@ function App() {
 
           <Route 
             path="/availability" 
-            element={
-              <PrivateRoute>
-                <Availability />
-              </PrivateRoute>
-            } 
+            element={<Navigate to="/schedule" replace />} 
           />
 
           <Route 
             path="/calendar" 
+            element={<Navigate to="/schedule" replace />} 
+          />
+
+          <Route 
+            path="/schedule" 
             element={
               <PrivateRoute>
-                <Calendar />
+                <ScheduleAndServices />
               </PrivateRoute>
             } 
           />
