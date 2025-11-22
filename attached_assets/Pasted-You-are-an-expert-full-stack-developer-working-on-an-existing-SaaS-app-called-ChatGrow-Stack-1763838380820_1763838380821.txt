@@ -1,0 +1,436 @@
+You are an expert full-stack developer working on an existing SaaS app called **ChatGrow**.
+
+Stack (already implemented):
+- Backend: Node.js, Express, MongoDB, PostgreSQL, with routes:
+  - `/api/appointments`
+  - `/api/events`
+  - `/api/availability`
+  - `/api/google-calendar`
+  - plus many others (payments, invoices, landing-pages, growth, etc.)
+- Frontend: React + Vite + Tailwind CSS, RTL Hebrew support, dashboard layout with sidebar.
+- There is currently a placeholder route `/api/calendar` that returns an HTML page (inline in `server.js`).
+
+Goal:  
+Implement a **real calendar system** (backend + frontend) that acts as the central business calendar for each tenant (coach/therapist/consultant).  
+All appointments, events, and availability should “plug into” this calendar.  
+The calendar will be read-only in the first stage (show data), but we want it structured to support future features (creating appointments, blocking time, editing availability) easily.
+
+DO NOT break existing endpoints. DO NOT change database schemas drastically. Extend the system in a clean, modular way, following existing patterns.
+
+------------------------------------------------
+PART 1 – Backend: Calendar API
+------------------------------------------------
+
+1. Replace the current HTML-based `/api/calendar` route with a proper JSON API.
+
+   In `server.js` (or the main Express file), REMOVE the inline HTML handler:
+
+   ```js
+   app.get('/api/calendar', (req, res) => {
+       // existing HTML response...
+   });
+and instead:
+
+js
+Copy code
+const calendarRoutes = require('./routes/calendar');
+app.use('/api/calendar', calendarRoutes);
+Create a new file: routes/calendar.js
+
+This should:
+
+Use express.Router()
+
+Use existing authMiddleware (if defined) to require authentication.
+
+Export a route:
+
+js
+Copy code
+router.get('/', authMiddleware, calendarController.getCalendarView);
+Create a new file: controllers/calendarController.js
+
+Import a calendarService:
+
+js
+Copy code
+const calendarService = require('../services/calendarService');
+Implement getCalendarView(req, res, next):
+
+Read:
+
+tenantId (or providerId) from req.user (use whatever pattern the app already uses for multi-tenancy).
+
+Query params:
+
+from (ISO date string, e.g. 2025-11-20)
+
+to (ISO date string)
+
+view (optional, e.g. day | week | month; default: week)
+
+Validate/normalize dates: if missing, compute a “current week” range (start of week → end of week).
+
+Call:
+
+js
+Copy code
+const result = await calendarService.getCalendarView({
+  tenantId,
+  from,
+  to,
+  view,
+});
+Return JSON:
+
+js
+Copy code
+res.json({
+  success: true,
+  view,
+  from,
+  to,
+  items: result.items,
+});
+On error, call next(error) or return 500 with a clean JSON error.
+
+Create a new file: services/calendarService.js
+
+This is the core aggregation logic. It should:
+
+Import the existing Mongoose models (or ORM models) that already exist in the project:
+
+Appointments (or Appointment)
+
+Events (or Event)
+
+Availability (for weekly pattern + exceptions, if exists)
+
+Any BlockedTimes or similar model (optional; if not, skip and keep simple)
+
+Import googleCalendarService (from ./services/googleCalendar or the existing module used in /api/google-calendar) if available.
+
+Implement:
+
+js
+Copy code
+async function getCalendarView({ tenantId, from, to, view }) {
+  // 1. Parse dates to Date objects
+  // 2. Query appointments, events, availability exceptions, and Google events (if enabled)
+}
+Suggested logic:
+
+Normalize from and to to Date objects and ensure from <= to.
+
+Load appointments in this range:
+
+js
+Copy code
+const appointments = await Appointments.find({
+  tenantId,
+  startTime: { $gte: from, $lt: to },
+});
+Load events (group sessions, workshops, etc.) in this range:
+
+js
+Copy code
+const events = await Events.find({
+  tenantId,
+  startDate: { $gte: from, $lt: to },
+});
+If there are events with multiple sessions/dates, adapt query accordingly (you can assume a simple startDate/endDate model for now).
+
+Load availability overrides/blocks if model exists:
+
+Example availability schema assumption:
+
+js
+Copy code
+// type: 'weekly_pattern' | 'exception' | 'block'
+const availabilityOverrides = await Availability.find({
+  tenantId,
+  type: { $in: ['exception', 'block'] },
+  date: { $gte: from, $lt: to },
+});
+(Optional) Load Google Calendar events for this provider/tenant if they are connected:
+
+js
+Copy code
+const googleEvents = await googleCalendarService.getEventsForRange(tenantId, from, to);
+Convert everything to a unified “calendar item” structure:
+
+The returned items array should look like:
+
+js
+Copy code
+const items = [];
+
+// Appointments → type: 'appointment'
+appointments.forEach(appt => {
+  items.push({
+    type: 'appointment',
+    id: appt._id.toString(),
+    title: appt.title || (appt.customerName ? `פגישה עם ${appt.customerName}` : 'פגישה'),
+    start: appt.startTime,
+    end: appt.endTime,
+    status: appt.status || 'confirmed',
+    location: appt.location || null,
+    meta: {
+      customerId: appt.customerId,
+      notes: appt.notes || null,
+      source: appt.sourceKey || null,
+    },
+  });
+});
+
+// Events → type: 'event'
+events.forEach(ev => {
+  items.push({
+    type: 'event',
+    id: ev._id.toString(),
+    title: ev.title || 'אירוע',
+    start: ev.startDate,
+    end: ev.endDate || ev.startDate,
+    status: ev.status || 'scheduled',
+    location: ev.location || null,
+    meta: {
+      capacity: ev.capacity,
+      registrations: ev.registrationsCount || 0,
+    },
+  });
+});
+
+// Availability blocks/exceptions → type: 'blocked' or 'availability'
+availabilityOverrides.forEach(av => {
+  items.push({
+    type: av.type === 'block' ? 'blocked' : 'availability',
+    id: av._id.toString(),
+    title: av.type === 'block' ? 'חסום' : 'זמינות מיוחדת',
+    start: av.startDateTime, // or date + startTime
+    end: av.endDateTime,     // or date + endTime
+    status: av.isOpen ? 'open' : 'closed',
+    location: null,
+    meta: {
+      reason: av.reason || null,
+    },
+  });
+});
+
+// Google events → type: 'google'
+googleEvents.forEach(ge => {
+  items.push({
+    type: 'google',
+    id: ge.id,
+    title: ge.summary || 'Google Event',
+    start: ge.start,
+    end: ge.end,
+    status: 'busy',
+    location: ge.location || null,
+    meta: {
+      googleCalendarId: ge.calendarId,
+    },
+  });
+});
+Return:
+
+js
+Copy code
+return { items };
+Add logging (using logInfo if available) with basic debug info:
+
+js
+Copy code
+logInfo('CalendarView', { tenantId, from, to, counts: { appointments: appointments.length, events: events.length } });
+PART 2 – Frontend: CalendarPage in React
+Create a new page component for the logged-in app, for example:
+
+src/pages/CalendarPage.tsx (or in the same folder where other dashboard pages live).
+
+It should:
+
+Be RTL (dir="rtl").
+
+Use Tailwind CSS and the existing layout (use the same shell as other dashboard pages).
+
+Fetch data from GET /api/calendar?from=...&to=...&view=week using the existing API helper (if there is one) or fetch.
+
+State in CalendarPage:
+
+ts
+Copy code
+const [items, setItems] = useState<CalendarItem[]>([]);
+const [view, setView] = useState<'week' | 'day'>('week');
+const [currentDate, setCurrentDate] = useState(new Date());
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+Define CalendarItem type that matches the backend:
+
+ts
+Copy code
+type CalendarItemType = 'appointment' | 'event' | 'blocked' | 'availability' | 'google';
+
+interface CalendarItem {
+  type: CalendarItemType;
+  id: string;
+  title: string;
+  start: string; // ISO from backend
+  end: string;
+  status?: string;
+  location?: string | null;
+  meta?: Record<string, any>;
+}
+Implement a helper that computes from and to for the current view.
+
+For week view:
+
+from = start of week (Sunday)
+
+to = end of week (Saturday)
+
+For simplicity, you can use dayjs or date-fns if already used in the project.
+
+useEffect to fetch data on mount and when currentDate / view changes:
+
+ts
+Copy code
+useEffect(() => {
+  async function loadCalendar() {
+    setLoading(true);
+    setError(null);
+    try {
+      const { from, to } = computeRange(currentDate, view);
+      const res = await fetch(`/api/calendar?from=${from.toISOString()}&to=${to.toISOString()}&view=${view}`, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed to load calendar');
+      setItems(data.items || []);
+    } catch (err: any) {
+      setError(err.message || 'Error loading calendar');
+    } finally {
+      setLoading(false);
+    }
+  }
+  loadCalendar();
+}, [currentDate, view]);
+Layout of the week view:
+
+Top bar:
+
+Buttons:
+
+“שבוע קודם”
+
+“היום”
+
+“שבוע הבא”
+
+View toggle: “יום” / “שבוע” (for now just style; implement day view later if needed).
+
+Main grid:
+
+7 columns (א’–שבת).
+
+Rows for hours (e.g. 07:00–22:00).
+
+Each CalendarItem is rendered as a positioned card (for now, simple block inside the cell based on date/hour matching).
+
+Simplified approach:
+
+Group items by date (YYYY-MM-DD).
+
+Inside each column (day), render the list of items sorted by start time.
+
+For now you can display items as stacked cards with:
+
+title
+
+time range
+
+badge by type.
+
+Color coding (Tailwind classes suggestion):
+
+type === 'appointment' → blue (e.g. bg-blue-100 border-blue-500)
+
+type === 'event' → green (bg-green-100 border-green-500)
+
+type === 'blocked' → gray/red (bg-red-100 border-red-500)
+
+type === 'availability' → light green (bg-emerald-50 border-emerald-400)
+
+type === 'google' → purple (bg-purple-100 border-purple-500)
+
+RTL and Hebrew:
+
+Wrap the main container in:
+
+jsx
+Copy code
+<div dir="rtl" className="p-4">
+  {/* header, nav, grid, etc. */}
+</div>
+Use Hebrew labels:
+
+שבוע קודם, היום, שבוע הבא
+
+Days header: ראשון, שני, שלישי, רביעי, חמישי, שישי, שבת
+
+Section title: 📅 יומן וניהול פגישות
+
+Integrate CalendarPage into the existing dashboard routing:
+
+Add a new route in the React Router configuration (e.g. /app/calendar).
+
+Add an item in the sidebar navigation:
+
+Icon: calendar emoji or existing icon
+
+Label: יומן
+
+For now, do not implement creation/editing of items from the calendar UI.
+The calendar should be read-only and show what exists in:
+
+/api/appointments
+
+/api/events
+
+/api/availability
+
+/api/google-calendar (if connected).
+
+Make sure the code structure is clean and will be easy to extend later with:
+
+Click on a cell → open “create appointment” modal.
+
+Click on an item → open details/edit modal.
+
+Click on “block time” button.
+
+PART 3 – Quality and consistency
+Respect existing architecture:
+
+Use the existing logging utilities (logInfo, logError) when appropriate.
+
+Use the same auth middleware and tenant handling used in other routes (appointments, events).
+
+Do NOT remove existing routes like /api/appointments, just read from them via models in the new calendarService.
+
+Test manually:
+
+Create a few appointments and events using existing flows.
+
+Open the new Calendar page.
+
+Verify that items appear in the correct days.
+
+Confirm that if Google Calendar sync is enabled for the tenant, those events are also visible.
+
+The result should be:
+
+A robust /api/calendar JSON endpoint aggregating all time-based business data per tenant.
+
+A new React-based Calendar page in the dashboard that shows 1-week view with all appointments, events, blocks and external (Google) events in a clear, RTL layout for Hebrew users.
+
+markdown
+Copy code
