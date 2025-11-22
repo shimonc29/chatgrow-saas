@@ -1,0 +1,441 @@
+You are an expert full-stack developer working on an existing SaaS app called **ChatGrow**.
+
+Context (already implemented):
+- Backend:
+  - Node.js + Express + MongoDB + PostgreSQL
+  - Models and routes for:
+    - `/api/availability` with:
+      - `Availability` model storing:
+        - `weeklySchedule`: weekly working hours (Sun–Fri)
+        - `services`: service catalog (name, duration, price, isActive)
+        - `bufferTime`
+        - `blockedDates`
+        - `maxAdvanceBookingDays`
+      - Routes:
+        - `GET /api/availability/settings`
+        - `POST /api/availability/settings`
+        - `PUT /api/availability/settings`
+        - `DELETE /api/availability/settings`
+        - `GET /api/availability/services`
+        - `POST /api/availability/services`
+        - `PUT /api/availability/services/:id`
+        - `DELETE /api/availability/services/:id`
+        - `POST /api/availability/block`
+        - `DELETE /api/availability/block/:id`
+    - Public routes (`routes/public.js`):
+      - `GET /api/public/services` – public service list
+      - `GET /api/public/availability/slots` – available time slots for a given date
+    - Calendar-related routes:
+      - `/api/appointments`
+      - `/api/events`
+      - `/api/availability`
+      - `/api/google-calendar`
+      - (New) `/api/calendar` that aggregates time-based data.
+- Frontend (React + Vite + Tailwind, RTL Hebrew):
+  - `client/src/pages/admin/Availability.jsx` – admin page for:
+    - weekly working hours
+    - services CRUD
+    - blocked dates
+    - general booking settings
+  - `client/src/pages/public/AppointmentBooking.jsx` – public booking page:
+    - select service
+    - select date
+    - select time (based on availability)
+    - enter customer details & payment
+  - A new Calendar page (or to be created) showing the weekly calendar view.
+
+Goal:
+Unify the **“Availability & Services”** admin tab and the **Calendar** page into ONE integrated tab called **“יומן, זמינות ושירותים”** with the following behavior:
+
+1. Admin (Provider) sees one page with:
+   - A weekly calendar view (central area).
+   - Side panel / sections to:
+     - Define weekly availability (working hours).
+     - Manage services (name, duration, price, active).
+     - Manage blocking (blocked dates/time).
+   - Ability to:
+     - Click on the calendar to create an appointment.
+     - Click on the calendar to block time.
+     - See how availability + services + bookings come together in one place.
+
+2. Public booking page:
+   - When a client selects a service and a date, they only see time slots that:
+     - Are within the provider’s weekly schedule.
+     - Respect `maxAdvanceBookingDays`.
+     - Respect `bufferTime`.
+     - Are not overlapped by:
+       - existing appointments,
+       - events,
+       - blocks / blockedDates,
+       - Google Calendar “busy” events.
+     - Respect the selected service’s duration.
+
+3. Services and availability are the **source of truth** for:
+   - Slot generation (for public booking).
+   - Calendar visualization.
+
+Please DO NOT break existing endpoints, only extend/enhance them.  
+Keep the UI RTL and Hebrew for labels, but code identifiers in English.
+
+================================================
+PART 1 – Extend the Availability model for per-service constraints
+================================================
+
+Currently `Availability` stores:
+- `weeklySchedule` – global working hours.
+- `services` – with at least: `name`, `duration`, `price`, `isActive`.
+- `bufferTime`, `blockedDates`, `maxAdvanceBookingDays`.
+
+We want to support **per-service availability preferences** (optional).
+
+1. Update `models/Availability.js`:
+
+   For each service entry inside `services`, extend the schema to include:
+
+   ```js
+   const ServiceSchema = new mongoose.Schema({
+     name: String,
+     description: String,
+     duration: Number, // in minutes
+     price: Number,
+     isActive: { type: Boolean, default: true },
+
+     // NEW: Optional per-service availability config
+     allowedDaysOfWeek: {
+       type: [Number], // 0-6, where 0 = Sunday
+       default: undefined, // if missing -> uses global weeklySchedule
+     },
+     allowedTimeRanges: [
+       {
+         startTime: String, // '09:00'
+         endTime: String,   // '13:00'
+       }
+     ],
+     color: { type: String, default: null } // optional color code for calendar display
+   });
+If allowedDaysOfWeek and allowedTimeRanges are NOT set, the system will use weeklySchedule as default for that service.
+
+If they are set, the slot generator should intersect:
+
+global weeklySchedule
+
+with service-specific allowedDaysOfWeek/time ranges.
+
+Keep backwards compatibility:
+
+Existing documents without these fields should continue to work.
+
+Slot generation should treat them as “no extra restriction” (just use weeklySchedule).
+
+================================================
+PART 2 – Slot generation API: /api/public/availability/slots
+We want GET /api/public/availability/slots to:
+
+Accept:
+
+serviceId
+
+date (YYYY-MM-DD)
+
+Return:
+
+a list of concrete start times on that date where the selected service can be booked.
+
+Enhance the existing handler (in routes/public.js and its controller):
+
+Expected query params:
+
+http
+Copy code
+GET /api/public/availability/slots?serviceId=xxx&date=2025-11-22
+Implementation logic:
+
+Resolve providerId or tenantId from context (e.g. via subdomain, token, or query param depending on existing logic).
+
+Load Availability for that provider:
+
+weeklySchedule
+
+services (find the chosen service by serviceId)
+
+bufferTime
+
+maxAdvanceBookingDays
+
+blockedDates
+
+Validate:
+
+Service is isActive.
+
+Date is not beyond maxAdvanceBookingDays.
+
+Date is not in blockedDates.
+
+Determine base working hours for that date:
+
+Look up the weekday for date (0-6).
+
+From weeklySchedule, find the ranges (e.g. 09:00–13:00, 16:00–20:00).
+
+If service has allowedDaysOfWeek and current weekday not in that, return empty list.
+
+If service has allowedTimeRanges, intersect them with the global weeklySchedule to build the working intervals.
+
+Convert intervals to slots:
+
+Slot length = service.duration (in minutes).
+
+Apply bufferTime between slots if configured:
+
+e.g. slotEnd = slotStart + duration + bufferTime.
+
+Filter out conflicts:
+
+Load all existing appointments on that date for this provider:
+
+from /api/appointments model/table.
+
+Load all events (if relevant to bookings) on that date.
+
+Load all blocks (availability blocks / blockedDates).
+
+Load Google Calendar busy events if provider is connected.
+
+For each generated slot, check:
+
+slot [start, end] must not overlap any:
+
+appointment time range
+
+event time range
+
+block time range
+
+Google busy time range
+
+Return JSON:
+
+js
+Copy code
+res.json({
+  success: true,
+  date,
+  serviceId,
+  slots: [
+    "2025-11-22T09:00:00.000Z",
+    "2025-11-22T10:00:00.000Z",
+    ...
+  ]
+});
+Public booking page (AppointmentBooking.jsx) should then use these slots (see Part 4).
+
+================================================
+PART 3 – Unifying “Availability & Services” with Calendar in the Admin UI
+We will create a single admin page called e.g. ScheduleAndServices.jsx that:
+
+Combines:
+
+The old Availability.jsx functionality.
+
+The new CalendarPage functionality.
+
+Lives under something like:
+
+client/src/pages/admin/ScheduleAndServices.jsx
+
+Replaces the old “Availability & Services” menu item with a new one:
+
+Label: יומן, זמינות ושירותים
+
+Route: /app/schedule (for example).
+
+Page layout:
+
+Use a 2-column layout:
+
+Left (or right) column – side panel (~30–35% width):
+
+Tabs or sections:
+
+זמינות שבועית (Weekly availability)
+
+שירותים (Services)
+
+הגדרות תורים (Booking settings: buffer, maxAdvanceBookingDays, etc.)
+
+Reuse as much as possible from the existing Availability.jsx component logic.
+
+Main column – calendar view (~65–70% width):
+
+Weekly calendar, as previously defined in the Calendar page:
+
+Shows appointments, events, blocks.
+
+Allows:
+
+Clicking on empty slots → create appointment.
+
+Toggling “block mode” → click to create block.
+
+Clicking on an item → show details and allow cancel/delete.
+
+Reuse and refactor existing Availability.jsx:
+
+Move core availability logic (data fetching, saving weekly schedule, services CRUD) into smaller components/hooks:
+
+WeeklyScheduleEditor
+
+ServiceListEditor
+
+BookingSettingsEditor
+
+In ScheduleAndServices.jsx, render them in a vertical stack or as tabs using Tailwind:
+
+Example:
+
+jsx
+Copy code
+<div className="flex gap-4" dir="rtl">
+  <div className="w-1/3 space-y-4">
+    <WeeklyScheduleEditor />
+    <ServiceListEditor />
+    <BookingSettingsEditor />
+  </div>
+  <div className="flex-1">
+    <CalendarView /> {/* new calendar component */}
+  </div>
+</div>
+Calendar integration:
+
+The CalendarView component should be the same calendar we implemented earlier (week view, items from /api/calendar).
+
+We don’t change the /api/calendar API structure, but now you should:
+
+For blocked type items (from Availability blocks), render them in a distinct color (e.g. grey/red).
+
+For appointments, optionally color by service (using service.color or fallback color).
+
+Interactions hooking to availability:
+
+When blocking time via the calendar:
+
+Use POST /api/availability/block and DELETE /api/availability/block/:id as already defined.
+
+When editing weekly schedule or services:
+
+On save, reload:
+
+Availability settings (for UI).
+
+Calendar data (to recompute blocks/available times).
+
+================================================
+PART 4 – Public booking page behavior
+Update client/src/pages/public/AppointmentBooking.jsx so that:
+
+Step 1: Select service
+
+Fetch services from GET /api/public/services.
+
+Show only services where isActive === true.
+
+Step 2: Select date
+
+Once a service is selected, enable a date picker.
+
+When user picks a date:
+
+Call:
+
+js
+Copy code
+GET /api/public/availability/slots?serviceId=...&date=YYYY-MM-DD
+Step 3: Show available time slots
+
+Use the slots array from the API response.
+
+Render each slot as a button in the UI:
+
+Label in local time, e.g. "09:00", "10:30".
+
+Disable the “continue” button until a slot is chosen.
+
+Step 4: Booking submission
+
+When user completes details and submits:
+
+Use existing booking endpoint (e.g. /api/appointments or a dedicated public booking endpoint).
+
+Make sure the backend validates again:
+
+That the selected slot is still free.
+
+That the chosen time respects service duration & constraints.
+
+On success:
+
+Create an appointment record.
+
+Send notifications (email / SMS) via existing NotificationService.
+
+================================================
+PART 5 – Navigation / Routing updates
+Admin panel:
+
+Replace the old “Availability & Services” menu item with:
+
+Label: יומן, זמינות ושירותים
+
+Route: /app/schedule
+
+Map this route to the new ScheduleAndServices page.
+
+Calendar:
+
+If there was a separate “Calendar” menu item, you can:
+
+Either remove it,
+
+Or keep it as a shortcut that routes to /app/schedule.
+
+================================================
+PART 6 – Quality checks
+Verify that:
+
+Admin can:
+
+Set weekly availability.
+
+Define services (name, duration, price, active).
+
+Block specific dates/time.
+
+See all of this reflected in the calendar.
+
+Public client:
+
+Sees only valid slots for a chosen service and date.
+
+Cannot book on blocked dates, outside weekly schedule, or beyond maxAdvanceBookingDays.
+
+Respects bufferTime and service.duration.
+
+Keep UI:
+
+RTL
+
+Hebrew labels for all visible text.
+
+Tailwind-based clean layout.
+
+Keep backend:
+
+Backwards compatible with existing data.
+
+Structured and modular (no huge controller functions).
+
+Using existing auth and logging (logInfo/logError) where reasonable.
+
+swift
+Copy code
