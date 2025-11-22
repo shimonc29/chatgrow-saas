@@ -40,12 +40,12 @@ const availabilityCreateSchema = Joi.object({
 
 router.get('/settings', authenticateToken, async (req, res) => {
   try {
-    if (!req.user || !req.user.userId) {
-      console.error('Availability GET /settings: req.user or userId is missing', req.user);
+    if (!req.user) {
+      console.error('Availability GET /settings: req.user is missing');
       return res.status(401).json({ error: 'Unauthorized - user information missing' });
     }
     
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     console.log('Fetching availability for providerId:', providerId);
     
     let availability = await Availability.findOne({ providerId });
@@ -93,7 +93,7 @@ router.put('/settings', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     
     const availability = await Availability.findOneAndUpdate(
       { providerId },
@@ -117,7 +117,7 @@ router.put('/settings', authenticateToken, async (req, res) => {
 
 router.get('/services', authenticateToken, async (req, res) => {
   try {
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     
     const availability = await Availability.findOne({ providerId });
     
@@ -139,7 +139,7 @@ router.post('/services', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     
     let availability = await Availability.findOne({ providerId });
     
@@ -179,7 +179,7 @@ router.put('/services/:serviceId', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     const { serviceId } = req.params;
     
     const availability = await Availability.findOne({ providerId });
@@ -208,7 +208,7 @@ router.put('/services/:serviceId', authenticateToken, async (req, res) => {
 
 router.delete('/services/:serviceId', authenticateToken, async (req, res) => {
   try {
-    const providerId = req.user.userId;
+    const providerId = req.user.id || req.user._id;
     const { serviceId } = req.params;
     
     const availability = await Availability.findOne({ providerId });
