@@ -220,6 +220,9 @@ class CalendarService {
         }
       }
 
+      const currentParticipants = ev.participants ? ev.participants.length : 0;
+      const participants = ev.participants || [];
+
       return {
         type: 'event',
         id: ev._id.toString(),
@@ -231,8 +234,15 @@ class CalendarService {
         meta: {
           category: ev.category,
           maxParticipants: ev.maxParticipants,
-          currentParticipants: ev.currentParticipants || 0,
-          pricing: ev.pricing
+          currentParticipants: currentParticipants,
+          pricing: ev.pricing,
+          participants: participants.map(p => ({
+            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
+            email: p.email,
+            phone: p.phone,
+            registeredAt: p.registeredAt,
+            paymentStatus: p.paymentStatus
+          }))
         }
       };
     });

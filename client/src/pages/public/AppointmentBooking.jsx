@@ -15,6 +15,7 @@ function AppointmentBooking() {
     const [availableSlots, setAvailableSlots] = useState([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [paymentOptions, setPaymentOptions] = useState(null);
+    const [existingAppointments, setExistingAppointments] = useState([]);
     
     const [formData, setFormData] = useState({
         firstName: '',
@@ -37,6 +38,7 @@ function AppointmentBooking() {
         } else {
             fetchServices();
             fetchPaymentOptions();
+            fetchExistingAppointments();
             
             // Capture and store source tracking
             const tracking = getSourceTracking();
@@ -84,6 +86,17 @@ function AppointmentBooking() {
             }
         } catch (err) {
             console.error('Error fetching payment options:', err);
+        }
+    };
+
+    const fetchExistingAppointments = async () => {
+        try {
+            const response = await axios.get(`/api/public/appointments/existing?providerId=${businessId}`);
+            if (response.data.success) {
+                setExistingAppointments(response.data.appointments || []);
+            }
+        } catch (err) {
+            console.error('Error fetching existing appointments:', err);
         }
     };
 
@@ -258,6 +271,34 @@ function AppointmentBooking() {
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent mb-2">📅 קביעת תור</h1>
                     <p className="text-gray-300 text-lg">בחר את השירות המבוקש ותאריך נוח עבורך</p>
                 </div>
+
+                {/* Existing Appointments Display */}
+                {existingAppointments.length > 0 && (
+                    <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 rounded-lg p-6 mb-6">
+                        <h2 className="text-xl font-bold text-yellow-400 mb-4">📌 תורים קיימים</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {existingAppointments.slice(0, 10).map((appt, index) => (
+                                <div 
+                                    key={index}
+                                    className="bg-black/50 border border-yellow-600/20 rounded-lg p-3"
+                                >
+                                    <div className="text-yellow-400 font-semibold">{appt.service}</div>
+                                    <div className="text-gray-300 text-sm mt-1">
+                                        📅 {appt.date}
+                                    </div>
+                                    <div className="text-gray-400 text-sm">
+                                        🕐 {appt.time} - {appt.endTime}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {existingAppointments.length > 10 && (
+                            <div className="text-gray-400 text-sm text-center mt-3">
+                                ועוד {existingAppointments.length - 10} תורים נוספים...
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Booking Form */}
                 <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 rounded-lg p-8">

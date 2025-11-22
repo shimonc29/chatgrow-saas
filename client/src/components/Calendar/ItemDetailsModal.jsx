@@ -189,14 +189,56 @@ const ItemDetailsModal = ({ isOpen, onClose, item, onSuccess }) => {
             </div>
           )}
 
-          {/* אירוע - קיבולת */}
+          {/* אירוע - קיבולת ומשתתפים */}
           {item.type === 'event' && item.meta && (
             <div>
-              {item.meta.capacity && (
+              {item.meta.maxParticipants && (
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">קיבולת</label>
                   <div className="text-gray-800">
-                    {item.meta.registrations || 0} / {item.meta.capacity}
+                    {item.meta.currentParticipants || 0} / {item.meta.maxParticipants}
+                  </div>
+                </div>
+              )}
+              
+              {/* משתתפים */}
+              {item.meta.participants && item.meta.participants.length > 0 && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    👥 משתתפים ({item.meta.participants.length})
+                  </label>
+                  <div className="max-h-40 overflow-y-auto space-y-2">
+                    {item.meta.participants.slice(0, 10).map((participant, index) => (
+                      <div key={index} className="bg-gray-50 p-2 rounded text-sm">
+                        <div className="font-semibold text-gray-800">{participant.name}</div>
+                        {participant.phone && (
+                          <div className="text-gray-600 text-xs">📞 {participant.phone}</div>
+                        )}
+                        {participant.email && (
+                          <div className="text-gray-600 text-xs">✉️ {participant.email}</div>
+                        )}
+                        {participant.paymentStatus && (
+                          <div className="text-xs mt-1">
+                            <span className={`inline-block px-2 py-0.5 rounded ${
+                              participant.paymentStatus === 'paid' 
+                                ? 'bg-green-100 text-green-800'
+                                : participant.paymentStatus === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {participant.paymentStatus === 'paid' ? '✓ שולם' : 
+                               participant.paymentStatus === 'pending' ? '⏳ ממתין לתשלום' : 
+                               participant.paymentStatus}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {item.meta.participants.length > 10 && (
+                      <div className="text-center text-sm text-gray-500 pt-1">
+                        ועוד {item.meta.participants.length - 10} משתתפים...
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

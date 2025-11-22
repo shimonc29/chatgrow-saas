@@ -495,6 +495,58 @@ router.post('/events/:id/register', async (req, res) => {
 
         event = updateResult;
 
+        // Create appointment in calendar for this event registration
+        try {
+            const eventStartDate = new Date(event.startDateTime);
+            const eventEndDate = new Date(event.endDateTime || event.startDateTime);
+            
+            // Calculate duration in minutes
+            const durationMinutes = Math.round((eventEndDate - eventStartDate) / 60000);
+            
+            // Extract date and time components
+            const appointmentDate = new Date(eventStartDate);
+            appointmentDate.setHours(0, 0, 0, 0);
+            
+            const startTimeStr = `${eventStartDate.getHours().toString().padStart(2, '0')}:${eventStartDate.getMinutes().toString().padStart(2, '0')}`;
+            const endTimeStr = `${eventEndDate.getHours().toString().padStart(2, '0')}:${eventEndDate.getMinutes().toString().padStart(2, '0')}`;
+            
+            const eventAppointment = new Appointment({
+                businessId: event.businessId,
+                serviceType: 'workshop',
+                serviceName: event.name,
+                customer: {
+                    customerId: existingCustomer._id,
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    phone: customer.phone,
+                    email: customer.email,
+                    notes: `השתתפות באירוע: ${event.name}`
+                },
+                appointmentDate: appointmentDate,
+                startTime: startTimeStr,
+                endTime: endTimeStr,
+                duration: durationMinutes > 0 ? durationMinutes : 60,
+                price: amount,
+                currency: event.pricing?.currency || 'ILS',
+                paymentStatus: payment ? payment.status : (amount > 0 ? 'pending' : 'paid'),
+                paymentMethod: payment?.paymentMethod,
+                status: 'confirmed',
+                source: 'event_registration',
+                notes: `השתתפות באירוע: ${event.name}`,
+                relatedEventId: event._id
+            });
+            
+            await eventAppointment.save();
+            
+            logInfo('Created appointment for event registration', {
+                appointmentId: eventAppointment._id,
+                eventId: event._id,
+                customerId: existingCustomer._id
+            });
+        } catch (apptError) {
+            logError('Failed to create appointment for event registration', apptError);
+        }
+
         // Send confirmation email and SMS
         try {
             const registration = {
@@ -608,6 +660,57 @@ router.get('/services', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'שגיאה בטעינת רשימת השירותים'
+        });
+    }
+});
+
+// Get existing appointments for a provider (for display on booking page)
+router.get('/appointments/existing', async (req, res) => {
+    try {
+        const { providerId } = req.query;
+        
+        if (!providerId) {
+            return res.status(400).json({
+                success: false,
+                message: 'נדרש providerId'
+            });
+        }
+        
+        const now = new Date();
+        const futureAppointments = await Appointment.find({
+            businessId: providerId,
+            appointmentDate: { $gte: now },
+            status: { $nin: ['cancelled'] }
+        })
+        .sort({ appointmentDate: 1, startTime: 1 })
+        .limit(50)
+        .lean();
+        
+        const appointments = futureAppointments.map(appt => {
+            const dateStr = new Date(appt.appointmentDate).toLocaleDateString('he-IL', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            
+            return {
+                date: dateStr,
+                time: appt.startTime,
+                endTime: appt.endTime,
+                service: appt.serviceName,
+                duration: appt.duration
+            };
+        });
+        
+        res.json({
+            success: true,
+            appointments
+        });
+    } catch (error) {
+        logError('Failed to get existing appointments', error);
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בטעינת התורים הקיימים'
         });
     }
 });
