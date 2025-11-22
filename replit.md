@@ -23,6 +23,10 @@ ChatGrow uses a Node.js/Express.js backend with a microservices-like approach an
 - **Financial UI**: Unified UI for invoices/receipts with manual creation, PDF generation, and email delivery.
 - **Public Event Registration**: Teal-light design with 403 error handling.
 - **Availability Calendar**: Google Calendar connection management with premium gating.
+- **Interactive Calendar Modals**: Three specialized modals built with React and Tailwind CSS:
+  - **AppointmentModal**: Quick appointment creation with fields for date, time, duration (15-120 minutes), customer details (name, phone), service name, and notes. Auto-calculates end time based on selected duration.
+  - **BlockTimeModal**: Time blocking interface for creating unavailable periods with date, time range (or full day), and customizable reason (vacation, training, break, etc.).
+  - **ItemDetailsModal**: Unified details view for all calendar items (appointments, events, blocks, Google Calendar) with type-specific actions (cancel appointment, remove block, view event details).
 
 ### Technical Implementations
 - **Frontend Stack**: React 19, Vite, Tailwind CSS v3, React Router v6, Axios, LocalStorage.
@@ -45,6 +49,7 @@ ChatGrow uses a Node.js/Express.js backend with a microservices-like approach an
 - **Super Admin Panel**: Restricted panel for platform owners (`SUPER_ADMIN_EMAILS`) to manage subscriptions, quotas, and customer data system-wide.
 - **Growth Module (GET-KEEP-GROW Model)**: Business intelligence system for acquisition (GET - tracking, AI insights), retention (KEEP - RFM analysis, churn prediction, win-back), and expansion (GROW - upselling, cross-selling, package upgrades with 5 detection algorithms).
 - **Lead Source Tracking System**: Comprehensive attribution tracking across all customer touchpoints with sourceKey (e.g., `landing-page:slug`, `event:id`, `appointment:businessId`), UTM parameters (utm_source, utm_medium, utm_campaign, utm_term, utm_content), and referralCode stored at customer creation. Frontend captures URL parameters via `sourceTracking.js` utility; backend persists in Customer/Registration/Appointment models; growthGetService aggregates by sourceKey for acquisition funnel analytics.
+- **Interactive Calendar System**: Full-featured calendar interface with dual-mode functionality (appointment booking / time blocking), modal-based interactions for creating appointments and blocking time, item details view with cancel/delete capabilities, and aggregated view of Appointments, Events, Availability blocks, and Google Calendar events. Supports quick appointment creation via `POST /api/appointments/quick-create`, time blocking via `POST /api/availability/block`, and removal via `DELETE /api/availability/block/:id`.
 
 ### Feature Specifications
 - **Management**: CRUD for Customers, Events, Appointments, Payments, Invoices, Receipts.

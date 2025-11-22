@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import MainLayout from '../../components/Layout/MainLayout';
 import axios from 'axios';
+import AppointmentModal from '../../components/Calendar/AppointmentModal';
+import BlockTimeModal from '../../components/Calendar/BlockTimeModal';
+import ItemDetailsModal from '../../components/Calendar/ItemDetailsModal';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -30,6 +33,14 @@ const Calendar = () => {
   const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('week');
+  
+  const [createMode, setCreateMode] = useState('appointment');
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     loadCalendar();
@@ -157,6 +168,34 @@ const Calendar = () => {
     return date.toDateString() === today.toDateString();
   };
 
+  const handleCellClick = (day, hour = null) => {
+    const clickedDateTime = new Date(day);
+    
+    if (hour !== null) {
+      clickedDateTime.setHours(hour, 0, 0, 0);
+    } else {
+      const now = new Date();
+      clickedDateTime.setHours(now.getHours(), 0, 0, 0);
+    }
+    
+    setSelectedSlot(clickedDateTime);
+    
+    if (createMode === 'appointment') {
+      setShowAppointmentModal(true);
+    } else if (createMode === 'block') {
+      setShowBlockModal(true);
+    }
+  };
+
+  const handleItemClick = (item) => {
+    setSelectedItem(item);
+    setShowDetailsModal(true);
+  };
+
+  const handleModalSuccess = async () => {
+    await loadCalendar();
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -218,6 +257,35 @@ const Calendar = () => {
             </div>
           </div>
 
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCreateMode('appointment')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  createMode === 'appointment'
+                    ? 'bg-teal-600 text-white shadow-lg'
+                    : 'bg-bg-light border border-accent-teal/30 text-text-secondary hover:border-accent-teal'
+                }`}
+              >
+                📅 מצב: קביעת פגישה
+              </button>
+              <button
+                onClick={() => setCreateMode('block')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  createMode === 'block'
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-bg-light border border-accent-teal/30 text-text-secondary hover:border-accent-teal'
+                }`}
+              >
+                🚫 מצב: חסימת זמן
+              </button>
+            </div>
+            
+            <div className="text-sm text-text-secondary">
+              💡 לחץ על תא ריק ב{createMode === 'appointment' ? 'יומן לקביעת פגישה' : 'יומן לחסימת זמן'}
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-3 mb-4">
             {Object.entries(TYPE_LABELS).map(([type, label]) => (
               <div key={type} className="flex items-center gap-2">
@@ -257,6 +325,17 @@ const Calendar = () => {
                     isToday(day) ? 'bg-accent-teal/5' : ''
                   }`}
                 >
+                  <button
+                    onClick={() => handleCellClick(day)}
+                    className={`w-full mb-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      createMode === 'appointment'
+                        ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                  >
+                    {createMode === 'appointment' ? '➕ הוסף פגישה' : '🚫 חסום זמן'}
+                  </button>
+                  
                   {dayItems.length === 0 ? (
                     <div className="text-center text-text-secondary/50 text-sm mt-8">
                       אין פעילות
@@ -266,6 +345,7 @@ const Calendar = () => {
                       {dayItems.map((item, itemIndex) => (
                         <div
                           key={itemIndex}
+                          onClick={() => handleItemClick(item)}
                           className={`border-r-4 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer ${TYPE_COLORS[item.type] || TYPE_COLORS.default}`}
                         >
                           <div className="font-semibold text-sm mb-1 line-clamp-2">
@@ -310,6 +390,27 @@ const Calendar = () => {
             })}
           </div>
         </div>
+
+        <AppointmentModal
+          isOpen={showAppointmentModal}
+          onClose={() => setShowAppointmentModal(false)}
+          selectedSlot={selectedSlot}
+          onSuccess={handleModalSuccess}
+        />
+
+        <BlockTimeModal
+          isOpen={showBlockModal}
+          onClose={() => setShowBlockModal(false)}
+          selectedSlot={selectedSlot}
+          onSuccess={handleModalSuccess}
+        />
+
+        <ItemDetailsModal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          item={selectedItem}
+          onSuccess={handleModalSuccess}
+        />
       </div>
     </MainLayout>
   );

@@ -109,6 +109,98 @@ router.post('/', verifyProviderToken, async (req, res) => {
     }
 });
 
+// Quick create appointment from calendar
+router.post('/quick-create', verifyProviderToken, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { 
+            appointmentDate, 
+            startTime: appointmentStartTime, 
+            endTime: appointmentEndTime, 
+            customerId,
+            customerName,
+            customerPhone,
+            serviceName,
+            notes 
+        } = req.body;
+
+        // Validation
+        if (!appointmentDate || !appointmentStartTime || !appointmentEndTime) {
+            return res.status(400).json({
+                success: false,
+                message: 'חסרים שדות חובה: תאריך, שעת התחלה ושעת סיום'
+            });
+        }
+
+        // Calculate duration in minutes
+        const [startHour, startMin] = appointmentStartTime.split(':').map(Number);
+        const [endHour, endMin] = appointmentEndTime.split(':').map(Number);
+        const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+
+        // Validate time range
+        if (durationMinutes <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'שעת הסיום חייבת להיות אחרי שעת ההתחלה'
+            });
+        }
+
+        // Parse customer name
+        let firstName, lastName;
+        if (customerName) {
+            const nameParts = customerName.trim().split(' ');
+            firstName = nameParts[0];
+            lastName = nameParts.slice(1).join(' ') || firstName;
+        } else {
+            firstName = 'לקוח';
+            lastName = 'חדש';
+        }
+
+        const appointment = new Appointment({
+            businessId: req.provider.providerId,
+            serviceType: 'consultation',
+            serviceName: serviceName || 'פגישה',
+            customer: {
+                customerId: customerId || null,
+                firstName,
+                lastName,
+                phone: customerPhone || '000-0000000',
+                notes: notes || ''
+            },
+            appointmentDate: new Date(appointmentDate),
+            startTime: appointmentStartTime,
+            endTime: appointmentEndTime,
+            duration: durationMinutes,
+            status: 'scheduled',
+            price: 0,
+            paymentStatus: 'pending'
+        });
+        
+        await appointment.save();
+        
+        logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
+            businessId: req.provider.providerId,
+            appointmentDate
+        });
+        
+        res.status(201).json({
+            success: true,
+            appointment,
+            message: 'פגישה נוצרה בהצלחה'
+        });
+        
+    } catch (error) {
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Get specific appointment
 router.get('/:appointmentId', verifyProviderToken, async (req, res) => {
     const startTime = Date.now();

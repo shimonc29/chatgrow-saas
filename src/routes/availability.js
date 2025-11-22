@@ -312,4 +312,178 @@ router.get('/available-slots/:date', async (req, res) => {
   }
 });
 
+// Block a specific date/time
+router.post('/block', authenticateToken, async (req, res) => {
+  try {
+    const { date, startTime, endTime, reason } = req.body;
+    
+    // Validation
+    if (!date) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'חסר תאריך לחסימה' 
+      });
+    }
+
+    // Validate partial-day blocks
+    if ((startTime && !endTime) || (!startTime && endTime)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'יש לספק גם שעת התחלה וגם שעת סיום, או להשאיר את שניהם ריקים ליום מלא' 
+      });
+    }
+
+    if (startTime && endTime && startTime >= endTime) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'שעת הסיום חייבת להיות אחרי שעת ההתחלה' 
+      });
+    }
+
+    const providerId = getProviderId(req.user);
+    
+    let availability = await Availability.findOne({ providerId });
+    
+    // Create availability if doesn't exist
+    if (!availability) {
+      availability = new Availability({
+        providerId,
+        weeklySchedule: [
+          { dayOfWeek: 0, isAvailable: false, timeSlots: [] },
+          { dayOfWeek: 1, isAvailable: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+          { dayOfWeek: 2, isAvailable: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+          { dayOfWeek: 3, isAvailable: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+          { dayOfWeek: 4, isAvailable: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+          { dayOfWeek: 5, isAvailable: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+          { dayOfWeek: 6, isAvailable: false, timeSlots: [] }
+        ],
+        services: [],
+        bufferTime: 0,
+        maxAdvanceBookingDays: 30,
+        minAdvanceBookingHours: 2,
+        blockedDates: []
+      });
+    }
+    
+    const blockDate = new Date(date);
+    
+    // Check for time range overlap only if times are provided
+    if (startTime && endTime) {
+      const hasOverlap = availability.blockedDates.some(blocked => {
+        const existing = new Date(blocked.date);
+        if (existing.toDateString() !== blockDate.toDateString()) {
+          return false;
+        }
+        
+        // If existing block has no times, it blocks the whole day
+        if (!blocked.startTime || !blocked.endTime) {
+          return true;
+        }
+        
+        // Check time overlap
+        return (startTime < blocked.endTime && endTime > blocked.startTime);
+      });
+      
+      if (hasOverlap) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'קיימת חסימה חופפת בטווח זמן זה' 
+        });
+      }
+    } else {
+      // Full day block - check if date has any blocks
+      const hasAnyBlock = availability.blockedDates.some(blocked => {
+        const existing = new Date(blocked.date);
+        return existing.toDateString() === blockDate.toDateString();
+      });
+      
+      if (hasAnyBlock) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'תאריך זה כבר חסום (חלקית או מלא)' 
+        });
+      }
+    }
+    
+    // Add blocked date
+    availability.blockedDates.push({
+      date: blockDate,
+      reason: reason || 'חסום',
+      startTime: startTime || null,
+      endTime: endTime || null
+    });
+    
+    await availability.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'תאריך נחסם בהצלחה',
+      blockedDate: availability.blockedDates[availability.blockedDates.length - 1]
+    });
+    
+  } catch (error) {
+    console.error('Block date error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'שגיאה בחסימת התאריך' 
+    });
+  }
+});
+
+// Unblock a specific date
+router.delete('/block/:blockId', authenticateToken, async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    const providerId = getProviderId(req.user);
+    
+    const availability = await Availability.findOne({ providerId });
+    
+    if (!availability) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'הגדרות זמינות לא נמצאו' 
+      });
+    }
+    
+    // Find the blocked date by _id or by date
+    let blockIndex = -1;
+    
+    // Try to find by MongoDB _id
+    blockIndex = availability.blockedDates.findIndex(
+      block => block._id && block._id.toString() === blockId
+    );
+    
+    // If not found by _id, try to find by date (blockId is a date string)
+    if (blockIndex === -1) {
+      const searchDate = new Date(blockId);
+      blockIndex = availability.blockedDates.findIndex(block => {
+        const blockDate = new Date(block.date);
+        return blockDate.toDateString() === searchDate.toDateString();
+      });
+    }
+    
+    if (blockIndex === -1) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'חסימה לא נמצאה' 
+      });
+    }
+    
+    availability.blockedDates.splice(blockIndex, 1);
+    await availability.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'חסימה הוסרה בהצלחה' 
+    });
+    
+  } catch (error) {
+    console.error('Unblock date error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'שגיאה בהסרת החסימה' 
+    });
+  }
+});
+
 module.exports = router;
