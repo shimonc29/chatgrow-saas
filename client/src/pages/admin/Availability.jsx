@@ -486,7 +486,19 @@ const Availability = () => {
                                 <span>{event.time}</span>
                               </div>
                               <div className="flex items-center justify-between text-xs text-text-secondary">
-                                <span>📍 {typeof event.location === 'object' ? event.location?.address || 'לא צוין' : event.location || 'לא צוין'}</span>
+                                <span>📍 {(() => {
+                                  if (!event.location) return 'לא צוין';
+                                  if (typeof event.location === 'string') return event.location;
+                                  if (typeof event.location === 'object') {
+                                    const addr = event.location.address;
+                                    if (!addr) return 'לא צוין';
+                                    if (typeof addr === 'string') return addr;
+                                    if (typeof addr === 'object') {
+                                      return [addr.street, addr.city, addr.country].filter(Boolean).join(', ') || 'לא צוין';
+                                    }
+                                  }
+                                  return 'לא צוין';
+                                })()}</span>
                                 <span>👥 {event.participants?.length || 0}/{event.maxParticipants}</span>
                               </div>
                               {event.price && (
