@@ -1,0 +1,519 @@
+You are an expert full-stack developer working on an existing SaaS app called **ChatGrow**.
+
+Stack (already implemented):
+- Backend: Node.js, Express, MongoDB, PostgreSQL, with routes:
+  - `/api/appointments`
+  - `/api/events`
+  - `/api/availability`
+  - `/api/google-calendar`
+  - plus many others (payments, invoices, landing-pages, growth, etc.)
+- Frontend: React + Vite + Tailwind CSS, RTL Hebrew support, dashboard layout with sidebar.
+
+There is currently a placeholder `/api/calendar` route that returns static HTML.  
+We want to turn it into a full calendar system with:
+
+1. A backend JSON API that aggregates appointments, events, availability overrides and (optionally) Google Calendar events.
+2. A React Calendar page in the dashboard (RTL, Hebrew UI).
+3. **Interactive features from the calendar UI**:
+   - Creating new appointments by clicking on an empty time slot.
+   - Blocking time (creating “blocked” availability) by clicking on the calendar.
+   - Clicking an existing item to see details and optionally cancel/delete it.
+
+Do NOT break existing endpoints. Do NOT change database schemas drastically. Extend the system cleanly.
+
+================================================
+PART 1 – Backend: Calendar API (read model)
+================================================
+
+1. Replace the current HTML-based `/api/calendar` route with a proper JSON API.
+
+   In `server.js` (or the main Express file), REMOVE the inline HTML handler:
+
+   ```js
+   app.get('/api/calendar', (req, res) => {
+       // existing HTML response...
+   });
+
+
+and instead register a router:
+
+const calendarRoutes = require('./routes/calendar');
+app.use('/api/calendar', calendarRoutes);
+
+
+Create routes/calendar.js:
+
+const express = require('express');
+const router = express.Router();
+const calendarController = require('../controllers/calendarController');
+const authMiddleware = require('../middleware/auth'); // use existing auth
+
+router.get('/', authMiddleware, calendarController.getCalendarView);
+
+module.exports = router;
+
+
+Create controllers/calendarController.js:
+
+const calendarService = require('../services/calendarService');
+
+exports.getCalendarView = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId || req.user.providerId; // adapt to existing pattern
+
+    let { from, to, view } = req.query;
+    view = view || 'week';
+
+    // If dates missing, compute current week range
+    const now = new Date();
+    if (!from || !to) {
+      const startOfWeek = new Date(now);
+      startOfWeek.setHours(0, 0, 0, 0);
+      // Assuming Sunday as first day
+      const day = startOfWeek.getDay(); // 0-6
+      startOfWeek.setDate(startOfWeek.getDate() - day);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+      from = from || startOfWeek.toISOString();
+      to = to || endOfWeek.toISOString();
+    }
+
+    const result = await calendarService.getCalendarView({
+      tenantId,
+      from: new Date(from),
+      to: new Date(to),
+      view,
+    });
+
+    res.json({
+      success: true,
+      view,
+      from,
+      to,
+      items: result.items,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+Create services/calendarService.js:
+
+Import existing models:
+
+Appointment / Appointments
+
+Event / Events
+
+Availability (if exists)
+
+Import googleCalendarService if available.
+
+Implement:
+
+const { logInfo } = require('../utils/logger');
+const Appointment = require('../models/Appointment'); // adapt to real paths
+const Event = require('../models/Event');
+const Availability = require('../models/Availability');
+const googleCalendarService = require('./googleCalendarService'); // if exists
+
+async function getCalendarView({ tenantId, from, to, view }) {
+  // Normalize dates
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+
+  // Appointments
+  const appointments = await Appointment.find({
+    tenantId,
+    startTime: { $gte: fromDate, $lt: toDate },
+  });
+
+  // Events
+  const events = await Event.find({
+    tenantId,
+    startDate: { $gte: fromDate, $lt: toDate },
+  });
+
+  // Availability overrides / blocks (if Availability model exists)
+  let availabilityOverrides = [];
+  try {
+    availabilityOverrides = await Availability.find({
+      tenantId,
+      type: { $in: ['exception', 'block'] },
+      date: { $gte: fromDate, $lt: toDate },
+    });
+  } catch (e) {
+    // If model or field doesn't exist yet – keep empty list
+    availabilityOverrides = [];
+  }
+
+  // Google Calendar events (optional)
+  let googleEvents = [];
+  try {
+    if (googleCalendarService && typeof googleCalendarService.getEventsForRange === 'function') {
+      googleEvents = await googleCalendarService.getEventsForRange(tenantId, fromDate, toDate);
+    }
+  } catch (e) {
+    googleEvents = [];
+  }
+
+  const items = [];
+
+  // Appointments → type: 'appointment'
+  appointments.forEach(appt => {
+    items.push({
+      type: 'appointment',
+      id: appt._id.toString(),
+      title: appt.title || (appt.customerName ? `פגישה עם ${appt.customerName}` : 'פגישה'),
+      start: appt.startTime,
+      end: appt.endTime,
+      status: appt.status || 'confirmed',
+      location: appt.location || null,
+      meta: {
+        customerId: appt.customerId || null,
+        notes: appt.notes || null,
+        source: appt.sourceKey || null,
+      },
+    });
+  });
+
+  // Events → type: 'event'
+  events.forEach(ev => {
+    items.push({
+      type: 'event',
+      id: ev._id.toString(),
+      title: ev.title || 'אירוע',
+      start: ev.startDate,
+      end: ev.endDate || ev.startDate,
+      status: ev.status || 'scheduled',
+      location: ev.location || null,
+      meta: {
+        capacity: ev.capacity || null,
+        registrations: ev.registrationsCount || 0,
+      },
+    });
+  });
+
+  // Availability overrides / blocks
+  availabilityOverrides.forEach(av => {
+    items.push({
+      type: av.type === 'block' ? 'blocked' : 'availability',
+      id: av._id.toString(),
+      title: av.type === 'block' ? (av.reason || 'חסום') : 'זמינות מיוחדת',
+      start: av.startDateTime || av.start,
+      end: av.endDateTime || av.end,
+      status: av.isOpen ? 'open' : 'closed',
+      location: null,
+      meta: {
+        reason: av.reason || null,
+      },
+    });
+  });
+
+  // Google events
+  googleEvents.forEach(ge => {
+    items.push({
+      type: 'google',
+      id: ge.id,
+      title: ge.summary || 'Google Event',
+      start: ge.start,
+      end: ge.end,
+      status: 'busy',
+      location: ge.location || null,
+      meta: {
+        googleCalendarId: ge.calendarId,
+      },
+    });
+  });
+
+  logInfo('CalendarView', {
+    tenantId,
+    from: fromDate,
+    to: toDate,
+    counts: {
+      appointments: appointments.length,
+      events: events.length,
+      overrides: availabilityOverrides.length,
+      googleEvents: googleEvents.length,
+    },
+  });
+
+  return { items };
+}
+
+module.exports = { getCalendarView };
+
+================================================
+PART 2 – Backend: endpoints for creating appointments and blocking time from calendar
+
+We now want the calendar UI to:
+
+Create a new appointment at a specific date/time.
+
+Create a "blocked time" record (no bookings allowed).
+
+Cancel/delete existing appointments and blocks.
+
+Use existing routes where possible.
+
+Appointments
+
+If there is already a POST /api/appointments route that creates an appointment, reuse it from the UI.
+
+Ensure it accepts at minimum:
+
+startTime
+
+endTime
+
+customerId (or name/phone if creating a new customer)
+
+title (optional)
+
+If needed, add a lightweight endpoint like:
+
+// in routes/appointments.js
+router.post('/quick-create', authMiddleware, appointmentsController.quickCreate);
+
+
+quickCreate should:
+
+Take startTime, endTime, customerId (or just customerName), and note.
+
+Set tenantId from req.user.
+
+Create a simple appointment.
+
+Blocked times / availability blocks
+
+In routes/availability.js, add routes:
+
+router.post('/block', authMiddleware, availabilityController.createBlock);
+router.delete('/block/:id', authMiddleware, availabilityController.deleteBlock);
+
+
+Implement in availabilityController:
+
+exports.createBlock = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const { start, end, reason } = req.body;
+
+    const block = await Availability.create({
+      tenantId,
+      type: 'block',
+      startDateTime: new Date(start),
+      endDateTime: new Date(end),
+      isOpen: false,
+      reason: reason || 'חסום',
+    });
+
+    res.json({ success: true, block });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteBlock = async (req, res, next) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const { id } = req.params;
+
+    await Availability.deleteOne({ _id: id, tenantId });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+If Availability schema doesn’t have these fields yet, extend it minimally to include:
+
+type, startDateTime, endDateTime, isOpen, reason.
+
+Cancel/Delete appointments
+
+If not already present, add to routes/appointments.js:
+
+router.delete('/:id', authMiddleware, appointmentsController.deleteAppointment);
+
+
+Implement in controller to:
+
+Validate ownership by tenantId.
+
+Delete or mark as status: 'cancelled'.
+
+================================================
+PART 3 – Frontend: CalendarPage with interactive UI (create appointment & block time)
+
+Create or update src/pages/CalendarPage.tsx (or similar) to:
+
+Fetch calendar data from /api/calendar (as described in Part 1).
+
+Show a weekly view:
+
+Headers: ראשון, שני, שלישי, רביעי, חמישי, שישי, שבת
+
+Hours: e.g., 07:00–22:00
+
+Each CalendarItem shown as a card inside the appropriate day.
+
+Interactive features:
+
+A) Clicking an empty slot → "Create appointment" modal
+
+When user clicks on an empty cell (e.g., Sunday at 10:00), open a modal:
+
+Fields:
+
+תאריך ושעה (pre-filled)
+
+משך (בדקות) or שעת סיום
+
+לקוח:
+
+Text input + optional dropdown autocomplete from existing customers via /api/customers?query=...
+
+כותרת (optional)
+
+הערות (optional)
+
+On save:
+
+Call POST /api/appointments or /api/appointments/quick-create
+
+On success: close modal and reload calendar.
+
+B) Clicking on an empty slot with "Block time" mode → create block
+
+Add a small toggle or button above the calendar:
+
+מצב: קביעת פגישה / מצב: חסימת זמן
+
+If "Block time" mode is active:
+
+Clicking a cell opens "Block time" modal:
+
+Fields:
+
+Start (pre-filled)
+
+End (default +60 minutes)
+
+Reason (text: e.g. "חופשה", "הפסקה", "הדרכה")
+
+On save:
+
+Call POST /api/availability/block with { start, end, reason }.
+
+On success: reload calendar.
+
+C) Clicking an existing item → details modal
+
+For any CalendarItem, clicking should open a modal with:
+
+Title
+
+Type (פגישה / אירוע / חסום / Google)
+
+Time
+
+Location
+
+Customer (if any)
+
+Buttons (depending on type):
+
+For appointment:
+
+פתח כרטיס לקוח (link to customer page – use existing route)
+
+בטל פגישה → call DELETE /api/appointments/:id, then refresh.
+
+For blocked:
+
+הסר חסימה → call DELETE /api/availability/block/:id, then refresh.
+
+For event:
+
+פתח פרטי אירוע (link to existing event management page).
+
+For google:
+
+Read-only, no actions (just “אירוע מגוגל”).
+
+State structure example:
+
+const [items, setItems] = useState<CalendarItem[]>([]);
+const [view, setView] = useState<'week' | 'day'>('week');
+const [currentDate, setCurrentDate] = useState(new Date());
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+const [createMode, setCreateMode] = useState<'appointment' | 'block'>('appointment');
+const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
+const [selectedItem, setSelectedItem] = useState<CalendarItem | null>(null);
+
+
+Click handlers:
+
+On empty cell click:
+
+const handleCellClick = (dateTime: Date) => {
+  if (createMode === 'appointment') {
+    setSelectedSlot(dateTime);
+    openAppointmentModal();
+  } else if (createMode === 'block') {
+    setSelectedSlot(dateTime);
+    openBlockModal();
+  }
+};
+
+
+On item click:
+
+const handleItemClick = (item: CalendarItem) => {
+  setSelectedItem(item);
+  openItemDetailsModal();
+};
+
+
+UI text in Hebrew (labels, buttons), but keep code identifiers in English:
+
+Buttons:
+
+שבוע קודם, היום, שבוע הבא
+
+מצב: קביעת פגישה
+
+מצב: חסימת זמן
+
+שמור, בטל, הסר חסימה, בטל פגישה
+
+Titles:
+
+Page title: 📅 יומן וניהול פגישות
+
+Modals: קביעת פגישה חדשה, חסימת זמן, פרטי פריט ביומן
+
+Integrate CalendarPage into the dashboard router and sidebar:
+
+Route: /app/calendar
+
+Sidebar item: label יומן, with a calendar icon.
+
+================================================
+PART 4 – Quality checks
+
+Ensure /api/calendar works with authentication, returns success: true and items.
+
+Ensure creating an appointment from the calendar UI actually creates a record in the existing appointments collection and that it appears on reload.
+
+Ensure creating a block writes to the Availability collection and that it appears in the calendar as type: 'blocked'.
+
+Ensure deleting an appointment or block via the modals updates the UI correctly after reload.
+
+Keep everything RTL and in Hebrew for the UI, and keep code organized, modular and consistent with the existing codebase.
