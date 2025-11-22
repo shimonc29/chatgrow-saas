@@ -65,8 +65,8 @@ const Dashboard = () => {
       <div className="p-8">
         {/* Welcome Message */}
         <div className="bg-gradient-to-r from-accent-teal to-accent-hover rounded-2xl shadow-2xl shadow-accent-teal/30 p-8 mb-8 text-white">
-          <h2 className="text-3xl font-bold mb-2">ברוך הבא לדאשבורד! 👑</h2>
-          <p className="opacity-90">מערכת ניהול אירועים ועסקים - ChatGrow</p>
+          <h2 className="text-3xl font-bold mb-2">ברוך הבא ל-ChatGrow! 👑</h2>
+          <p className="opacity-90">כאן אתה מנהל את הקליניקה, הפגישות והלקוחות שלך במקום אחד</p>
         </div>
 
         {error && (
