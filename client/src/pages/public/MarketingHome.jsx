@@ -1,90 +1,98 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const MarketingHome = () => {
   const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = useState(null);
 
-  const benefits = [
+  const problemPoints = [
+    '📅 הלקוחות קובעים תור בוואטסאפ, אבל לא מגיעים (No-Show)',
+    '💬 שיחות אינסופיות בוואטסאפ - "נדבר מחר", "תזכיר לי", "נקבע בשבוע הבא"',
+    '💸 לרדוף אחרי תשלומים ומקדמות - "אני אעביר מחר", "שכחתי את הארנק"',
+    '📋 לידים נעלמים - התעניינו, לא חזרו, ושכחת מי זה בכלל',
+    '🕐 לנהל יומן, אקסל ותשלומים בנפרד - והכל מתפזר בין אפליקציות'
+  ];
+
+  const whatChatGrowDoes = [
     {
-      icon: '⏳',
-      title: 'העסק מתנהל לבד',
-      description: 'תזכורות, גבייה, תורים, חשבוניות והתכתבויות — עובדים על אוטומט.'
+      icon: '🎯',
+      title: 'יותר לקוחות איכותיים, פחות לידים מבוזבזים',
+      description: 'דף נחיתה מקצועי שמסביר מה את/ה עושה, כמה זה עולה, ואיך קובעים. הלידים שמגיעים כבר מחוברים ומוכנים.'
     },
     {
-      icon: '💸',
-      title: 'פחות דיבורים, יותר תכל\'ס',
-      description: 'הלקוחות משלמים וקובעים לבד — בלי "נדבר מחר" ובלי תזכורות מביכות.'
+      icon: '📅',
+      title: 'יומן נקי + תזכורות ומקדמות אוטומטיות',
+      description: 'הלקוחות קובעים דרך הקישור שלך, משלמים מקדמה, ומקבלים תזכורת אוטומטית. פחות No-Show, יותר מחויבות.'
     },
     {
-      icon: '🤝',
-      title: 'חוויה שגורמת ללקוחות להגיד וואו',
-      description: 'שירות מסודר, חכם, מהיר — שנראה מיליון דולר.'
-    },
-    {
-      icon: '📱',
-      title: 'מכל מקום, בכל זמן',
-      description: 'מהנייד, מהמחשב, מהמילואים, מהחופשה — העסק אצלך בכיס.'
+      icon: '📈',
+      title: 'הכנסות גדלות מהלקוחות הקיימים',
+      description: 'חבילות, מעקב, LTV, דוחות AI שמראים מי צריך המשך טיפול ואיפה יש הזדמנות להרוויח יותר.'
     }
   ];
 
-  const features = [
-    'תורים חכמים וקביעת פגישות עצמאית',
-    'תשלום מיידי (Cardcom / Tranzila / Grow)',
-    'חשבוניות אוטומטיות בעברית (PDF לפי חוק)',
-    'תזכורות SMS/מייל שמצמצמות ביטולים',
-    'ניהול לקוחות מסודר — בלי אקסל ובלי בלגן',
-    'דפי נחיתה שממירים לידים ללקוחות',
-    'דוחות שמראים מה באמת מכניס כסף',
-    'מערכת שעוזרת לעסק — לא מסבכת אותו'
-  ];
-
-  const steps = [
+  const howItWorks = [
     {
       number: '1',
-      title: 'פותחים חשבון חינם',
-      description: 'לוקח דקה אחת. בלי כרטיס אשראי.'
+      title: 'הגדר את הקליניקה/עסק',
+      description: 'מה את/ה מציע (שירותים, סדנאות), ימי עבודה ושעות, אמצעי תשלום, חיבור ליומן גוגל (אופציונלי).'
     },
     {
       number: '2',
-      title: 'מגדירים שירות/סדנה',
-      description: 'לוקח 2-3 דקות. פשוט ואינטואיטיבי.'
+      title: 'תן למערכת לעבוד',
+      description: 'קישור אחד לקביעת תורים - CRM אוטומטי, תזכורות, תשלומים וחשבוניות. הכל קורה מעצמו.'
     },
     {
       number: '3',
-      title: 'מקבלים דף הרשמה מוכן',
-      description: 'קישור אישי לשיתוף מיידי.'
-    },
-    {
-      number: '4',
-      title: 'שולחים ללקוחות',
-      description: 'הם כבר קובעים, משלמים ומקבלים תזכורת.'
+      title: 'תסתכל על הדוחות ותקבל החלטות יותר טובות',
+      description: 'לידים → הזמנות → הכנסות. דוח AI שבועי שמזהה לך הזדמנויות צמיחה.'
     }
   ];
 
-  const testimonials = [
+  const mainFeatures = [
+    { icon: '👥', title: 'CRM ללקוחות', description: 'כל הלידים, הפגישות וההיסטוריה במקום אחד' },
+    { icon: '📋', title: 'ניהול פגישות ותורים', description: 'יומן חכם, קביעה עצמאית, סנכרון Google Calendar' },
+    { icon: '💳', title: 'גביית תשלומים ומקדמות', description: 'Tranzila, Cardcom, Meshulam - תשלום מיידי בקביעה' },
+    { icon: '🧾', title: 'חשבוניות וקבלות', description: 'אוטומטיות, בעברית, PDF לפי חוק' },
+    { icon: '📊', title: 'דוחות וניתוח ביצועים', description: 'מי הלקוחות הכי טובים, מה מכניס כסף, איפה יש בעיה' },
+    { icon: '🤖', title: 'AI Coach לעסק', description: 'תובנות שבועיות - מחירים, ביקושים, המלצות אישיות' },
+    { icon: '🎨', title: 'דפי נחיתה חכמים', description: 'דפי הרשמה מעוצבים שממירים לידים ללקוחות משלמים' },
+    { icon: '🔔', title: 'התראות ותזכורות', description: 'מייל ו-SMS אוטומטיים - פחות ביטולים, יותר מחויבות' }
+  ];
+
+  const whyDifferent = [
+    'מנהלת את כל המסע מלקוח פוטנציאלי ועד תשלום - לא רק את היומן',
+    'נבנתה במיוחד למאמנים, מטפלים ויועצים - לא לכל סוגי העסקים',
+    'מנוע צמיחה (לידים, שימור, הגדלת הכנסות) - לא רק "כלי נוסף"',
+    'בעברית מלאה, תמיכה בעברית, מותאמת לשוק הישראלי'
+  ];
+
+  const faqs = [
     {
-      quote: 'חסכתי שעות עבודה והלקוחות פשוט קובעים לבד. גיים צ\'יינג\'ר!',
-      author: 'שרה',
-      role: 'מעצבת אירועים'
+      q: 'צריך ידע טכני כדי להתחיל?',
+      a: 'בכלל לא. אם את/ה יודע לשלוח הודסאפ, את/ה יודע להפעיל את ChatGrow. הכל אינטואיטיבי ובעברית.'
     },
     {
-      quote: 'הביטולים ירדו משמעותית. סוף סוף סדר!',
-      author: 'דוד',
-      role: 'מאמן כושר'
+      q: 'איך זה עובד עם מקדמות ותשלומים?',
+      a: 'הלקוח קובע תור דרך הקישור שלך ומשלם מקדמה (או מלוא הסכום) באותו רגע. התשלום עובר אליך ישירות דרך Tranzila/Cardcom/Meshulam.'
     },
     {
-      quote: 'הכל נראה מקצועי, מסודר, ובלי מאמץ מצידי.',
-      author: 'מיכל',
-      role: 'יועצת עסקית'
+      q: 'אני רוצה רק דף נחיתה, בלי כל המערכת. אפשר?',
+      a: 'כן! אבל למה? אם כבר בונים דף נחיתה, למה לא לתת ללקוחות גם לקבוע ולשלם באותו מקום? זה חוסך לך זמן ומגדיל המרות.'
+    },
+    {
+      q: 'יש לי כבר מערכת תורים אחרת. קשה לעבור?',
+      a: 'ממש לא. רוב המשתמשים שלנו התחילו מאפס או עברו ממערכת ישנה תוך פחות מיום אחד. אנחנו כאן לעזור.'
+    },
+    {
+      q: 'מה ההבדל בין FREE ל-PREMIUM?',
+      a: 'ב-FREE יש לך את כל הבסיס (עד 200 לקוחות, תורים, CRM, דפי נחיתה). ב-PREMIUM אין הגבלה + תקבל AI Coach, דוחות מתקדמים, SMS, אוטומציות וסנכרון ליומן גוגל.'
     }
   ];
 
-  const targetAudience = [
-    'מאמנים, יועצים ומדריכים',
-    'מטפלים, מאפרות, קוסמטיקאיות',
-    'צלמים, מפיקים, אולמות אירועים',
-    'חוגים, סדנאות, שיעורים והרצאות',
-    'כל בעל/ת עסק שנמאס לו לתפעל בצד במקום לצמוח'
-  ];
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-white via-bg-card to-gray-50">
@@ -126,126 +134,94 @@ const MarketingHome = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 sm:mb-8">
-              <span className="block text-primary">העסק שלך לא צריך עוד כלי</span>
+              <span className="block text-primary">ChatGrow</span>
               <span className="block bg-gradient-to-r from-accent-teal via-accent-teal to-accent-teal bg-clip-text text-transparent">
-                הוא צריך מערכת שמנהלת אותו במקומך
+                המערכת שממלאת לך את היומן
+              </span>
+              <span className="block bg-gradient-to-r from-accent-teal via-accent-teal to-accent-teal bg-clip-text text-transparent">
+                ומפסיקה את ה-No-Show
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl text-primary mb-4 max-w-4xl mx-auto leading-relaxed font-semibold">
-              הכירו את ChatGrow — תורים, תשלומים, לקוחות, דפי נחיתה ואוטומציות.
-            </p>
-            <p className="text-xl sm:text-2xl text-accent-teal mb-8 max-w-3xl mx-auto font-bold">
-              מערכת אחת. שפויה אחת. בעברית.
+            <p className="text-lg sm:text-xl md:text-2xl text-primary mb-8 max-w-4xl mx-auto leading-relaxed">
+              מערכת חכמה למאמנים, מטפלים ויועצים שמנהלת לידים, תורים, תשלומים ותזכורות – הכל במקום אחד, בעברית מלאה, בלי לרדוף אחרי לקוחות.
             </p>
 
-            <div className="max-w-3xl mx-auto mb-8 text-right space-y-2">
-              <p className="text-lg text-primary">🔹 בלי לרדוף אחרי לקוחות</p>
-              <p className="text-lg text-primary">🔹 בלי ביטולים של הרגע האחרון</p>
-              <p className="text-lg text-primary">🔹 בלי לעבור בין יומן, וואטסאפ, אקסל ותשלומים</p>
-              <p className="text-lg text-primary">🔹 הכל קורה אוטומטית — גם כשאתה עסוק, וגם כשאתה ישן</p>
-            </div>
-
-            <div className="max-w-3xl mx-auto mb-8 bg-white/70 border-2 border-accent-teal/30 rounded-2xl p-6 shadow-lg">
-              <p className="text-lg font-semibold text-accent-teal">✅ חוסך 5–15 שעות ניהול בשבוע</p>
-              <p className="text-lg font-semibold text-accent-teal">✅ מפחית משמעותית ביטולי תורים</p>
-              <p className="text-lg font-semibold text-accent-teal">✅ מגדיל הכנסות בלי להוסיף עובדים</p>
-            </div>
-
-            <div className="mb-8">
-              <p className="text-2xl sm:text-3xl font-bold text-primary mb-2">⏱️ 10 דקות — וזה עובד</p>
-              <p className="text-lg text-secondary max-w-3xl mx-auto">
-                בלי הגדרות מסובכות. בלי פיתוח. בלי ללמוד מערכת חודש.
-                <br />
-                בעוד 10 דקות תוכל לשלוח ללקוחות שלך קישור להרשמה, לקביעת תור ולתשלום — והם כבר יכנסו לבד.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-8">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-6">
               <button
                 onClick={() => navigate('/register')}
                 className="w-full sm:w-auto bg-gradient-to-r from-accent-teal to-accent-hover hover:from-accent-teal hover:to-accent-teal text-white px-8 sm:px-12 py-4 sm:py-5 rounded-full text-lg sm:text-xl font-bold shadow-2xl shadow-accent-teal/50 hover:shadow-accent-teal/60 transition-all transform hover:scale-105"
               >
-                התחל ללא עלות – העסק שלך עולה לאוויר ב-10 דקות 🚀
+                התחל בחינם
+              </button>
+              <button
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full sm:w-auto border-2 border-accent-teal text-accent-teal hover:bg-accent-teal hover:text-white px-8 sm:px-12 py-4 sm:py-5 rounded-full text-lg sm:text-xl font-bold transition-all transform hover:scale-105"
+              >
+                צפה איך זה עובד
               </button>
             </div>
 
-            <p className="text-sm text-secondary mb-8">
-              🔥 ללא כרטיס אשראי | ביטול בכל שלב | תמיכה אנושית בעברית
+            <p className="text-sm text-secondary mb-12">
+              לא צריך ידע טכני. מתחילים לעבוד תוך פחות מ-10 דקות.
             </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-5xl mx-auto">
-              <div className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-2xl p-4 sm:p-6 shadow-lg shadow-accent-teal/10">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent mb-2">
-                  24/7
-                </div>
-                <div className="text-sm sm:text-base text-secondary font-medium">אוטומציות עובדות</div>
-              </div>
-              <div className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-2xl p-4 sm:p-6 shadow-lg shadow-accent-teal/10">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent mb-2">
-                  99.5%
-                </div>
-                <div className="text-sm sm:text-base text-secondary font-medium">זמינות מערכת</div>
-              </div>
-              <div className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-2xl p-4 sm:p-6 shadow-lg shadow-accent-teal/10">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent mb-2">
-                  5-15
-                </div>
-                <div className="text-sm sm:text-base text-secondary font-medium">שעות חיסכון בשבוע</div>
-              </div>
-              <div className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-2xl p-4 sm:p-6 shadow-lg shadow-accent-teal/10">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-accent-teal to-accent-hover bg-clip-text text-transparent mb-2">
-                  &lt;10
-                </div>
-                <div className="text-sm sm:text-base text-secondary font-medium">דקות הקמה</div>
-              </div>
+            {/* Trust Strip */}
+            <div className="bg-white/70 border border-accent-teal/30 rounded-2xl p-6 max-w-5xl mx-auto mb-12">
+              <p className="text-lg font-semibold text-accent-teal">
+                נבנה במיוחד עבור: <span className="text-primary">מאמנים אישיים</span> • <span className="text-primary">מטפלים רגשיים</span> • <span className="text-primary">מאמני הורים</span> • <span className="text-primary">יועצים עסקיים</span> • <span className="text-primary">מנחי סדנאות</span>
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Problem Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
-              💡 למה עסקים עוברים ל-ChatGrow?
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-6">
+              אם העסק שלך מבוסס על פגישות – אתה בטח מכיר את זה
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
+          <div className="space-y-4 mb-12">
+            {problemPoints.map((point, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-2xl p-6 sm:p-8 shadow-lg shadow-accent-teal/10 hover:shadow-xl hover:shadow-accent-teal/20 transition-all hover:scale-105"
+                className="bg-red-50 border-r-4 border-red-500 rounded-lg p-6 shadow-md"
               >
-                <div className="text-4xl sm:text-5xl mb-4">{benefit.icon}</div>
-                <h3 className="text-xl sm:text-2xl font-bold text-accent-teal mb-3">{benefit.title}</h3>
-                <p className="text-secondary leading-relaxed">{benefit.description}</p>
+                <p className="text-lg text-primary font-medium text-right">{point}</p>
               </div>
             ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-accent-teal/10 to-accent-hover/10 border-2 border-accent-teal rounded-2xl p-8">
+            <p className="text-xl sm:text-2xl font-bold text-primary text-center leading-relaxed">
+              ChatGrow הופכת את הכאוס הזה למערכת אחת שמנהלת לך את הלידים, הפגישות, התזכורות והתשלומים – <span className="text-accent-teal">ואתה יכול להתרכז במה שאתה עושה הכי טוב: לטפל, לאמן, לייעץ.</span>
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-bg-light via-bg-card to-bg-light">
+      {/* What ChatGrow Does */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-bg-light via-bg-card to-bg-light">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
-              💼 מה ChatGrow עושה בפועל?
+              מה ChatGrow עושה בפועל בשביל מאמן, מטפל או יועץ כמוך?
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {features.map((feature, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {whatChatGrowDoes.map((item, index) => (
               <div
                 key={index}
-                className="flex items-start space-x-reverse space-x-4 bg-white border border-accent-teal/30 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all"
+                className="bg-white border border-accent-teal/30 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
               >
-                <div className="text-2xl text-accent-teal">✔</div>
-                <p className="text-lg text-primary font-medium">{feature}</p>
+                <div className="text-5xl mb-4">{item.icon}</div>
+                <h3 className="text-2xl font-bold text-accent-teal mb-4">{item.title}</h3>
+                <p className="text-secondary leading-relaxed text-lg">{item.description}</p>
               </div>
             ))}
           </div>
@@ -253,102 +229,212 @@ const MarketingHome = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section id="how-it-works" className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
-              ⚡ כמה מהר זה עובד באמת?
+              איך ChatGrow עובדת עבורך?
             </h2>
-            <p className="text-xl text-secondary max-w-3xl mx-auto">
-              4 צעדים פשוטים ואתה בעסקים
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {howItWorks.map((step, index) => (
               <div
                 key={index}
-                className="relative bg-gradient-to-br from-bg-card to-gray-50 border-2 border-accent-teal/30 rounded-2xl p-6 sm:p-8 shadow-lg shadow-accent-teal/10 hover:shadow-xl hover:shadow-accent-teal/20 transition-all"
+                className="relative bg-gradient-to-br from-bg-card to-gray-50 border-2 border-accent-teal/30 rounded-2xl p-8 shadow-lg"
               >
-                <div className="absolute -top-6 right-6 w-12 h-12 bg-gradient-to-r from-accent-teal to-accent-hover text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+                <div className="absolute -top-6 right-6 w-14 h-14 bg-gradient-to-r from-accent-teal to-accent-hover text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
                   {step.number}
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-accent-teal mb-3 mt-4">{step.title}</h3>
-                <p className="text-secondary leading-relaxed">{step.description}</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-accent-teal mb-4 mt-4">{step.title}</h3>
+                <p className="text-secondary leading-relaxed text-lg">{step.description}</p>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-12 bg-green-50 border-2 border-green-500 rounded-2xl p-8 max-w-3xl mx-auto">
-            <p className="text-xl font-bold text-green-700 mb-2">✅ פחות מ-10 דקות</p>
-            <p className="text-xl font-bold text-green-700 mb-2">✅ בלי תמיכה טכנית</p>
-            <p className="text-xl font-bold text-green-700">✅ בלי התעסקות מיותרת</p>
+          <div className="text-center bg-green-50 border-2 border-green-500 rounded-2xl p-8 max-w-3xl mx-auto">
+            <p className="text-2xl font-bold text-green-700">
+              ✅ לידים → הזמנות → הכנסות. דוח AI שבועי שמזהה לך הזדמנויות צמיחה.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Main Features */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-bg-light via-bg-card to-bg-light">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
-              💬 זה מה שעסקים אומרים על ChatGrow
+              כל מה שמאמן, מטפל או יועץ צריך – במערכת אחת
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mainFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white border border-accent-teal/30 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
+                className="bg-white border border-accent-teal/30 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105"
               >
-                <div className="text-yellow-500 text-2xl mb-4">⭐️⭐️⭐️⭐️⭐️</div>
-                <p className="text-lg text-primary mb-6 italic leading-relaxed">
-                  "{testimonial.quote}"
-                </p>
-                <div className="border-t border-accent-teal/30 pt-4">
-                  <p className="font-bold text-accent-teal">{testimonial.author}</p>
-                  <p className="text-sm text-secondary">{testimonial.role}</p>
-                </div>
+                <div className="text-4xl mb-3">{feature.icon}</div>
+                <h3 className="text-lg font-bold text-accent-teal mb-2">{feature.title}</h3>
+                <p className="text-sm text-secondary leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Target Audience */}
+      {/* Why Different */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-8">
-              🎯 למי זה מושלם?
+              למה ChatGrow שונה ממערכת תורים רגילה?
             </h2>
+          </div>
 
-            <div className="space-y-4 mb-8">
-              {targetAudience.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-xl p-4 shadow-lg text-right"
+          <div className="space-y-4 mb-12">
+            {whyDifferent.map((item, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-br from-bg-card to-gray-50 border-r-4 border-accent-teal rounded-lg p-6 shadow-lg"
+              >
+                <p className="text-lg text-primary font-medium text-right">✅ {item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-bg-light via-bg-card to-bg-light">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
+              כמה זה עולה לי?
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* FREE Plan */}
+            <div className="bg-white border-2 border-gray-300 rounded-2xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-primary mb-2">FREE – להתחלה</h3>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-accent-teal">₪0</span>
+                <span className="text-xl text-secondary"> / לחודש</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-accent-teal text-xl">✔</span>
+                  <span className="text-primary">עד 200 לקוחות</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-accent-teal text-xl">✔</span>
+                  <span className="text-primary">CRM בסיסי</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-accent-teal text-xl">✔</span>
+                  <span className="text-primary">תורים ופגישות</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-accent-teal text-xl">✔</span>
+                  <span className="text-primary">דפי נחיתה בסיסיים</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-accent-teal text-xl">✔</span>
+                  <span className="text-primary">תזכורות במייל</span>
+                </li>
+              </ul>
+              <button
+                onClick={() => navigate('/register')}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-primary px-6 py-4 rounded-lg font-bold transition-all"
+              >
+                התחל בחינם
+              </button>
+            </div>
+
+            {/* PREMIUM Plan */}
+            <div className="bg-gradient-to-br from-accent-teal to-accent-hover border-2 border-accent-teal rounded-2xl p-8 shadow-2xl transform scale-105">
+              <div className="bg-yellow-400 text-primary px-4 py-1 rounded-full inline-block mb-4 font-bold text-sm">
+                מומלץ ⭐
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">PREMIUM – לקליניקה שרוצה לצמוח</h3>
+              <div className="mb-6">
+                <span className="text-5xl font-bold text-white">₪99</span>
+                <span className="text-xl text-white/80"> / לחודש</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">ללא הגבלת לקוחות</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">AI Performance Coach</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">סנכרון Google Calendar</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">תזכורות SMS</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">דוחות מתקדמים</span>
+                </li>
+                <li className="flex items-start space-x-reverse space-x-3">
+                  <span className="text-white text-xl">✔</span>
+                  <span className="text-white">אוטומציות</span>
+                </li>
+              </ul>
+              <button
+                onClick={() => navigate('/register')}
+                className="w-full bg-white hover:bg-gray-100 text-accent-teal px-6 py-4 rounded-lg font-bold transition-all"
+              >
+                שדרג לפרימיום
+              </button>
+            </div>
+          </div>
+
+          <p className="text-center text-secondary text-lg">
+            אפשר להתחיל ב-FREE ולשדרג בכל רגע. אין התחייבות.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-4">
+              שאלות נפוצות
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-br from-bg-card to-gray-50 border border-accent-teal/30 rounded-xl shadow-lg overflow-hidden"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full flex justify-between items-center p-6 text-right hover:bg-accent-teal/5 transition-colors"
                 >
-                  <p className="text-lg text-primary font-medium">✅ {item}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-accent-teal/10 to-accent-hover/10 border-2 border-accent-teal rounded-2xl p-8 mb-8">
-              <p className="text-2xl font-bold text-primary mb-2">
-                מספיק לנהל את העסק. הגיע הזמן שהוא ינהל את עצמו.
-              </p>
-              <p className="text-xl text-accent-teal font-semibold">
-                ChatGrow — כי לעסק קטן מגיע לעבוד כמו גדול.
-              </p>
-            </div>
-
-            <div className="space-y-2 mb-8">
-              <p className="text-lg text-primary">🔹 ללא התחייבות</p>
-              <p className="text-lg text-primary">🔹 ללא כרטיס אשראי</p>
-              <p className="text-lg text-primary">🔹 תמיכה אמיתית מבני אדם</p>
-            </div>
+                  <h3 className="text-lg font-bold text-primary flex-1">{faq.q}</h3>
+                  <span className="text-2xl text-accent-teal mr-4">
+                    {openFaq === index ? '−' : '+'}
+                  </span>
+                </button>
+                {openFaq === index && (
+                  <div className="px-6 pb-6">
+                    <p className="text-secondary leading-relaxed text-lg">{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -357,10 +443,10 @@ const MarketingHome = () => {
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-accent-teal/10 via-gray-100 to-accent-teal/5">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-6">
-            התחל חינם עכשיו — ותוך 10 דקות העסק שלך באוויר 👑
+            התחל חינם עכשיו – ותוך 10 דקות הקליניקה שלך באוויר 👑
           </h2>
           <p className="text-xl text-secondary mb-8">
-            המערכת שמסדרת לעסק את החיים
+            המערכת שמסדרת לקליניקה את החיים
           </p>
           <button
             onClick={() => navigate('/register')}
@@ -381,7 +467,7 @@ const MarketingHome = () => {
                 <span className="text-2xl font-bold">ChatGrow</span>
               </div>
               <p className="text-gray-300">
-                המערכת שמסדרת לעסק את החיים
+                המערכת שמסדרת לקליניקה את החיים
               </p>
             </div>
 

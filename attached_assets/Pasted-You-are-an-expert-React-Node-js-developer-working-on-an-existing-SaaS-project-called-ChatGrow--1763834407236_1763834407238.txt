@@ -1,0 +1,132 @@
+You are an expert React + Node.js developer working on an existing SaaS project called **ChatGrow**.
+
+Goal:  
+We are repositioning ChatGrow as a niche product for **coaches, therapists and consultants** (קליניקות / מאמנים / מטפלים / יועצים).  
+We need to:
+
+1. Redesign the **public marketing homepage** content and structure.
+2. Slightly adapt in-app wording to match this niche (without changing core functionality).
+
+Do NOT break any existing logic. Focus on copy/UX and light structural changes on the marketing page.
+
+------------------------------------------------
+PART 1 – Update the public homepage
+------------------------------------------------
+
+1. Locate the main public marketing homepage component, for example:
+   - `src/pages/Home.tsx` or `src/pages/MarketingHome.tsx` or similar.
+   - It will likely contain the Hero section, features, and CTAs for ChatGrow.
+
+2. Replace the existing content with a new structure using React + Tailwind:
+   - Keep RTL support (`dir="rtl"`) and use the existing Teal/Light design system.
+   - Use semantic sections: `<header>`, `<section>`, `<footer>` etc.
+
+3. Implement the following sections with the provided Hebrew copy (UI text must be in Hebrew, code identifiers in English):
+
+   A. Hero section:
+   - Headline: `ChatGrow – המערכת שממלאת לך את היומן ומפסיקה את ה-No-Show`
+   - Subheadline: `מערכת חכמה למאמנים, מטפלים ויועצים שמנהלת לידים, תורים, תשלומים ותזכורות – הכל במקום אחד, בעברית מלאה, בלי לרדוף אחרי לקוחות.`
+   - Primary CTA button: `התחל בחינם`
+   - Secondary CTA button (outline): `צפה איך זה עובד`
+   - Small text below buttons: `לא צריך ידע טכני. מתחילים לעבוד תוך פחות מ-10 דקות.`
+
+   B. Trust strip below Hero:
+   - Text: `נבנה במיוחד עבור: מאמנים אישיים • מטפלים רגשיים • מאמני הורים • יועצים עסקיים • מנחי סדנאות`
+
+   C. “Problem” section:
+   - Title: `אם העסק שלך מבוסס על פגישות – אתה בטח מכיר את זה`
+   - Bullet list with the pain points from the user’s spec (no-shows, WhatsApp chaos, chasing payments, disappearing leads).
+   - One paragraph that says ChatGrow turns this chaos into one system that manages leads, appointments, reminders and payments.
+
+   D. “What ChatGrow does” section:
+   - Title: `מה ChatGrow עושה בפועל בשביל מאמן, מטפל או יועץ כמוך?`
+   - Three columns/cards describing:
+     1) More qualified clients, less wasted leads.
+     2) Clean calendar + automatic reminders and deposits.
+     3) Increased revenue from existing clients (packages, follow-up, LTV, AI reports).
+   - Use Tailwind cards with icons or simple emoji.
+
+   E. “How it works” section:
+   - Title: `איך ChatGrow עובדת עבורך?`
+   - Three steps:
+     1. Define your clinic/business (services, working days/hours, payment methods, connect Google Calendar).
+     2. Let the system work (one link for booking, automatic CRM, reminders and payments).
+     3. Look at the reports and make better decisions (leads → bookings → revenue, weekly AI report).
+
+   F. “Main features” section:
+   - Title: `כל מה שמאמן, מטפל או יועץ צריך – במערכת אחת`
+   - Grid of feature cards (2 or 3 columns on desktop, 1 on mobile).
+   - Features to include (in Hebrew UI): CRM ללקוחות, ניהול פגישות ותורים, גביית תשלומים ומקדמות, חשבוניות וקבלות, דוחות וניתוח ביצועים, AI Coach לעסק, דפי נחיתה חכמים, התראות ותזכורות.
+
+   G. “Why it’s different” section:
+   - Title: `למה ChatGrow שונה ממערכת תורים רגילה?`
+   - Bullet list explaining:
+     - It manages the full journey from lead to payment, not just the calendar.
+     - It is built specifically for coaches/therapists/consultants, not all businesses.
+     - It’s a growth engine (leads, retention, upsell) in Hebrew.
+
+   H. Pricing section:
+   - Title: `כמה זה עולה לי?`
+   - Two pricing cards:
+     1. FREE plan:
+        - Title: `FREE – להתחלה`
+        - Text bullets: עד 200 לקוחות, CRM בסיסי, תורים ופגישות, דפי נחיתה בסיסיים, תזכורות במייל.
+        - Price: `₪0 / לחודש`
+        - Button: `התחל בחינם`
+     2. PREMIUM plan:
+        - Title: `PREMIUM – לקליניקה שרוצה לצמוח`
+        - Text bullets: ללא הגבלת לקוחות, AI Performance Coach, סנכרון Google Calendar, תזכורות SMS, דוחות מתקדמים, אוטומציות.
+        - Price: `₪99 / לחודש`
+        - Button: `שדרג לפרימיום`
+   - Below both cards: small text: `אפשר להתחיל ב-FREE ולשדרג בכל רגע. אין התחייבות.`
+
+   I. FAQ section:
+   - Title: `שאלות נפוצות`
+   - At least 3–4 Q&A items in Hebrew (from the user’s spec: tech knowledge, deposits, landing page only, migration from other systems).
+
+4. Ensure the homepage layout:
+   - Is fully responsive (mobile-first).
+   - Uses existing color theme (teal/light).
+   - Maintains RTL alignment (text aligned right, direction rtl).
+   - Keeps header/nav consistent with the rest of the app.
+
+5. Update the HTML `<title>` and meta description for SEO in the main layout / index:
+   - Title: `ChatGrow – מערכת לניהול קליניקה למאמנים, מטפלים ויועצים`
+   - Description (Hebrew): a short 1–2 sentence summary matching the new Hero.
+
+------------------------------------------------
+PART 2 – Light in-app wording alignment
+------------------------------------------------
+
+In the logged-in app (dashboard):
+
+1. Locate any generic wording like:
+   - “עסק”
+   - “לקוחות העסק”
+   - “ניהול אירועים ולקוחות לעסקים קטנים”
+   And where appropriate, adjust to more niche-appropriate wording such as:
+   - “קליניקה / עסק טיפולי”
+   - “לקוחות הקליניקה”
+   - “ניהול פגישות, מטופלים וסדנאות”
+
+Do NOT rename database fields or internal model names, just UI labels and text.
+
+2. In the dashboard welcome text (if exists), adjust to:
+   - Example: `ברוך הבא ל-ChatGrow – כאן אתה מנהל את הקליניקה, הפגישות והלקוחות שלך במקום אחד.`
+
+3. In the events/sessions area:
+   - If you have generic “Events”, keep the functionality but consider visually labeling them as:
+     - `סדנאות`, `קבוצות`, `אירועים לקהל הרחב` (just in the UI).
+
+4. Ensure all new UI text is in Hebrew and aligned RTL, but keep code identifiers in English.
+
+------------------------------------------------
+PART 3 – Quality checks
+------------------------------------------------
+
+- Run the project and visually verify:
+  - The new homepage shows the updated content and structure.
+  - All new texts are RTL and look good on mobile and desktop.
+  - Navigation to login / app is still working as before.
+- Make sure no existing backend logic was changed.
+- Keep all copy in Hebrew, but keep code style, naming and architecture consistent with the existing project.
