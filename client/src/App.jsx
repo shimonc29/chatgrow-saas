@@ -11,6 +11,7 @@ import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import Financial from './pages/admin/Financial';
 import Availability from './pages/admin/Availability';
+import Calendar from './pages/admin/Calendar';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import TranzilaSettings from './pages/admin/TranzilaSettings';
 import ProviderSettings from './pages/admin/ProviderSettings';
@@ -100,6 +101,15 @@ function App() {
             element={
               <PrivateRoute>
                 <Availability />
+              </PrivateRoute>
+            } 
+          />
+
+          <Route 
+            path="/calendar" 
+            element={
+              <PrivateRoute>
+                <Calendar />
               </PrivateRoute>
             } 
           />

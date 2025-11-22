@@ -236,6 +236,52 @@ class GoogleCalendarService {
       return { connected: false };
     }
   }
+
+  async getEventsForRange(userId, fromDate, toDate) {
+    try {
+      const settings = await ProviderSettings.findOne({ userId });
+      
+      if (!settings || !settings.googleCalendar || !settings.googleCalendar.enabled) {
+        return [];
+      }
+
+      const authClient = await this.getAuthenticatedClient(userId);
+      const calendar = google.calendar({ version: 'v3', auth: authClient });
+      
+      const calendarId = settings?.googleCalendar?.calendarId || 'primary';
+      
+      const response = await calendar.events.list({
+        calendarId,
+        timeMin: fromDate.toISOString(),
+        timeMax: toDate.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 250
+      });
+
+      const events = response.data.items || [];
+      
+      logInfo('Google Calendar events fetched', { 
+        userId, 
+        count: events.length,
+        from: fromDate.toISOString(),
+        to: toDate.toISOString()
+      });
+
+      return events.map(event => ({
+        id: event.id,
+        summary: event.summary || 'ללא כותרת',
+        start: event.start.dateTime || event.start.date,
+        end: event.end.dateTime || event.end.date,
+        location: event.location || null,
+        calendarId: calendarId,
+        htmlLink: event.htmlLink
+      }));
+    } catch (error) {
+      logError('Failed to fetch Google Calendar events', { error: error.message, userId });
+      return [];
+    }
+  }
 }
 
 module.exports = new GoogleCalendarService();

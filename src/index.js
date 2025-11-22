@@ -234,6 +234,7 @@ try {
     app.use('/api/landing-pages', require('./routes/landingPages'));
     app.use('/api/availability', require('./routes/availability'));
     app.use('/api/google-calendar', require('./routes/googleCalendar'));
+    app.use('/api/calendar', require('./routes/calendar'));
     app.use('/api/uploads', require('./routes/uploads'));
     app.use('/api/media', require('./routes/media'));
     app.use('/api/strategic-reports', require('./routes/strategicReports'));
