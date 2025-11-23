@@ -249,6 +249,30 @@ app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
 });
 
+// Swagger API Documentation
+try {
+    const swaggerUi = require('swagger-ui-express');
+    const swaggerSpec = require('./config/swagger');
+
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'ChatGrow API Documentation',
+        swaggerOptions: {
+            persistAuthorization: true,
+            displayRequestDuration: true,
+            filter: true,
+            syntaxHighlight: {
+                activate: true,
+                theme: 'monokai'
+            }
+        }
+    }));
+
+    console.log('✅ Swagger documentation available at /api-docs');
+} catch (error) {
+    console.warn('Swagger documentation not available:', error.message);
+}
+
 // Public API Routes (NO authentication required) - MUST be before authenticated routes
 try {
     const publicRoutes = require('./routes/public');
@@ -290,6 +314,7 @@ try {
     app.use('/api/growth/keep', require('./routes/growth/keep'));
     app.use('/api/growth/grow', require('./routes/growth/grow'));
     app.use('/api/debug', require('./routes/debug'));
+    app.use('/api/webhooks', require('./routes/webhooks'));
     console.log('✅ All business management routes loaded successfully');
 } catch (error) {
     console.error('Error loading business routes:', error.message);
