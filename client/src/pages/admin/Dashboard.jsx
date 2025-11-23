@@ -1,7 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  SimpleGrid,
+  Heading,
+  Text,
+  VStack,
+  HStack,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Badge,
+  Divider,
+} from '@chakra-ui/react';
+import {
+  Calendar,
+  Users,
+  ClipboardList,
+  DollarSign,
+  Plus,
+  UserPlus,
+  CalendarPlus,
+  MapPin,
+  Mail,
+  Phone,
+  Clock,
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import MainLayout from '../../components/Layout/MainLayout';
+import { StatCard, ActionCard, PageHeader, EmptyState } from '../../components/UI';
 import { statsAPI } from '../../services/api';
 
 const Dashboard = () => {
@@ -29,198 +59,309 @@ const Dashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
+  const formatDate = dateString => {
+    if (!dateString) {
+      return '-';
+    }
     return new Date(dateString).toLocaleDateString('he-IL');
   };
 
-  const formatTime = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  const formatTime = dateString => {
+    if (!dateString) {
+      return '-';
+    }
+    return new Date(dateString).toLocaleTimeString('he-IL', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  const getLocation = (location) => {
-    if (!location) return 'לא צוין';
-    if (typeof location === 'string') return location;
-    if (location.address?.street) return location.address.street;
-    if (location.address) return 'כתובת זמינה';
+  const getLocation = location => {
+    if (!location) {
+      return 'לא צוין';
+    }
+    if (typeof location === 'string') {
+      return location;
+    }
+    if (location.address?.street) {
+      return location.address.street;
+    }
+    if (location.address) {
+      return 'כתובת זמינה';
+    }
     return 'לא צוין';
   };
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="p-8 flex justify-center items-center min-h-screen">
-          <div className="text-center">
-            <div className="text-4xl mb-4">⏳</div>
-            <p className="text-text-secondary">טוען נתונים...</p>
-          </div>
-        </div>
+        <Container maxW="container.xl" py={8}>
+          <VStack spacing={8} minH="60vh" justify="center">
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="brand.500" />
+            <Text color="gray.600" fontSize="lg">
+              טוען נתונים...
+            </Text>
+          </VStack>
+        </Container>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="p-8">
-        {/* Welcome Message */}
-        <div className="bg-gradient-to-r from-accent-teal to-accent-hover rounded-2xl shadow-2xl shadow-accent-teal/30 p-8 mb-8 text-white">
-          <h2 className="text-3xl font-bold mb-2">ברוך הבא ל-ChatGrow! 👑</h2>
-          <p className="opacity-90">כאן אתה מנהל את הקליניקה, הפגישות והלקוחות שלך במקום אחד</p>
-        </div>
+      <Container maxW="container.xl" py={8}>
+        {/* Welcome Header */}
+        <Box
+          bg="linear-gradient(135deg, #0967D2 0%, #2186EB 100%)"
+          borderRadius="2xl"
+          p={10}
+          mb={8}
+          boxShadow="xl"
+        >
+          <Heading size="2xl" color="white" mb={3}>
+            שלום {user?.name || 'משתמש'}! 👋
+          </Heading>
+          <Text fontSize="xl" color="whiteAlpha.900">
+            כאן תוכל לנהל את הקליניקה, הפגישות והלקוחות שלך במקום אחד
+          </Text>
+        </Box>
 
+        {/* Error Alert */}
         {error && (
-          <div className="bg-red-900/30 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
+          <Alert status="error" variant="left-accent" borderRadius="lg" mb={6} boxShadow="sm">
+            <AlertIcon />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Stat Card 1 */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg shadow-accent-teal/10 p-6 hover:border-accent-teal/50 hover:shadow-xl hover:shadow-accent-teal/20 transition-all">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-text-secondary">אירועים פעילים</span>
-              <span className="text-2xl">📅</span>
-            </div>
-            <div className="text-3xl font-bold text-accent-teal">{stats?.overview?.activeEvents || 0}</div>
-            <p className="text-xs text-text-secondary mt-1">סה"כ {stats?.overview?.totalEvents || 0} אירועים</p>
-          </div>
+        <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing={6} mb={8}>
+          <StatCard
+            label="אירועים פעילים"
+            value={stats?.overview?.activeEvents || 0}
+            helpText={`סה"כ ${stats?.overview?.totalEvents || 0} אירועים`}
+            icon={Calendar}
+            colorScheme="brand"
+          />
 
-          {/* Stat Card 2 */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg shadow-accent-teal/10 p-6 hover:border-accent-teal/50 hover:shadow-xl hover:shadow-accent-teal/20 transition-all">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-text-secondary">לקוחות</span>
-              <span className="text-2xl">👥</span>
-            </div>
-            <div className="text-3xl font-bold text-accent-teal">{stats?.overview?.totalCustomers || 0}</div>
-            <p className="text-xs text-text-secondary mt-1">+{stats?.overview?.newCustomersWeek || 0} השבוע</p>
-          </div>
+          <StatCard
+            label="לקוחות"
+            value={stats?.overview?.totalCustomers || 0}
+            change={`+${stats?.overview?.newCustomersWeek || 0} השבוע`}
+            changeType="increase"
+            icon={Users}
+            colorScheme="success"
+          />
 
-          {/* Stat Card 3 */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg shadow-accent-teal/10 p-6 hover:border-accent-teal/50 hover:shadow-xl hover:shadow-accent-teal/20 transition-all">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-text-secondary">תורים</span>
-              <span className="text-2xl">📋</span>
-            </div>
-            <div className="text-3xl font-bold text-accent-teal">{stats?.overview?.totalAppointments || 0}</div>
-            <p className="text-xs text-text-secondary mt-1">{stats?.overview?.weekAppointments || 0} השבוע</p>
-          </div>
+          <StatCard
+            label="תורים"
+            value={stats?.overview?.totalAppointments || 0}
+            helpText={`${stats?.overview?.weekAppointments || 0} השבוע`}
+            icon={ClipboardList}
+            colorScheme="warning"
+          />
 
-          {/* Stat Card 4 */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg shadow-accent-teal/10 p-6 hover:border-accent-teal/50 hover:shadow-xl hover:shadow-accent-teal/20 transition-all">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-text-secondary">הכנסות משוערות</span>
-              <span className="text-2xl">💰</span>
-            </div>
-            <div className="text-3xl font-bold text-accent-teal">₪{stats?.overview?.totalRevenue?.toLocaleString() || 0}</div>
-            <p className="text-xs text-text-secondary mt-1">החודש ₪{stats?.overview?.monthRevenue?.toLocaleString() || 0}</p>
-          </div>
-        </div>
+          <StatCard
+            label="הכנסות משוערות"
+            value={`₪${stats?.overview?.totalRevenue?.toLocaleString() || 0}`}
+            helpText={`החודש ₪${stats?.overview?.monthRevenue?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            colorScheme="success"
+          />
+        </SimpleGrid>
 
         {/* Quick Actions */}
-        <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg p-6 mb-8">
-          <h3 className="text-xl font-bold text-accent-teal mb-4">פעולות מהירות</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <button 
-              onClick={() => navigate('/events')}
-              className="p-4 border-2 border-accent-teal/30 bg-bg-light rounded-lg hover:border-accent-teal/60 hover:bg-bg-card transition-all text-right"
-            >
-              <div className="text-2xl mb-2">➕</div>
-              <div className="font-semibold text-accent-teal">אירוע חדש</div>
-              <div className="text-xs text-text-secondary mt-1">צור אירוע חדש</div>
-            </button>
+        <Box mb={8}>
+          <Heading size="lg" mb={6} color="gray.800">
+            פעולות מהירות
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+            <ActionCard
+              title="אירוע חדש"
+              description="צור אירוע חדש והתחל לנהל משתתפים"
+              icon={CalendarPlus}
+              buttonText="צור אירוע"
+              onAction={() => navigate('/events')}
+              colorScheme="brand"
+            />
 
-            <button 
-              onClick={() => navigate('/customers')}
-              className="p-4 border-2 border-accent-teal/30 bg-bg-light rounded-lg hover:border-accent-teal/60 hover:bg-bg-card transition-all text-right"
-            >
-              <div className="text-2xl mb-2">👤</div>
-              <div className="font-semibold text-accent-teal">לקוח חדש</div>
-              <div className="text-xs text-text-secondary mt-1">הוסף לקוח</div>
-            </button>
+            <ActionCard
+              title="לקוח חדש"
+              description="הוסף לקוח חדש למערכת שלך"
+              icon={UserPlus}
+              buttonText="הוסף לקוח"
+              onAction={() => navigate('/customers')}
+              colorScheme="success"
+            />
 
-            <button 
-              onClick={() => navigate('/appointments')}
-              className="p-4 border-2 border-accent-teal/30 bg-bg-light rounded-lg hover:border-accent-teal/60 hover:bg-bg-card transition-all text-right"
-            >
-              <div className="text-2xl mb-2">📋</div>
-              <div className="font-semibold text-accent-teal">ניהול תורים</div>
-              <div className="text-xs text-text-secondary mt-1">קבע תורים</div>
-            </button>
-          </div>
-        </div>
+            <ActionCard
+              title="ניהול תורים"
+              description="קבע ונהל תורים עם הלקוחות שלך"
+              icon={Plus}
+              buttonText="נהל תורים"
+              onAction={() => navigate('/appointments')}
+              colorScheme="warning"
+            />
+          </SimpleGrid>
+        </Box>
+
+        <Divider my={8} />
 
         {/* Recent Activity Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
           {/* Upcoming Events */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-accent-teal mb-4">אירועים קרובים</h3>
+          <Box>
+            <Heading size="lg" mb={6} color="gray.800">
+              אירועים קרובים
+            </Heading>
             {stats?.upcomingEvents && stats.upcomingEvents.length > 0 ? (
-              <div className="space-y-3">
-                {stats.upcomingEvents.map((event) => (
-                  <div key={event._id} className="flex items-start space-x-reverse space-x-3 p-3 bg-bg-light border border-accent-teal/20 rounded-lg hover:border-accent-teal/40 transition-all">
-                    <div className="text-2xl">📅</div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-accent-teal">{event.name}</h4>
-                      <div className="flex items-center space-x-reverse space-x-2 mt-1 text-sm text-text-primary">
-                        <span>{formatDate(event.startDateTime)}</span>
-                        <span>•</span>
-                        <span>{formatTime(event.startDateTime)}</span>
-                      </div>
-                      <div className="flex items-center space-x-reverse space-x-2 mt-1 text-xs text-text-secondary">
-                        <span>📍 {getLocation(event.location)}</span>
-                        <span>•</span>
-                        <span>👥 {event.participants}</span>
-                      </div>
-                    </div>
-                  </div>
+              <VStack spacing={4} align="stretch">
+                {stats.upcomingEvents.map(event => (
+                  <Box
+                    key={event._id}
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    border="1px"
+                    borderColor="gray.200"
+                    boxShadow="sm"
+                    _hover={{
+                      boxShadow: 'md',
+                      transform: 'translateY(-2px)',
+                      borderColor: 'brand.300',
+                    }}
+                    transition="all 0.2s"
+                    cursor="pointer"
+                    onClick={() => navigate(`/events/${event._id}`)}
+                  >
+                    <HStack spacing={4} align="flex-start">
+                      <Box
+                        bg="brand.50"
+                        p={3}
+                        borderRadius="lg"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Calendar size={24} color="var(--chakra-colors-brand-500)" />
+                      </Box>
+                      <VStack align="stretch" flex={1} spacing={2}>
+                        <Heading size="md" color="gray.800">
+                          {event.name}
+                        </Heading>
+                        <HStack spacing={3} fontSize="sm" color="gray.600">
+                          <HStack>
+                            <Clock size={16} />
+                            <Text>
+                              {formatDate(event.startDateTime)} • {formatTime(event.startDateTime)}
+                            </Text>
+                          </HStack>
+                        </HStack>
+                        <HStack spacing={3} fontSize="sm" color="gray.600">
+                          <HStack>
+                            <MapPin size={16} />
+                            <Text>{getLocation(event.location)}</Text>
+                          </HStack>
+                          <Text>•</Text>
+                          <HStack>
+                            <Users size={16} />
+                            <Text>{event.participants} משתתפים</Text>
+                          </HStack>
+                        </HStack>
+                      </VStack>
+                      <Badge colorScheme="brand" fontSize="sm" px={3} py={1}>
+                        {event.status || 'פעיל'}
+                      </Badge>
+                    </HStack>
+                  </Box>
                 ))}
-              </div>
+              </VStack>
             ) : (
-              <div className="text-center py-8 text-text-secondary">
-                <div className="text-4xl mb-3">📅</div>
-                <p>אין אירועים קרובים</p>
-                <p className="text-sm mt-2">צור אירוע חדש כדי להתחיל</p>
-              </div>
+              <EmptyState
+                icon={Calendar}
+                title="אין אירועים קרובים"
+                description="צור אירוע חדש כדי להתחיל לנהל את האירועים שלך"
+                actionLabel="צור אירוע"
+                onAction={() => navigate('/events')}
+                colorScheme="brand"
+              />
             )}
-          </div>
+          </Box>
 
           {/* Recent Customers */}
-          <div className="bg-bg-card border border-accent-teal/30 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-accent-teal mb-4">לקוחות אחרונים</h3>
+          <Box>
+            <Heading size="lg" mb={6} color="gray.800">
+              לקוחות אחרונים
+            </Heading>
             {stats?.recentCustomers && stats.recentCustomers.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recentCustomers.map((customer) => (
-                  <div key={customer._id} className="flex items-start space-x-reverse space-x-3 p-3 bg-bg-light border border-accent-teal/20 rounded-lg hover:border-accent-teal/40 transition-all">
-                    <div className="text-2xl">👤</div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-accent-teal">{customer.name}</h4>
-                      <div className="flex items-center space-x-reverse space-x-2 mt-1 text-sm text-text-primary">
-                        <span>📱 {customer.phone}</span>
-                      </div>
-                      {customer.email && (
-                        <div className="mt-1 text-xs text-text-secondary">
-                          📧 {customer.email}
-                        </div>
-                      )}
-                      <div className="mt-1 text-xs text-text-secondary">
-                        הצטרף: {formatDate(customer.createdAt)}
-                      </div>
-                    </div>
-                  </div>
+              <VStack spacing={4} align="stretch">
+                {stats.recentCustomers.map(customer => (
+                  <Box
+                    key={customer._id}
+                    bg="white"
+                    p={6}
+                    borderRadius="lg"
+                    border="1px"
+                    borderColor="gray.200"
+                    boxShadow="sm"
+                    _hover={{
+                      boxShadow: 'md',
+                      transform: 'translateY(-2px)',
+                      borderColor: 'success.300',
+                    }}
+                    transition="all 0.2s"
+                    cursor="pointer"
+                    onClick={() => navigate(`/customers/${customer._id}`)}
+                  >
+                    <HStack spacing={4} align="flex-start">
+                      <Box
+                        bg="success.50"
+                        p={3}
+                        borderRadius="lg"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Users size={24} color="var(--chakra-colors-success-500)" />
+                      </Box>
+                      <VStack align="stretch" flex={1} spacing={2}>
+                        <Heading size="md" color="gray.800">
+                          {customer.name}
+                        </Heading>
+                        {customer.phone && (
+                          <HStack spacing={2} fontSize="sm" color="gray.600">
+                            <Phone size={16} />
+                            <Text>{customer.phone}</Text>
+                          </HStack>
+                        )}
+                        {customer.email && (
+                          <HStack spacing={2} fontSize="sm" color="gray.600">
+                            <Mail size={16} />
+                            <Text>{customer.email}</Text>
+                          </HStack>
+                        )}
+                        <Text fontSize="xs" color="gray.500">
+                          הצטרף: {formatDate(customer.createdAt)}
+                        </Text>
+                      </VStack>
+                    </HStack>
+                  </Box>
                 ))}
-              </div>
+              </VStack>
             ) : (
-              <div className="text-center py-8 text-text-secondary">
-                <div className="text-4xl mb-3">👥</div>
-                <p>אין לקוחות עדיין</p>
-                <p className="text-sm mt-2">הוסף את הלקוח הראשון שלך</p>
-              </div>
+              <EmptyState
+                icon={Users}
+                title="אין לקוחות עדיין"
+                description="הוסף את הלקוח הראשון שלך כדי להתחיל"
+                actionLabel="הוסף לקוח"
+                onAction={() => navigate('/customers')}
+                colorScheme="success"
+              />
             )}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </SimpleGrid>
+      </Container>
     </MainLayout>
   );
 };
