@@ -1,0 +1,392 @@
+You are an expert React + Tailwind + RTL front-end developer working on an existing SaaS app called **ChatGrow**.
+
+Current situation (IMPORTANT – USE THIS CONTEXT):
+
+- Tech stack:
+  - Frontend: React + Vite + Tailwind CSS, RTL Hebrew support.
+  - Admin dashboard already exists, with a sidebar and routing.
+- Existing admin pages:
+  - `client/src/pages/admin/Appointments.jsx`
+    - Contains:
+      - Modal for adding/editing appointments.
+      - A table listing existing appointments.
+  - `client/src/pages/admin/Events.jsx`
+    - Contains:
+      - Modal for adding/editing events.
+      - A table listing existing events.
+  - `client/src/pages/admin/ScheduleAndServices.jsx`
+    - Currently used for:
+      - Availability & services management.
+      - Possibly a calendar view (or at least availability UI).
+
+Goal:
+
+Create ONE unified admin page that acts as the **central hub** for schedule management:
+
+**Page name (in menu and title):**  
+> "ניהול יומן ותורים" (Manage Calendar & Bookings)
+
+**Route suggestion:** `/app/schedule` (or adapt to existing routing pattern)
+
+This page should have **5 tabs**:
+
+1. 📆 "יומן" – Calendar view  
+2. 📋 "תורים" – Appointments management  
+3. 🎫 "אירועים" – Events management  
+4. 🕐 "זמינות" – Weekly availability & blocking  
+5. 🛠️ "שירותים" – Service catalog management  
+
+All 5 live in **one React page** using tabs.
+
+Design principles:
+
+- RTL layout (`dir="rtl"`).
+- Use Tailwind CSS for layout and styling.
+- Keep the UI clean, modern, and consistent with existing dashboard style.
+- Reuse as much existing logic/components as possible from the current pages, but refactor if needed so they work nicely as tab content components.
+
+================================================
+STEP 1 – Create a new unified page component
+================================================
+
+1. Create a new file:
+
+   `client/src/pages/admin/ScheduleManager.jsx`
+
+   This will be the main wrapper for the 5 tabs.
+
+2. The component should:
+
+   - Use the existing admin layout wrapper (whatever the project uses, e.g. `DashboardLayout`, `AdminLayout`, etc.).
+   - Wrap everything in `<div dir="rtl">`.
+   - Have a top-level title like: `📆 ניהול יומן ותורים`.
+   - Display a tab bar (using simple Tailwind-based buttons or a tab component if one already exists).
+   - Manage internal state for current tab, for example:
+
+     ```jsx
+     const [activeTab, setActiveTab] = useState('calendar'); 
+     // 'calendar' | 'appointments' | 'events' | 'availability' | 'services'
+     ```
+
+   - Render the appropriate tab content below.
+
+3. Tab bar design:
+
+   - Horizontal row with 5 buttons.
+   - Each tab button should:
+     - Be clearly clickable.
+     - Have an "active" style (e.g. bold, colored border).
+   - Labels (in Hebrew):
+
+     - Calendar: `יומן`
+     - Appointments: `תורים`
+     - Events: `אירועים`
+     - Availability: `זמינות`
+     - Services: `שירותים`
+
+   - Example structure:
+
+     ```jsx
+     <div className="border-b border-gray-200 mb-4 flex gap-2" dir="rtl">
+       <button onClick={() => setActiveTab('calendar')} className={tabClass('calendar')}>יומן</button>
+       <button onClick={() => setActiveTab('appointments')} className={tabClass('appointments')}>תורים</button>
+       <button onClick={() => setActiveTab('events')} className={tabClass('events')}>אירועים</button>
+       <button onClick={() => setActiveTab('availability')} className={tabClass('availability')}>זמינות</button>
+       <button onClick={() => setActiveTab('services')} className={tabClass('services')}>שירותים</button>
+     </div>
+     ```
+
+   - Implement `tabClass(tabKey)` helper to return Tailwind classes, e.g.:
+
+     ```jsx
+     const tabClass = (key) =>
+       `px-4 py-2 rounded-t-md text-sm font-medium ${
+         activeTab === key
+           ? 'bg-white border-x border-t border-gray-300 text-sky-700'
+           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+       }`;
+     ```
+
+4. Render content based on activeTab, something like:
+
+   ```jsx
+   <div className="bg-white border border-gray-200 rounded-b-md rounded-tr-md p-4">
+     {activeTab === 'calendar' && <CalendarTab />}
+     {activeTab === 'appointments' && <AppointmentsTab />}
+     {activeTab === 'events' && <EventsTab />}
+     {activeTab === 'availability' && <AvailabilityTab />}
+     {activeTab === 'services' && <ServicesTab />}
+   </div>
+Each of those tab components will be created in step 2.
+
+================================================
+STEP 2 – Refactor existing pages into tab components
+You already have:
+
+Appointments.jsx
+
+Events.jsx
+
+ScheduleAndServices.jsx (with availability & services)
+
+We want to reuse their logic but reorganize it into smaller components that can be embedded in tabs.
+
+Create a folder for schedule-related components:
+
+client/src/pages/admin/schedule/
+
+Inside it, create:
+
+CalendarTab.jsx
+
+AppointmentsTab.jsx
+
+EventsTab.jsx
+
+AvailabilityTab.jsx
+
+ServicesTab.jsx
+
+AppointmentsTab
+
+Copy the table + modal logic from Appointments.jsx into AppointmentsTab.jsx.
+
+Remove any layout wrappers that are specific to "full page" usage (titles, outer padding).
+
+Make sure it exposes a clean component:
+
+jsx
+Copy code
+export default function AppointmentsTab() {
+  // state, useEffect to load appointments, modal logic, etc.
+  return (
+    <div className="space-y-4" dir="rtl">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">תורים</h2>
+        <button className="btn-primary" onClick={openCreateModal}>+ תור חדש</button>
+      </div>
+      {/* Table of appointments */}
+      {/* Modal for add/edit */}
+    </div>
+  );
+}
+EventsTab
+
+Same idea: copy logic from Events.jsx into EventsTab.jsx.
+
+Present table + modal for events:
+
+jsx
+Copy code
+export default function EventsTab() {
+  return (
+    <div className="space-y-4" dir="rtl">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">אירועים</h2>
+        <button className="btn-primary" onClick={openCreateEventModal}>+ אירוע חדש</button>
+      </div>
+      {/* Table of events */}
+      {/* Modal for add/edit */}
+    </div>
+  );
+}
+AvailabilityTab & ServicesTab
+
+Open ScheduleAndServices.jsx and identify:
+
+The part that edits weekly schedule (availability).
+
+The part that edits services (services list, add/edit/delete).
+
+Split them into two components:
+
+AvailabilityTab.jsx:
+
+Weekly Schedule editor (days of week, from/to time ranges).
+
+Blocked dates management.
+
+bufferTime, maxAdvanceBookingDays controls.
+
+Use existing API endpoints:
+
+/api/availability/settings
+
+/api/availability/block etc.
+
+ServicesTab.jsx:
+
+Table of services:
+
+name
+
+duration
+
+price
+
+isActive
+
+(optional) color
+
+Modal/form to add/edit a service.
+
+Use endpoints:
+
+/api/availability/services
+
+/api/availability/services/:id
+
+Keep all labels in Hebrew, e.g.:
+
+Availability:
+
+שעות פעילות שבועיות
+
+הפסקות וחסימות
+
+הזמנה מקסימלית מראש (ימים)
+
+זמן ריווח בין תורים (דקות)
+
+Services:
+
+שם השירות
+
+משך (בדקות)
+
+מחיר
+
+פעיל
+
+צבע ביומן (optional)
+
+CalendarTab
+
+Use the new Calendar view that integrates with /api/calendar (aggregated items).
+
+If already implemented elsewhere, move that logic into CalendarTab.jsx.
+
+The Calendar should:
+
+Show week view by default.
+
+Support navigation (previous week, today, next week).
+
+Support click on empty slot → open "Create appointment" modal.
+
+Support toggle “mode”:
+
+Create appointment
+
+Block time (calls /api/availability/block).
+
+Render items as colored cards by type:
+
+Appointment
+
+Event
+
+Blocked
+
+Google
+
+This tab is mostly read-only visually, but with the ability to add new bookings/blocks.
+
+================================================
+STEP 3 – Integrate ScheduleManager into the router & sidebar
+Find the main admin routing file, something like:
+
+client/src/routes/AdminRoutes.jsx or similar.
+
+Add a route for the new page:
+
+jsx
+Copy code
+<Route path="/app/schedule" element={<ScheduleManager />} />
+In the sidebar navigation component, replace / extend existing items:
+
+If there is currently:
+
+"תורים" → linking to /app/appointments
+
+"אירועים" → linking to /app/events
+
+"זמינות ושירותים" → linking to /app/availability or similar
+
+Update to have a single menu item:
+
+Label: ניהול יומן ותורים
+
+Icon: calendar/clock icon
+
+Route: /app/schedule
+
+Optionally keep the old items but redirect them to /app/schedule (to avoid breaking old links).
+
+================================================
+STEP 4 – Styling & UX details
+Wrap the entire ScheduleManager content with:
+
+jsx
+Copy code
+<div dir="rtl" className="p-4">
+  {/* Title, tabs, content */}
+</div>
+Use a standard title:
+
+jsx
+Copy code
+<h1 className="text-2xl font-bold mb-4">📆 ניהול יומן ותורים</h1>
+Keep spacing consistent:
+
+Use space-y-4, gap-4, p-4, rounded-md, border, bg-white.
+
+Ensure all Hebrew is correct and RTL-friendly:
+
+Days names, labels, buttons.
+
+================================================
+STEP 5 – Backwards compatibility and cleanup
+Do NOT delete the old files immediately (Appointments.jsx, Events.jsx, ScheduleAndServices.jsx).
+
+After the new ScheduleManager page works:
+
+You can either:
+
+Keep old pages but no longer link to them in the UI.
+
+Or refactor them to re-export the new tab components if used elsewhere.
+
+Test flows:
+
+Admin opens /app/schedule.
+
+Goes to:
+
+"זמינות" tab → updates weekly schedule.
+
+"שירותים" tab → defines services and durations.
+
+"יומן" tab → sees overlapping appointments & events.
+
+"תורים" tab → manages the list of appointments manually.
+
+"אירועים" tab → manages events.
+
+The end result should be:
+
+One unified admin page (ScheduleManager) with 5 tabs:
+
+Calendar
+
+Appointments
+
+Events
+
+Availability
+
+Services
+
+Clean, RTL, Tailwind-styled UI.
+
+Maximum reuse of existing logic and components.
