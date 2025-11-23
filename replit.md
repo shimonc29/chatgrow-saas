@@ -12,6 +12,22 @@ I prefer detailed explanations.
 
 ## Recent Changes
 
+**November 23, 2025 - Interactive Calendar Integration in Schedule Manager**
+- Integrated full Interactive Calendar System into Schedule Manager's "יומן" tab
+- Removed placeholder text and replaced with complete weekly calendar view
+- Calendar features now accessible from single unified interface at `/schedule`:
+  - Weekly calendar grid with 7-day view showing all appointments, events, blocks, and Google Calendar items
+  - Dual-mode functionality: appointment booking mode (teal) / time blocking mode (red)
+  - Color-coded items by type: appointments (blue), events (green), blocked time (red), availability (emerald), Google Calendar (purple)
+  - Interactive cells: click any day to create appointment or block time based on selected mode
+  - Click existing items to view details with type-specific actions (cancel, remove, view details)
+  - Week navigation: previous week, today, next week
+  - Weekly summary statistics by item type
+  - Three modals: AppointmentModal for quick creation, BlockTimeModal for time blocking, ItemDetailsModal for item details
+- Calendar data loaded via `/api/calendar` endpoint with date range filtering
+- Auto-refresh after modal actions (create/edit/delete) updates all related lists
+- Maintains backward compatibility with standalone `/calendar` route
+
 **November 23, 2025 - Public Appointment Booking System Upgrade**
 - Created new unified booking endpoint `POST /api/public/appointments` using serviceId from Availability model (replaces legacy serviceType system)
 - Built 4 new booking UI components: ServiceCard, CalendarPicker, TimeSlotPicker, SuccessMessage
