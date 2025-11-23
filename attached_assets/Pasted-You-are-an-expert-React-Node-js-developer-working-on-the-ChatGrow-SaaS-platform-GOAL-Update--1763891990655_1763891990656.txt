@@ -1,0 +1,146 @@
+You are an expert React + Node.js developer working on the ChatGrow SaaS platform.
+
+GOAL:
+Update and upgrade the PUBLIC booking page so that customers booking a service will only see valid dates and time slots based on the unified scheduling system.
+
+This prompt refers to existing backend and frontend code. The goal is to fully integrate:
+
+- Weekly availability settings
+- Service durations
+- Blocked dates
+- Existing appointments
+- Existing events
+- Global buffer time (between appointments)
+- Max advance booking days
+- Calendar aggregation layer
+
+====================================================
+PART 1 — BACKEND REQUIREMENTS (API LEVEL)
+====================================================
+
+Ensure the following backend endpoints exist and work correctly:
+
+1. GET /api/public/services  
+   → Returns the active services for this provider:
+     - id
+     - name
+     - duration
+     - price
+     - color (optional)
+     - isActive
+
+2. GET /api/public/availability/slots?date=YYYY-MM-DD&serviceId=XXXXX  
+   → Return all valid available time slots for that date based on:
+      - provider weekly schedule
+      - blocked dates
+      - existing appointments
+      - existing events
+      - service duration
+      - buffer time
+      - maxAdvanceBookingDays
+   → Format:
+     {
+       date: "2025-01-20",
+       slots: ["09:00", "10:30", "13:00"]
+     }
+
+3. POST /api/public/appointments  
+   → Create a new appointment based on:
+     - customer details
+     - selected service
+     - selected date
+     - selected time slot
+
+4. Validate that overlapping bookings are prevented.
+
+5. Ensure all public API responses are in clean JSON format and support Hebrew content.
+
+====================================================
+PART 2 — FRONTEND REQUIREMENTS (Public Booking Page)
+====================================================
+
+Modify the page:  
+`client/src/pages/public/AppointmentBooking.jsx`
+
+REPLACE the existing logic with a 4-step booking flow:
+
+=====================
+STEP 1 — Select Service
+=====================
+- Fetch services from `/api/public/services`
+- Display cards or a dropdown of services
+- When a service is selected:
+  - Store serviceId & duration in state
+  - Load available dates based on provider availability rules
+
+=====================
+STEP 2 — Choose Date (Calendar UI)
+=====================
+- Render a small monthly calendar
+- Disabled dates:
+  - Not in weekly schedule
+  - Blocked dates
+  - Days with no available slots
+  - Beyond maxAdvanceBookingDays
+- When date is selected:
+  - Fetch time slots:
+    `/api/public/availability/slots?date=YYYY-MM-DD&serviceId=XXXX`
+
+=====================
+STEP 3 — Choose Time Slot
+=====================
+- Display available slots returned from backend
+- If no slots → show message:
+  "אין שעות זמינות ביום זה"
+
+=====================
+STEP 4 — Customer Details & Confirmation
+=====================
+Form fields:
+- Full name
+- Phone
+- Email (optional)
+- Notes (optional)
+
+Buttons:
+- "המשך"
+- "אישור הזמנה"
+
+On submit:
+→ POST to `/api/public/appointments`
+
+Show success screen:
+- Date, time, service name
+- "תודה! ההזמנה נקלטה."
+
+====================================================
+PART 3 — UI / DESIGN REQUIREMENTS
+====================================================
+
+- RTL layout (`dir="rtl"`)
+- Tailwind styling
+- Clean modern layout like the rest of ChatGrow
+- Use:
+  - `space-y-6`
+  - `bg-white`
+  - `rounded-xl`
+  - `shadow-sm`
+  - `border`
+  - `p-6`
+
+Calendar styling:
+- Available day = clickable, hover:bg-sky-100
+- Unavailable day = bg-gray-100 text-gray-400 cursor-not-allowed
+- Selected day = bg-sky-600 text-white
+
+Slots styling:
+- Grid layout
+- Available slot = border, rounded, hover:bg-sky-100
+- Selected slot = bg-sky-600 text-white
+
+====================================================
+PART 4 — STATE MANAGEMENT STRUCTURE
+====================================================
+
+Use a state machine-like approach:
+
