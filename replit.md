@@ -17,9 +17,11 @@ I prefer detailed explanations.
 - Built 4 new booking UI components: ServiceCard, CalendarPicker, TimeSlotPicker, SuccessMessage
 - Completely rewrote AppointmentBooking.jsx with modern 4-step booking flow (Service Selection → Date Selection → Time Selection → Customer Details + Confirmation)
 - Integrated with unified availability system: service-specific constraints, conflict detection with appointments/events, server-side price/duration validation
-- Enhanced UX: step navigation breadcrumbs, progress tracking, "Add to Google Calendar" button in success message
+- Enhanced UX: step navigation breadcrumbs, progress tracking, "Add to Google Calendar" button in success message, calendar navigation restrictions matching backend booking windows
 - Full source tracking support for acquisition analytics (sourceKey, UTM parameters, referralCode)
 - Backward compatibility maintained: legacy `/appointments/book` endpoint still functional for existing integrations
+- **Comprehensive Backend Validation**: minAdvanceBookingHours (minimum advance notice), maxAdvanceBookingDays (booking window with nullish coalescing for 0-value support), blocked dates, service-specific allowed days/time ranges with multi-range support for consecutive slots, weekly schedule validation with safe guards for legacy providers without weeklySchedule, and conflict detection with existing appointments/events
+- **Security & Data Integrity**: Server-side price/duration enforcement from Availability model (never trust client-supplied values), safe defaults for missing fields (maxAdvanceBookingDays ?? 30, minAdvanceBookingHours ?? 0), and backward compatibility guards for providers without new schema fields
 
 **November 22, 2025 - Unified Schedule & Services Interface**
 - Merged Availability/Services/Calendar into single "יומן, זמינות ושירותים" page (`/schedule`)
