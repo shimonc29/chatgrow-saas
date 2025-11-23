@@ -34,11 +34,41 @@ const CalendarPicker = ({ onSelectDate, minDate, maxDaysAhead = 30, disabledDate
   };
   
   const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+    const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
+    const prevMonthStart = new Date(prevMonth);
+    prevMonthStart.setDate(1);
+    prevMonthStart.setHours(0, 0, 0, 0);
+    
+    if (prevMonthStart >= today) {
+      setCurrentMonth(prevMonth);
+    }
   };
   
   const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+    const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+    const nextMonthEnd = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    nextMonthEnd.setHours(23, 59, 59, 999);
+    
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + maxDaysAhead);
+    
+    if (nextMonthEnd <= maxDate) {
+      setCurrentMonth(nextMonth);
+    }
+  };
+  
+  const canGoPrev = () => {
+    const prevMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+    prevMonthStart.setHours(0, 0, 0, 0);
+    return prevMonthStart >= today;
+  };
+  
+  const canGoNext = () => {
+    const nextMonthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 2, 0);
+    nextMonthEnd.setHours(23, 59, 59, 999);
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + maxDaysAhead);
+    return nextMonthEnd <= maxDate;
   };
   
   const handleDateClick = (day) => {
@@ -88,7 +118,8 @@ const CalendarPicker = ({ onSelectDate, minDate, maxDaysAhead = 30, disabledDate
         <button
           type="button"
           onClick={handleNextMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          disabled={!canGoNext()}
+          className={`p-2 rounded-lg transition-colors ${canGoNext() ? 'hover:bg-gray-100' : 'opacity-30 cursor-not-allowed'}`}
         >
           ←
         </button>
@@ -98,7 +129,8 @@ const CalendarPicker = ({ onSelectDate, minDate, maxDaysAhead = 30, disabledDate
         <button
           type="button"
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          disabled={!canGoPrev()}
+          className={`p-2 rounded-lg transition-colors ${canGoPrev() ? 'hover:bg-gray-100' : 'opacity-30 cursor-not-allowed'}`}
         >
           →
         </button>

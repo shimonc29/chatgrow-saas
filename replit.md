@@ -12,6 +12,15 @@ I prefer detailed explanations.
 
 ## Recent Changes
 
+**November 23, 2025 - Public Appointment Booking System Upgrade**
+- Created new unified booking endpoint `POST /api/public/appointments` using serviceId from Availability model (replaces legacy serviceType system)
+- Built 4 new booking UI components: ServiceCard, CalendarPicker, TimeSlotPicker, SuccessMessage
+- Completely rewrote AppointmentBooking.jsx with modern 4-step booking flow (Service Selection → Date Selection → Time Selection → Customer Details + Confirmation)
+- Integrated with unified availability system: service-specific constraints, conflict detection with appointments/events, server-side price/duration validation
+- Enhanced UX: step navigation breadcrumbs, progress tracking, "Add to Google Calendar" button in success message
+- Full source tracking support for acquisition analytics (sourceKey, UTM parameters, referralCode)
+- Backward compatibility maintained: legacy `/appointments/book` endpoint still functional for existing integrations
+
 **November 22, 2025 - Unified Schedule & Services Interface**
 - Merged Availability/Services/Calendar into single "יומן, זמינות ושירותים" page (`/schedule`)
 - Enhanced Availability model with service-specific constraints: `allowedDaysOfWeek` (0-6), `allowedTimeRanges` (HH:MM-HH:MM), `color` (hex)

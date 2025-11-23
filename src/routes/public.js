@@ -1558,6 +1558,136 @@ router.post('/appointments', async (req, res) => {
         const startTimeStr = time;
         const endTimeStr = `${String(appointmentEnd.getHours()).padStart(2, '0')}:${String(appointmentEnd.getMinutes()).padStart(2, '0')}`;
 
+        // SECURITY: Validate appointment date/time against availability rules
+        const normalizedRequestedDate = new Date(appointmentDate);
+        normalizedRequestedDate.setHours(0, 0, 0, 0);
+        
+        const normalizedNow = new Date();
+        normalizedNow.setHours(0, 0, 0, 0);
+        
+        // Check maxAdvanceBookingDays (with safe default using nullish coalescing)
+        const maxAdvanceBookingDays = availability.maxAdvanceBookingDays ?? 30;
+        const daysDiff = Math.ceil((normalizedRequestedDate - normalizedNow) / (1000 * 60 * 60 * 24));
+        if (daysDiff > maxAdvanceBookingDays) {
+            return res.status(400).json({
+                success: false,
+                message: `ניתן לקבוע תור עד ${maxAdvanceBookingDays} ימים מראש`
+            });
+        }
+        
+        // Check minAdvanceBookingHours (with safe default using nullish coalescing)
+        const minAdvanceBookingHours = availability.minAdvanceBookingHours ?? 0;
+        const minAdvanceMs = minAdvanceBookingHours * 60 * 60 * 1000;
+        if (appointmentStart.getTime() < Date.now() + minAdvanceMs) {
+            return res.status(400).json({
+                success: false,
+                message: `יש לקבוע תור לפחות ${minAdvanceBookingHours} שעות מראש`
+            });
+        }
+        
+        // Check if date is blocked
+        const isBlocked = availability.blockedDates.some(blocked => {
+            const blockedDate = new Date(blocked.date);
+            return blockedDate.toDateString() === appointmentDate.toDateString();
+        });
+        
+        if (isBlocked) {
+            return res.status(400).json({
+                success: false,
+                message: 'תאריך זה חסום ואינו זמין לקביעת תורים'
+            });
+        }
+        
+        // Check service-specific allowed days of week
+        const dayOfWeek = normalizedRequestedDate.getDay();
+        if (service.allowedDaysOfWeek && service.allowedDaysOfWeek.length > 0) {
+            if (!service.allowedDaysOfWeek.includes(dayOfWeek)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'שירות זה אינו זמין ביום זה'
+                });
+            }
+        }
+        
+        // Check weekly schedule availability for this day (if exists)
+        if (availability.weeklySchedule && Array.isArray(availability.weeklySchedule)) {
+            const daySchedule = availability.weeklySchedule.find(d => d.dayOfWeek === dayOfWeek);
+            if (!daySchedule || !daySchedule.isAvailable || !daySchedule.timeSlots || daySchedule.timeSlots.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'אין זמינות ביום זה'
+                });
+            }
+            
+            // Check if time falls within service-specific allowed time ranges
+            // Allow bookings that span multiple consecutive ranges
+            if (service.allowedTimeRanges && service.allowedTimeRanges.length > 0) {
+                // Sort ranges by start time
+                const sortedRanges = service.allowedTimeRanges.slice().sort((a, b) => 
+                    a.startTime.localeCompare(b.startTime)
+                );
+                
+                // Check if appointment start falls within any range
+                const startsInRange = sortedRanges.some(range => 
+                    startTimeStr >= range.startTime && startTimeStr < range.endTime
+                );
+                
+                // Check if appointment end falls within any range
+                const endsInRange = sortedRanges.some(range => 
+                    endTimeStr > range.startTime && endTimeStr <= range.endTime
+                );
+                
+                // Check if entire appointment is covered by consecutive ranges
+                let covered = false;
+                if (startsInRange && endsInRange) {
+                    // Find all ranges that overlap with the appointment
+                    const overlappingRanges = sortedRanges.filter(range => 
+                        !(endTimeStr <= range.startTime || startTimeStr >= range.endTime)
+                    );
+                    
+                    // Check if overlapping ranges form a continuous period
+                    if (overlappingRanges.length > 0) {
+                        let currentEnd = overlappingRanges[0].startTime;
+                        covered = true;
+                        
+                        for (const range of overlappingRanges) {
+                            if (range.startTime > currentEnd) {
+                                // Gap found
+                                covered = false;
+                                break;
+                            }
+                            currentEnd = range.endTime > currentEnd ? range.endTime : currentEnd;
+                        }
+                        
+                        // Verify the continuous period covers the entire appointment
+                        if (covered && (overlappingRanges[0].startTime > startTimeStr || currentEnd < endTimeStr)) {
+                            covered = false;
+                        }
+                    }
+                }
+                
+                if (!covered && !startsInRange) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'השעה שנבחרה אינה בטווח הזמנים המותר לשירות זה'
+                    });
+                }
+            }
+            
+            // Check if time falls within day schedule time slots
+            const timeInDaySchedule = daySchedule.timeSlots.some(slot => {
+                return startTimeStr >= slot.startTime && endTimeStr <= slot.endTime;
+            });
+            
+            if (!timeInDaySchedule) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'השעה שנבחרה אינה בטווח שעות העבודה'
+                });
+            }
+        }
+        // If no weeklySchedule, skip time slot validation (legacy providers)
+
         // Check for overlapping appointments
         const dayStart = new Date(appointmentDate);
         dayStart.setHours(0, 0, 0, 0);
