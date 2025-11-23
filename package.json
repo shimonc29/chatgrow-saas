@@ -75,18 +75,26 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
     "@eslint/js": "^9.39.1",
     "@redis/client": "^5.8.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "babel-jest": "^30.2.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
+    "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "lint-staged": "^16.2.7",
     "nodemon": "^3.0.2",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "supertest": "^7.1.4"
   },
   "engines": {
     "node": ">=14.0.0"

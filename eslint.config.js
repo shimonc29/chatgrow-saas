@@ -102,4 +102,18 @@ export default [
       'no-console': 'off',
     },
   },
+
+  // Test files config
+  {
+    files: ['**/*.test.{js,jsx}', '**/*.spec.{js,jsx}', '**/setupTests.js', '**/testUtils.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ];
