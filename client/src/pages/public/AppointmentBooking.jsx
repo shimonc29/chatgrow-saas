@@ -1,581 +1,490 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { getSourceTracking, buildSourceKey, storeSourceTracking } from '../../utils/sourceTracking';
+import ServiceCard from '../../components/booking/ServiceCard';
+import CalendarPicker from '../../components/booking/CalendarPicker';
+import TimeSlotPicker from '../../components/booking/TimeSlotPicker';
+import SuccessMessage from '../../components/booking/SuccessMessage';
 
 function AppointmentBooking() {
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const businessId = searchParams.get('businessId');
+  const [searchParams] = useSearchParams();
+  const businessId = searchParams.get('businessId');
+  
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
+  
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(null);
+  
+  const [customer, setCustomer] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    notes: ''
+  });
+  
+  const [successData, setSuccessData] = useState(null);
+
+  useEffect(() => {
+    if (!businessId) {
+      setError('לא נמצא מזהה עסק. אנא השתמש בקישור המלא שקיבלת.');
+      setLoading(false);
+    } else {
+      fetchServices();
+      
+      const tracking = getSourceTracking();
+      if (!tracking.sourceKey) {
+        tracking.sourceKey = buildSourceKey('appointment', businessId);
+      }
+      storeSourceTracking(tracking);
+    }
+  }, [businessId]);
+
+  useEffect(() => {
+    if (selectedService && selectedDate) {
+      fetchAvailableSlots();
+    }
+  }, [selectedService, selectedDate]);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/public/services?providerId=${businessId}`);
+      if (response.data.success) {
+        setServices(response.data.services);
+        setError('');
+      }
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      setError('שגיאה בטעינת רשימת השירותים');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableSlots = async () => {
+    try {
+      setLoadingSlots(true);
+      const response = await axios.get('/api/public/availability/slots', {
+        params: {
+          providerId: businessId,
+          date: selectedDate,
+          serviceId: selectedService._id
+        }
+      });
+      if (response.data.success) {
+        setTimeSlots(response.data.slots || []);
+      } else {
+        setTimeSlots([]);
+      }
+    } catch (err) {
+      console.error('Error fetching available slots:', err);
+      setTimeSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleSelectService = (service) => {
+    setSelectedService(service);
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setTimeSlots([]);
+    setStep(2);
+  };
+
+  const handleSelectDate = (date) => {
+    setSelectedDate(date);
+    setSelectedTime(null);
+    setStep(3);
+  };
+
+  const handleSelectTime = (time) => {
+    setSelectedTime(time);
+    setStep(4);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState('');
-    const [services, setServices] = useState([]);
-    const [availableSlots, setAvailableSlots] = useState([]);
-    const [loadingSlots, setLoadingSlots] = useState(false);
-    const [paymentOptions, setPaymentOptions] = useState(null);
-    const [existingAppointments, setExistingAppointments] = useState([]);
+    if (!customer.firstName || !customer.lastName || !customer.phone) {
+      setError('נא למלא את כל השדות הנדרשים: שם פרטי, שם משפחה וטלפון');
+      return;
+    }
     
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        serviceId: '',
-        date: '',
-        time: '',
-        notes: '',
+    try {
+      setSubmitting(true);
+      setError('');
+      
+      const tracking = getSourceTracking();
+      
+      const response = await axios.post('/api/public/appointments', {
+        businessId,
+        serviceId: selectedService._id,
+        date: selectedDate,
+        time: selectedTime,
+        customer: {
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          phone: customer.phone,
+          email: customer.email || '',
+        },
+        notes: customer.notes,
         paymentMethod: 'credit_card',
         provider: 'manual',
-        price: 0
+        sourceKey: tracking.sourceKey,
+        utmSource: tracking.utmSource,
+        utmMedium: tracking.utmMedium,
+        utmCampaign: tracking.utmCampaign,
+        utmTerm: tracking.utmTerm,
+        utmContent: tracking.utmContent,
+        referralCode: tracking.referralCode
+      });
+      
+      if (response.data.success) {
+        setSuccessData({
+          serviceName: selectedService.name,
+          date: selectedDate,
+          time: selectedTime,
+          duration: selectedService.duration,
+          price: selectedService.price
+        });
+      } else {
+        setError(response.data.message || 'שגיאה בקביעת התור');
+      }
+    } catch (err) {
+      console.error('Error booking appointment:', err);
+      setError(err.response?.data?.message || 'שגיאה בקביעת התור. אנא נסה שוב.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetBooking = () => {
+    setSuccessData(null);
+    setStep(1);
+    setSelectedService(null);
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setCustomer({
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: '',
+      notes: ''
     });
+  };
 
-    useEffect(() => {
-        if (!businessId) {
-            setError('לא נמצא מזהה עסק. אנא השתמש בקישור המלא שקיבלת.');
-            setLoading(false);
-        } else {
-            fetchServices();
-            fetchPaymentOptions();
-            fetchExistingAppointments();
-            
-            // Capture and store source tracking
-            const tracking = getSourceTracking();
-            // Add sourceKey for appointment booking if not already set
-            if (!tracking.sourceKey) {
-                tracking.sourceKey = buildSourceKey('appointment', businessId);
-            }
-            storeSourceTracking(tracking);
-        }
-    }, [businessId]);
-
-    const fetchServices = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`/api/public/services?providerId=${businessId}`);
-            if (response.data.success) {
-                setServices(response.data.services);
-            }
-        } catch (err) {
-            console.error('Error fetching services:', err);
-            setError('שגיאה בטעינת רשימת השירותים');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchPaymentOptions = async () => {
-        try {
-            const response = await axios.get(`/api/public/appointments/payment-options?businessId=${businessId}`);
-            if (response.data.success) {
-                setPaymentOptions(response.data.paymentOptions);
-                
-                // Set default provider based on available options (priority order)
-                if (response.data.paymentOptions.tranzila) {
-                    setFormData(prev => ({ ...prev, provider: 'tranzila' }));
-                } else if (response.data.paymentOptions.cardcom) {
-                    setFormData(prev => ({ ...prev, provider: 'cardcom' }));
-                } else if (response.data.paymentOptions.meshulam) {
-                    setFormData(prev => ({ ...prev, provider: 'meshulam' }));
-                } else if (response.data.paymentOptions.external) {
-                    setFormData(prev => ({ ...prev, provider: 'external' }));
-                } else {
-                    setFormData(prev => ({ ...prev, provider: 'manual' }));
-                }
-            }
-        } catch (err) {
-            console.error('Error fetching payment options:', err);
-        }
-    };
-
-    const fetchExistingAppointments = async () => {
-        try {
-            const response = await axios.get(`/api/public/appointments/existing?providerId=${businessId}`);
-            if (response.data.success) {
-                setExistingAppointments(response.data.appointments || []);
-            }
-        } catch (err) {
-            console.error('Error fetching existing appointments:', err);
-        }
-    };
-
-    const fetchAvailableSlots = async (date, serviceId) => {
-        if (!date || !serviceId) return;
-
-        try {
-            setLoadingSlots(true);
-            const response = await axios.get('/api/public/availability/slots', {
-                params: {
-                    providerId: businessId,
-                    date,
-                    serviceId
-                }
-            });
-            if (response.data.success) {
-                setAvailableSlots(response.data.slots);
-            }
-        } catch (err) {
-            console.error('Error fetching available slots:', err);
-            setAvailableSlots([]);
-        } finally {
-            setLoadingSlots(false);
-        }
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        
-        if (name === 'serviceId') {
-            const selectedService = services.find(s => s._id === value);
-            setFormData(prev => ({
-                ...prev,
-                [name]: value,
-                price: selectedService ? selectedService.price : 0,
-                time: ''
-            }));
-            
-            if (formData.date && value) {
-                fetchAvailableSlots(formData.date, value);
-            }
-        } else if (name === 'date') {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value,
-                time: ''
-            }));
-            
-            if (formData.serviceId && value) {
-                fetchAvailableSlots(value, formData.serviceId);
-            }
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!businessId) {
-            setError('לא נמצא מזהה עסק');
-            return;
-        }
-
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || 
-            !formData.serviceId || !formData.date || !formData.time) {
-            setError('נא למלא את כל השדות החובה');
-            return;
-        }
-
-        try {
-            setSubmitting(true);
-            setError('');
-
-            // Combine date and time
-            const dateTime = new Date(`${formData.date}T${formData.time}`);
-            
-            // Get source tracking for analytics
-            const sourceTracking = getSourceTracking();
-            
-            // SECURITY: Do NOT send price or duration - server validates from catalog
-            const selectedService = services.find(s => s._id === formData.serviceId);
-            const response = await axios.post('/api/public/appointments/book', {
-                businessId,
-                customer: {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phone: formData.phone
-                },
-                serviceType: selectedService?.name || 'appointment',
-                serviceId: formData.serviceId,
-                dateTime: dateTime.toISOString(),
-                notes: formData.notes,
-                paymentMethod: formData.paymentMethod,
-                provider: formData.provider,
-                // Include source tracking
-                ...sourceTracking
-            });
-
-            if (response.data.success) {
-                // If payment gateway is used, redirect to payment page
-                if (response.data.requiresRedirect && response.data.paymentUrl) {
-                    window.location.href = response.data.paymentUrl;
-                } else {
-                    // For manual payments or free appointments, show success
-                    navigate(`/payment/success?type=appointment&id=${response.data.booking.appointment._id}`);
-                }
-            }
-        } catch (err) {
-            console.error('Error booking appointment:', err);
-            setError(err.response?.data?.message || 'שגיאה בקביעת התור');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    // Get minimum date (today)
-    const getMinDate = () => {
-        const today = new Date();
-        return today.toISOString().split('T')[0];
-    };
-
-    // Get maximum date (3 months from now)
-    const getMaxDate = () => {
-        const maxDate = new Date();
-        maxDate.setMonth(maxDate.getMonth() + 3);
-        return maxDate.toISOString().split('T')[0];
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center relative overflow-hidden">
-                <div className="absolute top-20 left-20 w-72 h-72 bg-yellow-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl"></div>
-                <div className="text-xl text-yellow-400 relative z-10">טוען...</div>
-            </div>
-        );
+  const goBackToStep = (targetStep) => {
+    setStep(targetStep);
+    if (targetStep < 3) {
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setTimeSlots([]);
     }
-
-    if (error && (!businessId || services.length === 0)) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 relative overflow-hidden" dir="rtl">
-                <div className="absolute top-20 left-20 w-72 h-72 bg-yellow-500/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl"></div>
-                <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 p-8 rounded-lg max-w-md w-full text-center relative z-10">
-                    <div className="text-yellow-500 text-xl mb-4">❌</div>
-                    <h2 className="text-2xl font-bold text-yellow-400 mb-4">{error}</h2>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-2 rounded-lg shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70 transition font-bold"
-                    >
-                        חזרה לדף הבית
-                    </button>
-                </div>
-            </div>
-        );
+    if (targetStep < 2) {
+      setSelectedService(null);
     }
+  };
 
+  if (successData) {
+    return <SuccessMessage appointment={successData} onClose={resetBooking} />;
+  }
+
+  if (loading) {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black py-12 px-4 relative overflow-hidden" dir="rtl">
-            <div className="absolute top-20 left-20 w-72 h-72 bg-yellow-500/20 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl"></div>
-            <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl"></div>
-            
-            <div className="max-w-3xl mx-auto relative z-10">
-                {/* Header */}
-                <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 rounded-lg p-8 mb-6 text-center">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent mb-2">📅 קביעת תור</h1>
-                    <p className="text-gray-300 text-lg">בחר את השירות המבוקש ותאריך נוח עבורך</p>
-                </div>
-
-                {/* Existing Appointments Display */}
-                {existingAppointments.length > 0 && (
-                    <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 rounded-lg p-6 mb-6">
-                        <h2 className="text-xl font-bold text-yellow-400 mb-4">📌 תורים קיימים</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {existingAppointments.slice(0, 10).map((appt, index) => (
-                                <div 
-                                    key={index}
-                                    className="bg-black/50 border border-yellow-600/20 rounded-lg p-3"
-                                >
-                                    <div className="text-yellow-400 font-semibold">{appt.service}</div>
-                                    <div className="text-gray-300 text-sm mt-1">
-                                        📅 {appt.date}
-                                    </div>
-                                    <div className="text-gray-400 text-sm">
-                                        🕐 {appt.time} - {appt.endTime}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        {existingAppointments.length > 10 && (
-                            <div className="text-gray-400 text-sm text-center mt-3">
-                                ועוד {existingAppointments.length - 10} תורים נוספים...
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Booking Form */}
-                <div className="bg-gradient-to-br from-gray-900 to-black border border-yellow-600/30 shadow-lg shadow-yellow-500/10 rounded-lg p-8">
-                    <h2 className="text-2xl font-bold text-yellow-400 mb-6">פרטי התור</h2>
-
-                    {error && (
-                        <div className="bg-red-900/20 border border-red-500/30 text-red-300 px-4 py-3 rounded mb-6">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Personal Information */}
-                        <div className="border-b border-yellow-600/20 pb-6">
-                            <h3 className="text-lg font-bold text-yellow-400 mb-4">פרטים אישיים</h3>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        שם פרטי *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
-                                        placeholder="הזן שם פרטי"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        שם משפחה *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
-                                        placeholder="הזן שם משפחה"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        דוא״ל *
-                                    </label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
-                                        placeholder="example@email.com"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        טלפון *
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
-                                        placeholder="05X-XXXXXXX"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Service Selection */}
-                        <div className="border-b border-yellow-600/20 pb-6">
-                            <h3 className="text-lg font-bold text-yellow-400 mb-4">בחירת שירות</h3>
-                            
-                            <div>
-                                <label className="block text-gray-300 font-medium mb-2">
-                                    סוג שירות *
-                                </label>
-                                <select
-                                    name="serviceId"
-                                    value={formData.serviceId}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                >
-                                    <option value="">בחר שירות</option>
-                                    {services.map(service => (
-                                        <option key={service._id} value={service._id}>
-                                            {service.name} - {service.duration} דקות (₪{service.price})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {formData.serviceId && (
-                                <div className="mt-4 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-600/30 p-4 rounded-lg">
-                                    <div className="text-sm text-gray-300 mb-1">משך: {services.find(s => s._id === formData.serviceId)?.duration} דקות</div>
-                                    <div className="text-2xl font-bold text-yellow-400">
-                                        ₪{formData.price}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Date & Time Selection */}
-                        <div className="border-b border-yellow-600/20 pb-6">
-                            <h3 className="text-lg font-bold text-yellow-400 mb-4">תאריך ושעה</h3>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        תאריך *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        value={formData.date}
-                                        onChange={handleChange}
-                                        required
-                                        min={getMinDate()}
-                                        max={getMaxDate()}
-                                        className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-300 font-medium mb-2">
-                                        שעה *
-                                    </label>
-                                    {loadingSlots ? (
-                                        <div className="w-full px-4 py-2 bg-black border border-yellow-600/30 rounded-lg text-gray-400">
-                                            טוען שעות זמינות...
-                                        </div>
-                                    ) : (
-                                        <select
-                                            name="time"
-                                            value={formData.time}
-                                            onChange={handleChange}
-                                            required
-                                            disabled={!formData.date || !formData.serviceId}
-                                            className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50"
-                                        >
-                                            <option value="">
-                                                {!formData.serviceId ? 'בחר שירות תחילה' : !formData.date ? 'בחר תאריך תחילה' : 'בחר שעה'}
-                                            </option>
-                                            {availableSlots.map(slot => (
-                                                <option key={slot.time} value={slot.time}>
-                                                    {slot.time}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                    {formData.date && formData.serviceId && availableSlots.length === 0 && !loadingSlots && (
-                                        <div className="mt-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
-                                            <div className="text-red-300 text-sm font-semibold">❌ אין שעות זמינות בתאריך זה</div>
-                                            <div className="text-red-400 text-xs mt-1">
-                                                אנא בחר תאריך אחר או פנה ישירות לבעל העסק
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="mt-4">
-                                <label className="block text-gray-300 font-medium mb-2">
-                                    הערות (אופציונלי)
-                                </label>
-                                <textarea
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleChange}
-                                    rows={3}
-                                    className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent placeholder-gray-500"
-                                    placeholder="פרטים נוספים או בקשות מיוחדות..."
-                                />
-                            </div>
-                        </div>
-
-                        {/* Payment Information */}
-                        {formData.price > 0 && (
-                            <div className="border-t border-yellow-600/20 pt-6">
-                                <h3 className="text-lg font-bold text-yellow-400 mb-4">פרטי תשלום</h3>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-gray-300 font-medium mb-2">
-                                            אמצעי תשלום
-                                        </label>
-                                        <select
-                                            name="paymentMethod"
-                                            value={formData.paymentMethod}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                        >
-                                            <option value="credit_card">כרטיס אשראי</option>
-                                            <option value="bit">Bit</option>
-                                            <option value="bank_transfer">העברה בנקאית</option>
-                                            <option value="cash">מזומן</option>
-                                        </select>
-                                    </div>
-
-                                    {paymentOptions && (
-                                        <div>
-                                            <label className="block text-gray-300 font-medium mb-2">
-                                                ספק תשלום
-                                            </label>
-                                            <select
-                                                name="provider"
-                                                value={formData.provider}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-2 bg-black border border-yellow-600/30 text-white rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                            >
-                                                {paymentOptions.manual && (
-                                                    <option value="manual">תשלום ידני</option>
-                                                )}
-                                                {paymentOptions.tranzila && (
-                                                    <option value="tranzila">Tranzila</option>
-                                                )}
-                                                {paymentOptions.cardcom && (
-                                                    <option value="cardcom">Cardcom</option>
-                                                )}
-                                                {paymentOptions.meshulam && (
-                                                    <option value="meshulam">Meshulam (GROW)</option>
-                                                )}
-                                                {paymentOptions.external && (
-                                                    <option value="external">{paymentOptions.externalLabel}</option>
-                                                )}
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="mt-6 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-600/30 p-6 rounded-lg">
-                                    <div className="flex justify-between items-center">
-                                        <div className="text-gray-300">סכום לתשלום:</div>
-                                        <div className="text-3xl font-bold text-yellow-400">
-                                            ₪{formData.price}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black py-4 px-6 rounded-lg font-bold text-lg shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/70 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {submitting ? 'מעבד...' : formData.price > 0 ? 'המשך לתשלום וקבע תור' : 'קבע תור'}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Information Notice */}
-                <div className="mt-6 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-600/30 rounded-lg p-6">
-                    <h4 className="font-bold text-yellow-400 mb-2">ℹ️ מידע חשוב</h4>
-                    <ul className="text-sm text-gray-300 space-y-1">
-                        <li>• תקבל אישור למייל ולטלפון לאחר קביעת התור</li>
-                        <li>• ניתן לבטל/לשנות תור עד 24 שעות מראש</li>
-                        <li>• במידה ותאחר, נא ליצור קשר מראש</li>
-                    </ul>
-                </div>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-gray-600 text-lg">טוען...</p>
         </div>
+      </div>
     );
+  }
+
+  if (error && !services.length) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center" dir="rtl">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">שגיאה</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 py-8 px-4" dir="rtl">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">📅 קביעת תור</h1>
+          <p className="text-gray-600 text-center mb-6">בחר שירות, תאריך ושעה נוחים עבורך</p>
+          
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className={`flex items-center ${step >= 1 ? 'text-sky-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 1 ? 'bg-sky-600 text-white' : 'bg-gray-200'}`}>
+                1
+              </div>
+              <span className="mr-2 text-sm font-medium">בחירת שירות</span>
+            </div>
+            <div className="h-px w-12 bg-gray-300"></div>
+            <div className={`flex items-center ${step >= 2 ? 'text-sky-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 2 ? 'bg-sky-600 text-white' : 'bg-gray-200'}`}>
+                2
+              </div>
+              <span className="mr-2 text-sm font-medium">בחירת תאריך</span>
+            </div>
+            <div className="h-px w-12 bg-gray-300"></div>
+            <div className={`flex items-center ${step >= 3 ? 'text-sky-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 3 ? 'bg-sky-600 text-white' : 'bg-gray-200'}`}>
+                3
+              </div>
+              <span className="mr-2 text-sm font-medium">בחירת שעה</span>
+            </div>
+            <div className="h-px w-12 bg-gray-300"></div>
+            <div className={`flex items-center ${step >= 4 ? 'text-sky-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 4 ? 'bg-sky-600 text-white' : 'bg-gray-200'}`}>
+                4
+              </div>
+              <span className="mr-2 text-sm font-medium">פרטים ואישור</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
+
+          {step === 1 && (
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">בחר שירות</h2>
+              {services.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {services.map(service => (
+                    <ServiceCard
+                      key={service._id}
+                      service={service}
+                      isSelected={selectedService?._id === service._id}
+                      onClick={handleSelectService}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">🛠️</div>
+                  <p>אין שירותים זמינים כרגע</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 2 && selectedService && (
+            <div>
+              <div className="mb-6">
+                <button
+                  onClick={() => goBackToStep(1)}
+                  className="text-sky-600 hover:text-sky-700 flex items-center gap-2 mb-4"
+                >
+                  <span>→</span>
+                  <span>חזרה לבחירת שירות</span>
+                </button>
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-sm text-sky-700">שירות נבחר:</div>
+                      <div className="text-lg font-bold text-sky-900">{selectedService.name}</div>
+                    </div>
+                    <div className="text-sm text-sky-700">
+                      ⏱️ {selectedService.duration} דקות • 💰 ₪{selectedService.price}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">בחר תאריך</h2>
+              <CalendarPicker
+                onSelectDate={handleSelectDate}
+                maxDaysAhead={30}
+              />
+            </div>
+          )}
+
+          {step === 3 && selectedService && selectedDate && (
+            <div>
+              <div className="mb-6">
+                <button
+                  onClick={() => goBackToStep(2)}
+                  className="text-sky-600 hover:text-sky-700 flex items-center gap-2 mb-4"
+                >
+                  <span>→</span>
+                  <span>חזרה לבחירת תאריך</span>
+                </button>
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 space-y-2">
+                  <div>
+                    <span className="text-sm text-sky-700">שירות: </span>
+                    <span className="font-bold text-sky-900">{selectedService.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-sky-700">תאריך: </span>
+                    <span className="font-bold text-sky-900">
+                      {new Date(selectedDate).toLocaleDateString('he-IL', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">בחר שעה</h2>
+              <TimeSlotPicker
+                slots={timeSlots}
+                selectedTime={selectedTime}
+                onSelectTime={handleSelectTime}
+                loading={loadingSlots}
+              />
+            </div>
+          )}
+
+          {step === 4 && selectedService && selectedDate && selectedTime && (
+            <div>
+              <div className="mb-6">
+                <button
+                  onClick={() => goBackToStep(3)}
+                  className="text-sky-600 hover:text-sky-700 flex items-center gap-2 mb-4"
+                >
+                  <span>→</span>
+                  <span>חזרה לבחירת שעה</span>
+                </button>
+                <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 space-y-2">
+                  <div>
+                    <span className="text-sm text-sky-700">שירות: </span>
+                    <span className="font-bold text-sky-900">{selectedService.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-sky-700">תאריך: </span>
+                    <span className="font-bold text-sky-900">
+                      {new Date(selectedDate).toLocaleDateString('he-IL', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-sky-700">שעה: </span>
+                    <span className="font-bold text-sky-900">{selectedTime}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-sky-700">מחיר: </span>
+                    <span className="font-bold text-sky-900">₪{selectedService.price}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">פרטים אישיים</h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      שם פרטי <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customer.firstName}
+                      onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="שם פרטי"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      שם משפחה <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customer.lastName}
+                      onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                      placeholder="שם משפחה"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    טלפון <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={customer.phone}
+                    onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    placeholder="050-1234567"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    אימייל (אופציונלי)
+                  </label>
+                  <input
+                    type="email"
+                    value={customer.email}
+                    onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    placeholder="email@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    הערות (אופציונלי)
+                  </label>
+                  <textarea
+                    value={customer.notes}
+                    onChange={(e) => setCustomer({ ...customer, notes: e.target.value })}
+                    rows="3"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    placeholder="הערות נוספות..."
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-sky-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-sky-700 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
+                >
+                  {submitting ? 'מבצע הזמנה...' : '✓ אישור הזמנה'}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+
+        <div className="text-center text-gray-500 text-sm">
+          <p>© 2025 ChatGrow. כל הזכויות שמורות.</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default AppointmentBooking;
