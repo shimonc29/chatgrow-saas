@@ -1478,6 +1478,388 @@ router.post('/appointments/book', async (req, res) => {
     }
 });
 
+// Book an appointment - NEW VERSION (uses serviceId from unified system)
+router.post('/appointments', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { 
+            businessId, 
+            serviceId,
+            date,
+            time,
+            customer, 
+            notes, 
+            paymentMethod, 
+            provider, 
+            sourceKey, 
+            utmSource, 
+            utmMedium, 
+            utmCampaign, 
+            utmTerm, 
+            utmContent, 
+            referralCode 
+        } = req.body;
+
+        // Validation
+        if (!businessId || !serviceId || !date || !time) {
+            return res.status(400).json({
+                success: false,
+                message: 'נא למלא את כל השדות הנדרשים: עסק, שירות, תאריך ושעה'
+            });
+        }
+
+        if (!customer || !customer.firstName || !customer.lastName || !customer.phone) {
+            return res.status(400).json({
+                success: false,
+                message: 'נא למלא את פרטי הלקוח: שם פרטי, שם משפחה וטלפון'
+            });
+        }
+
+        // Get service details from Availability model (SERVER-SIDE validation)
+        const availability = await Availability.findOne({ providerId: businessId });
+        
+        if (!availability) {
+            return res.status(404).json({
+                success: false,
+                message: 'לא נמצאו הגדרות זמינות לעסק זה'
+            });
+        }
+
+        const service = availability.services.id(serviceId);
+        
+        if (!service) {
+            return res.status(404).json({
+                success: false,
+                message: 'שירות לא נמצא'
+            });
+        }
+
+        if (!service.isActive) {
+            return res.status(400).json({
+                success: false,
+                message: 'שירות זה אינו פעיל כרגע'
+            });
+        }
+
+        // Use SERVER-SIDE price and duration (NEVER trust client!)
+        const price = service.price;
+        const duration = service.duration;
+        const serviceName = service.name;
+
+        // Build appointment date/time
+        const appointmentDate = new Date(date);
+        const [hours, minutes] = time.split(':');
+        const appointmentStart = new Date(appointmentDate);
+        appointmentStart.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const appointmentEnd = new Date(appointmentStart.getTime() + duration * 60000);
+        
+        const startTimeStr = time;
+        const endTimeStr = `${String(appointmentEnd.getHours()).padStart(2, '0')}:${String(appointmentEnd.getMinutes()).padStart(2, '0')}`;
+
+        // Check for overlapping appointments
+        const dayStart = new Date(appointmentDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(appointmentDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        
+        const overlappingAppointment = await Appointment.findOne({
+            businessId,
+            appointmentDate: {
+                $gte: dayStart,
+                $lte: dayEnd
+            },
+            status: { $in: ['scheduled', 'confirmed'] },
+            $or: [
+                {
+                    startTime: { $lte: startTimeStr },
+                    endTime: { $gt: startTimeStr }
+                },
+                {
+                    startTime: { $lt: endTimeStr },
+                    endTime: { $gte: endTimeStr }
+                },
+                {
+                    startTime: { $gte: startTimeStr },
+                    endTime: { $lte: endTimeStr }
+                }
+            ]
+        });
+
+        if (overlappingAppointment) {
+            return res.status(400).json({
+                success: false,
+                message: 'זמן זה כבר תפוס, נא לבחור שעה אחרת'
+            });
+        }
+
+        // Check for overlapping events
+        const overlappingEvent = await Event.findOne({
+            businessId,
+            startDateTime: {
+                $gte: dayStart,
+                $lte: dayEnd
+            },
+            status: 'published'
+        });
+
+        if (overlappingEvent) {
+            const evtDate = new Date(overlappingEvent.startDateTime);
+            const evtStartTime = `${String(evtDate.getHours()).padStart(2, '0')}:${String(evtDate.getMinutes()).padStart(2, '0')}`;
+            const evtEndDate = new Date(overlappingEvent.endDateTime || new Date(overlappingEvent.startDateTime.getTime() + 60 * 60 * 1000));
+            const evtEndTime = `${String(evtEndDate.getHours()).padStart(2, '0')}:${String(evtEndDate.getMinutes()).padStart(2, '0')}`;
+            
+            const hasEventConflict = (
+                (startTimeStr >= evtStartTime && startTimeStr < evtEndTime) ||
+                (endTimeStr > evtStartTime && endTimeStr <= evtEndTime) ||
+                (startTimeStr <= evtStartTime && endTimeStr >= evtEndTime)
+            );
+            
+            if (hasEventConflict) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'זמן זה כבר תפוס על ידי אירוע, נא לבחור שעה אחרת'
+                });
+            }
+        }
+
+        // Create or update customer
+        let existingCustomer = await Customer.findOne({
+            businessId,
+            $or: [
+                { email: customer.email },
+                { phone: customer.phone }
+            ]
+        });
+
+        if (!existingCustomer) {
+            const user = await Subscriber.findById(businessId);
+            
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'בעל העסק לא נמצא'
+                });
+            }
+
+            // Check freemium customer limit
+            if (user.subscriptionStatus === 'FREE' && user.currentCustomerCount >= user.maxCustomers) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'לא ניתן להזמין תור כרגע - בעל העסק הגיע למכסת הלקוחות המקסימלית בתוכנית החינמית.',
+                    code: 'BUSINESS_CUSTOMER_LIMIT_REACHED'
+                });
+            }
+
+            existingCustomer = new Customer({
+                businessId,
+                userId: businessId,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email || '',
+                phone: customer.phone,
+                notes: notes || `הזמין תור: ${serviceName}`,
+                sourceKey: sourceKey || `appointment:${businessId}`,
+                utmSource,
+                utmMedium,
+                utmCampaign,
+                utmTerm,
+                utmContent,
+                referralCode
+            });
+            await existingCustomer.save();
+            
+            await incrementCustomerCount(businessId);
+            
+            logInfo('New customer created from appointment booking', {
+                customerId: existingCustomer._id,
+                serviceName,
+                customerCount: user.currentCustomerCount + 1
+            });
+        }
+
+        // Create appointment
+        const appointmentDateOnly = new Date(appointmentDate);
+        appointmentDateOnly.setHours(0, 0, 0, 0);
+        
+        const appointment = new Appointment({
+            businessId,
+            serviceType: serviceName,
+            serviceName: serviceName,
+            customer: {
+                customerId: existingCustomer._id,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                phone: customer.phone,
+                email: customer.email || '',
+                notes: notes || ''
+            },
+            appointmentDate: appointmentDateOnly,
+            startTime: startTimeStr,
+            endTime: endTimeStr,
+            duration: duration,
+            price: price,
+            currency: 'ILS',
+            paymentStatus: price > 0 ? 'pending' : 'paid',
+            paymentMethod: paymentMethod || (price > 0 ? 'credit_card' : null),
+            status: 'scheduled',
+            source: 'web',
+            notes: notes || `תור ל${serviceName}`
+        });
+
+        await appointment.save();
+
+        // Create payment if needed
+        let payment = null;
+        
+        if (price > 0) {
+            if (!provider || provider === 'manual') {
+                payment = new Payment({
+                    businessId,
+                    customerId: existingCustomer._id,
+                    amount: price,
+                    currency: 'ILS',
+                    paymentMethod: paymentMethod || 'credit_card',
+                    status: 'pending',
+                    customer: {
+                        name: `${customer.firstName} ${customer.lastName}`,
+                        email: customer.email || '',
+                        phone: customer.phone
+                    },
+                    provider: {
+                        name: 'manual',
+                        displayName: 'תשלום ידני'
+                    },
+                    notes: `תשלום עבור תור: ${serviceName}`,
+                    metadata: {
+                        source: 'appointment_booking',
+                        appointmentId: appointment._id.toString(),
+                        serviceName
+                    },
+                    relatedTo: {
+                        type: 'appointment',
+                        id: appointment._id
+                    }
+                });
+
+                await payment.save();
+            } else {
+                // Payment gateway integration
+                const paymentData = {
+                    amount: price,
+                    currency: 'ILS',
+                    paymentMethod: paymentMethod || 'credit_card',
+                    provider,
+                    customer: {
+                        name: `${customer.firstName} ${customer.lastName}`,
+                        email: customer.email || '',
+                        phone: customer.phone
+                    },
+                    relatedTo: {
+                        type: 'appointment',
+                        id: appointment._id
+                    },
+                    notes: `תשלום עבור תור: ${serviceName}`,
+                    metadata: {
+                        source: 'appointment_booking',
+                        appointmentId: appointment._id.toString(),
+                        serviceName
+                    },
+                    successUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/success?type=appointment&id=${appointment._id}`,
+                    errorUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/payment/error?type=appointment&id=${appointment._id}`
+                };
+
+                const result = await paymentService.createPayment(businessId, existingCustomer._id, paymentData);
+                payment = result.payment;
+
+                if (result.paymentUrl) {
+                    return res.status(201).json({
+                        success: true,
+                        requiresRedirect: true,
+                        paymentUrl: result.paymentUrl,
+                        payment: payment,
+                        customer: existingCustomer,
+                        appointment: {
+                            _id: appointment._id,
+                            serviceName: appointment.serviceName,
+                            date: date,
+                            time: time
+                        },
+                        message: 'מעבר לעמוד תשלום...'
+                    });
+                }
+            }
+        }
+
+        // Send confirmation notifications
+        try {
+            const appointmentForNotification = {
+                ...appointment.toObject(),
+                customerId: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email || '',
+                    phone: customer.phone
+                },
+                customer: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email || '',
+                    phone: customer.phone
+                }
+            };
+            
+            await notificationService.sendAppointmentConfirmation(appointmentForNotification);
+        } catch (notifError) {
+            logError('Failed to send appointment confirmation', notifError);
+        }
+
+        logApiRequest(req.method, req.originalUrl, 201, Date.now() - startTime, {
+            appointmentId: appointment._id,
+            customerId: existingCustomer._id,
+            paymentId: payment ? payment._id : null
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'התור נקבע בהצלחה!',
+            appointment: {
+                _id: appointment._id,
+                serviceName: serviceName,
+                date: date,
+                time: time,
+                duration: duration,
+                price: price,
+                status: appointment.status
+            },
+            customer: {
+                _id: existingCustomer._id,
+                name: `${customer.firstName} ${customer.lastName}`,
+                email: customer.email || '',
+                phone: customer.phone
+            },
+            payment: payment ? {
+                _id: payment._id,
+                amount: payment.amount,
+                currency: payment.currency,
+                status: payment.status,
+                paymentMethod: payment.paymentMethod
+            } : null
+        });
+
+    } catch (error) {
+        logError('Failed to book appointment (new system)', error);
+        logApiRequest(req.method, req.originalUrl, 500, Date.now() - startTime, {
+            error: error.message
+        });
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה בקביעת התור: ' + error.message
+        });
+    }
+});
+
 // Public Landing Pages Routes
 // View landing page by slug
 router.get('/landing/:slug', async (req, res) => {
