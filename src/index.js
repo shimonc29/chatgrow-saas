@@ -184,6 +184,15 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:3000', 'http://localhost:5000'];
 
+// Add Replit domains automatically
+if (process.env.REPLIT_DEV_DOMAIN) {
+  allowedOrigins.push(`https://${process.env.REPLIT_DEV_DOMAIN}`);
+}
+if (process.env.REPLIT_DOMAINS) {
+  const replitDomains = process.env.REPLIT_DOMAINS.split(',').map(d => `https://${d.trim()}`);
+  allowedOrigins.push(...replitDomains);
+}
+
 app.use(
   cors({
     origin: function (origin, callback) {
