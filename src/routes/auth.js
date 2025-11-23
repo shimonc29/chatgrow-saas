@@ -4,6 +4,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const ServiceProvider = require('../models/ServiceProvider');
+const { validatePasswordStrength } = require('../utils/encryption');
 
 // Registration page for service providers
 router.get('/register', (req, res) => {
@@ -422,12 +423,29 @@ router.post('/register', async (req, res) => {
         
         // Validate required fields
         if (!fullName || !email || !password) {
-            return res.json({ 
-                success: false, 
-                message: 'נא למלא את כל השדות הנדרשים (שם, אימייל, סיסמה)' 
+            return res.json({
+                success: false,
+                message: 'נא למלא את כל השדות הנדרשים (שם, אימייל, סיסמה)'
             });
         }
-        
+
+        // Validate password strength
+        const passwordValidation = validatePasswordStrength(password);
+        if (!passwordValidation.isValid) {
+            return res.json({
+                success: false,
+                message: 'סיסמה חלשה מדי',
+                feedback: passwordValidation.feedback,
+                requirements: [
+                    'לפחות 8 תווים',
+                    'אות גדולה אחת לפחות',
+                    'אות קטנה אחת לפחות',
+                    'ספרה אחת לפחות',
+                    'תו מיוחד אחד לפחות (@$!%*?&)'
+                ]
+            });
+        }
+
         const existingProvider = await ServiceProvider.findByEmail(email);
         if (existingProvider) {
             return res.json({ success: false, message: 'משתמש עם אימייל זה כבר קיים' });

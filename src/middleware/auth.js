@@ -181,6 +181,21 @@ class AuthMiddleware {
 
                     // Update session last activity
                     session.lastActivity = new Date();
+
+                    // Save the updated session to database
+                    try {
+                        await user.save();
+                        logDebug('Session last activity updated', {
+                            userId: user._id,
+                            sessionId: decoded.sessionId
+                        });
+                    } catch (error) {
+                        logWarning('Failed to update session last activity', {
+                            userId: user._id,
+                            sessionId: decoded.sessionId,
+                            error: error.message
+                        });
+                    }
                 }
 
                 // Attach user and token info to request
@@ -250,10 +265,9 @@ class AuthMiddleware {
             return req.cookies.accessToken;
         }
 
-        // Check query parameter (for API key access)
-        if (req.query.token) {
-            return req.query.token;
-        }
+        // NOTE: Query parameter token extraction removed for security reasons
+        // Tokens in URLs are logged in server logs, browser history, and referrer headers
+        // Use Authorization header or cookies instead
 
         return null;
     }

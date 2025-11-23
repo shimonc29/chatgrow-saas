@@ -1,6 +1,36 @@
 // MUST load environment variables FIRST before any other modules
 require('dotenv').config();
 
+// Validate critical environment variables
+const INSECURE_JWT_SECRETS = [
+    'your-super-secret-jwt-key-change-this-in-production',
+    'secret',
+    'jwt-secret',
+    'change-me',
+    'default'
+];
+
+if (!process.env.JWT_SECRET) {
+    console.error('❌ CRITICAL: JWT_SECRET is not set in environment variables!');
+    console.error('Please set JWT_SECRET in your .env file');
+    process.exit(1);
+}
+
+if (INSECURE_JWT_SECRETS.includes(process.env.JWT_SECRET)) {
+    console.error('❌ CRITICAL: JWT_SECRET is set to a default/insecure value!');
+    console.error('Please change JWT_SECRET to a strong, unique secret in your .env file');
+    console.error('Generate a strong secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    process.exit(1);
+}
+
+if (process.env.JWT_SECRET.length < 32) {
+    console.error('❌ CRITICAL: JWT_SECRET is too short (minimum 32 characters required)!');
+    console.error('Please use a longer, more secure JWT_SECRET');
+    process.exit(1);
+}
+
+console.log('✅ JWT_SECRET validation passed');
+
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -121,9 +151,27 @@ app.use(helmet({
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// CORS Configuration - Secure by default
+const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : ['http://localhost:3000', 'http://localhost:5000'];
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || true,
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            logWarning('CORS blocked request from unauthorized origin', { origin });
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
 }));
 
 // Rate limiting middleware
