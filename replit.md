@@ -12,7 +12,9 @@ I prefer detailed explanations.
 
 ## Recent Changes
 
-**November 23, 2025 - Interactive Calendar Integration in Schedule Manager**
+**November 23, 2025 - Unified Schedule Interface & Sidebar Cleanup**
+- **Removed duplicate menu items**: Deleted separate `/events` and `/appointments` routes from Sidebar - all functionality now unified in `/schedule`
+- Simplified navigation: Single entry point "יומן, זמינות ושירותים" for all scheduling needs
 - Integrated full Interactive Calendar System into Schedule Manager's "יומן" tab
 - Removed placeholder text and replaced with complete weekly calendar view
 - Calendar features now accessible from single unified interface at `/schedule`:

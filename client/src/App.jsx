@@ -5,13 +5,9 @@ import PrivateRoute from './components/Layout/PrivateRoute';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/admin/Dashboard';
-import Events from './pages/admin/Events';
 import Customers from './pages/admin/Customers';
-import Appointments from './pages/admin/Appointments';
 import Payments from './pages/admin/Payments';
 import Financial from './pages/admin/Financial';
-import Availability from './pages/admin/Availability';
-import Calendar from './pages/admin/Calendar';
 import ScheduleAndServices from './pages/admin/ScheduleAndServices';
 import RegistrationPages from './pages/admin/RegistrationPages';
 import TranzilaSettings from './pages/admin/TranzilaSettings';
@@ -53,15 +49,6 @@ function App() {
           />
           
           <Route 
-            path="/events" 
-            element={
-              <PrivateRoute>
-                <Events />
-              </PrivateRoute>
-            } 
-          />
-          
-          <Route 
             path="/customers" 
             element={
               <PrivateRoute>
@@ -71,12 +58,13 @@ function App() {
           />
           
           <Route 
+            path="/events" 
+            element={<Navigate to="/schedule" replace />} 
+          />
+          
+          <Route 
             path="/appointments" 
-            element={
-              <PrivateRoute>
-                <Appointments />
-              </PrivateRoute>
-            } 
+            element={<Navigate to="/schedule" replace />} 
           />
           
           <Route 

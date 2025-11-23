@@ -29,10 +29,8 @@ const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   const menuItems = [
     { path: '/dashboard', icon: '🏠', label: 'דאשבורד' },
-    { path: '/events', icon: '📅', label: 'אירועים' },
     { path: '/customers', icon: '👥', label: 'לקוחות' },
-    { path: '/appointments', icon: '📋', label: 'תורים' },
-    { path: '/schedule', icon: '📆', label: 'ניהול יומן ותורים' },
+    { path: '/schedule', icon: '📆', label: 'יומן, זמינות ושירותים' },
     { path: '/payments', icon: '💳', label: 'תשלומים' },
     { path: '/financial', icon: '💰', label: 'ניהול פיננסי' },
     { path: '/landing-pages', icon: '🎨', label: 'דפי נחיתה' },
