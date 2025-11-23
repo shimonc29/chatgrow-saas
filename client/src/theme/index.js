@@ -141,20 +141,30 @@ const theme = extendTheme({
     inner: 'inset 0 2px 4px 0 rgba(0,0,0,0.06)',
   },
 
-  // Global Styles
+  // Global Styles - Light & Clean
   styles: {
     global: {
       body: {
-        bg: 'gray.50',
-        color: 'gray.800',
+        bg: 'gray.50', // #F7FAFC - רקע בהיר מאוד
+        color: 'gray.700', // #2D3748 - טקסט רגיל כהה
         fontFamily: 'body',
         lineHeight: 'base',
+      },
+      'h1, h2, h3, h4, h5, h6': {
+        color: 'gray.800', // #1A202C - כותרות כהות
       },
       '*::placeholder': {
         color: 'gray.400',
       },
       '*, *::before, &::after': {
         borderColor: 'gray.200',
+      },
+      // קישורים
+      'a': {
+        color: 'brand.500', // #0967D2 - כחול עיקרי
+        _hover: {
+          color: 'brand.600', // #0552B5 - כחול כהה יותר
+        },
       },
     },
   },
@@ -252,7 +262,7 @@ const theme = extendTheme({
     Card: {
       baseStyle: {
         container: {
-          bg: 'white',
+          bg: 'white', // #FFFFFF - כרטיסים לבנים
           borderRadius: 'lg',
           boxShadow: 'sm',
           border: '1px',
@@ -268,14 +278,19 @@ const theme = extendTheme({
 
     Heading: {
       baseStyle: {
-        color: 'gray.800',
+        color: 'gray.800', // #1A202C - כותרות כהות
         fontWeight: 'bold',
       },
     },
 
     Text: {
       baseStyle: {
-        color: 'gray.700',
+        color: 'gray.700', // #2D3748 - טקסט רגיל
+      },
+      variants: {
+        secondary: {
+          color: 'gray.600', // #4A5568 - טקסט משני
+        },
       },
     },
 
