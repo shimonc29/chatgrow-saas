@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+*.config.js
+vite.config.js
+public/
+.env
+.env.*

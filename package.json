@@ -12,7 +12,12 @@
     "preview": "vite preview",
     "test": "jest",
     "test:load": "node src/tests/loadTestRunner.js",
-    "test:rate-limit": "node src/tests/rateLimitTest.js"
+    "test:rate-limit": "node src/tests/rateLimitTest.js",
+    "lint": "eslint . --ext .js,.jsx",
+    "lint:fix": "eslint . --ext .js,.jsx --fix",
+    "format": "prettier --check \"**/*.{js,jsx,json,css,md}\"",
+    "format:fix": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "prepare": "husky"
   },
   "keywords": [
     "chat",
@@ -70,9 +75,17 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@redis/client": "^5.8.2",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
-    "nodemon": "^3.0.2"
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.0.2",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=14.0.0"
