@@ -34,6 +34,8 @@
     "@emotion/styled": "^11.14.1",
     "@google-cloud/storage": "^7.17.3",
     "@sendgrid/mail": "^8.1.6",
+    "@sentry/node": "^10.26.0",
+    "@sentry/react": "^10.26.0",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.6.2",

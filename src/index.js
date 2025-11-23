@@ -3,30 +3,32 @@ require('dotenv').config();
 
 // Validate critical environment variables
 const INSECURE_JWT_SECRETS = [
-    'your-super-secret-jwt-key-change-this-in-production',
-    'secret',
-    'jwt-secret',
-    'change-me',
-    'default'
+  'your-super-secret-jwt-key-change-this-in-production',
+  'secret',
+  'jwt-secret',
+  'change-me',
+  'default',
 ];
 
 if (!process.env.JWT_SECRET) {
-    console.error('❌ CRITICAL: JWT_SECRET is not set in environment variables!');
-    console.error('Please set JWT_SECRET in your .env file');
-    process.exit(1);
+  console.error('❌ CRITICAL: JWT_SECRET is not set in environment variables!');
+  console.error('Please set JWT_SECRET in your .env file');
+  process.exit(1);
 }
 
 if (INSECURE_JWT_SECRETS.includes(process.env.JWT_SECRET)) {
-    console.error('❌ CRITICAL: JWT_SECRET is set to a default/insecure value!');
-    console.error('Please change JWT_SECRET to a strong, unique secret in your .env file');
-    console.error('Generate a strong secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
-    process.exit(1);
+  console.error('❌ CRITICAL: JWT_SECRET is set to a default/insecure value!');
+  console.error('Please change JWT_SECRET to a strong, unique secret in your .env file');
+  console.error(
+    "Generate a strong secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\""
+  );
+  process.exit(1);
 }
 
 if (process.env.JWT_SECRET.length < 32) {
-    console.error('❌ CRITICAL: JWT_SECRET is too short (minimum 32 characters required)!');
-    console.error('Please use a longer, more secure JWT_SECRET');
-    process.exit(1);
+  console.error('❌ CRITICAL: JWT_SECRET is too short (minimum 32 characters required)!');
+  console.error('Please use a longer, more secure JWT_SECRET');
+  process.exit(1);
 }
 
 console.log('✅ JWT_SECRET validation passed');
@@ -40,74 +42,90 @@ const path = require('path');
 // Import logging system
 const { logInfo, logError, logWarning } = require('./utils/logger');
 
-// Import routes with error handling
-let logsRoutes, authRoutes, healthRoutes, eventsRoutes, dashboardRoutes, providerRoutes, subscriberRoutes;
-try {
-    logsRoutes = require('./routes/logs');
-    authRoutes = require('./routes/auth');
-    healthRoutes = require('./routes/health');
-    eventsRoutes = require('./routes/events');
-    dashboardRoutes = require('./routes/dashboard');
-    providerRoutes = require('./routes/provider');
-    subscriberRoutes = require('./routes/subscribers');
-    console.log('✅ All routes loaded successfully');
-} catch (error) {
-    console.warn('Some routes not available, using fallback');
-    console.error('Route loading error:', error.message);
-    console.error(error.stack);
-    // Create minimal fallback routes
-    logsRoutes = express.Router();
-    authRoutes = express.Router();
-    healthRoutes = express.Router();
-    eventsRoutes = express.Router();
-    dashboardRoutes = express.Router();
-    providerRoutes = express.Router();
-    subscriberRoutes = express.Router();
+// Import Sentry configuration
+const {
+  initializeSentry,
+  getSentryRequestHandler,
+  getSentryTracingHandler,
+  getSentryErrorHandler,
+} = require('./config/sentry');
 
-    // Add basic responses
-    logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
-    authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
-    healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
-    eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
-    dashboardRoutes.get('/', (req, res) => res.json({ message: 'Dashboard service not available' }));
-    providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
-    subscriberRoutes.get('/', (req, res) => res.json({ message: 'Subscriber service not available' }));
+// Import routes with error handling
+let logsRoutes,
+  authRoutes,
+  healthRoutes,
+  eventsRoutes,
+  dashboardRoutes,
+  providerRoutes,
+  subscriberRoutes;
+try {
+  logsRoutes = require('./routes/logs');
+  authRoutes = require('./routes/auth');
+  healthRoutes = require('./routes/health');
+  eventsRoutes = require('./routes/events');
+  dashboardRoutes = require('./routes/dashboard');
+  providerRoutes = require('./routes/provider');
+  subscriberRoutes = require('./routes/subscribers');
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.warn('Some routes not available, using fallback');
+  console.error('Route loading error:', error.message);
+  console.error(error.stack);
+  // Create minimal fallback routes
+  logsRoutes = express.Router();
+  authRoutes = express.Router();
+  healthRoutes = express.Router();
+  eventsRoutes = express.Router();
+  dashboardRoutes = express.Router();
+  providerRoutes = express.Router();
+  subscriberRoutes = express.Router();
+
+  // Add basic responses
+  logsRoutes.get('/', (req, res) => res.json({ message: 'Logs service not available' }));
+  authRoutes.get('/', (req, res) => res.json({ message: 'Auth service not available' }));
+  healthRoutes.get('/', (req, res) => res.json({ message: 'Health service not available' }));
+  eventsRoutes.get('/', (req, res) => res.json({ message: 'Events service not available' }));
+  dashboardRoutes.get('/', (req, res) => res.json({ message: 'Dashboard service not available' }));
+  providerRoutes.get('/', (req, res) => res.json({ message: 'Provider service not available' }));
+  subscriberRoutes.get('/', (req, res) =>
+    res.json({ message: 'Subscriber service not available' })
+  );
 }
 
 // Import middleware (with error handling)
 let RateLimiterMiddleware, authMiddleware, securityMiddleware;
 try {
-    RateLimiterMiddleware = require('./middleware/rateLimiter');
-    authMiddleware = require('./middleware/auth');
-    securityMiddleware = require('./middleware/security');
+  RateLimiterMiddleware = require('./middleware/rateLimiter');
+  authMiddleware = require('./middleware/auth');
+  securityMiddleware = require('./middleware/security');
 } catch (error) {
-    console.warn('Some middleware modules not available, using fallback');
+  console.warn('Some middleware modules not available, using fallback');
 }
 
 // Import services with error handling
 let LogService;
 try {
-    LogService = require('./services/logService');
+  LogService = require('./services/logService');
 } catch (error) {
-    console.warn('Some services not available, using fallback');
+  console.warn('Some services not available, using fallback');
 }
 
 // Initialize NotificationService (replaces WhatsApp)
 let notificationService;
 try {
-    notificationService = require('./services/notificationService');
-    console.log('NotificationService initialized successfully');
+  notificationService = require('./services/notificationService');
+  console.log('NotificationService initialized successfully');
 } catch (error) {
-    console.warn('NotificationService not available:', error.message);
+  console.warn('NotificationService not available:', error.message);
 }
 
 // Initialize CronService for automated tasks
 let cronService;
 try {
-    cronService = require('./services/cron');
-    console.log('CronService loaded successfully (modular version)');
+  cronService = require('./services/cron');
+  console.log('CronService loaded successfully (modular version)');
 } catch (error) {
-    console.warn('CronService not available:', error.message);
+  console.warn('CronService not available:', error.message);
 }
 
 // Initialize services safely with try-catch
@@ -115,38 +133,47 @@ console.log('Initializing services in safe mode...');
 
 let logService;
 try {
-    // Try to initialize real services
-    const LogServiceClass = require('./services/logService');
-    logService = new LogServiceClass();
-    console.log('Real services initialized successfully');
+  // Try to initialize real services
+  const LogServiceClass = require('./services/logService');
+  logService = new LogServiceClass();
+  console.log('Real services initialized successfully');
 } catch (error) {
-    console.warn('Using fallback mock services due to:', error.message);
-    // Fallback to mock services
-    logService = {
-        logMessage: (data) => {
-            console.log('Mock log:', data);
-            return Promise.resolve({ messageId: data.messageId || 'mock-' + Date.now() });
-        },
-        updateMessageStatus: (messageId, status, details) => {
-            console.log('Mock status update:', { messageId, status, details });
-            return Promise.resolve();
-        },
-        getMessageHistory: () => Promise.resolve({ messages: [], total: 0 })
-    };
+  console.warn('Using fallback mock services due to:', error.message);
+  // Fallback to mock services
+  logService = {
+    logMessage: data => {
+      console.log('Mock log:', data);
+      return Promise.resolve({ messageId: data.messageId || 'mock-' + Date.now() });
+    },
+    updateMessageStatus: (messageId, status, details) => {
+      console.log('Mock status update:', { messageId, status, details });
+      return Promise.resolve();
+    },
+    getMessageHistory: () => Promise.resolve({ messages: [], total: 0 }),
+  };
 }
 
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Initialize Sentry for error tracking
+initializeSentry(app);
+
 // Trust proxy - required for Replit environment and rate limiting
 app.set('trust proxy', 1);
 
-// Security middleware - MUST be first
-app.use(helmet({
+// Sentry request and tracing handlers - MUST be first
+app.use(getSentryRequestHandler());
+app.use(getSentryTracingHandler());
+
+// Security middleware
+app.use(
+  helmet({
     contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
-}));
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
@@ -154,34 +181,38 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS Configuration - Secure by default
 const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-    : ['http://localhost:3000', 'http://localhost:5000'];
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000', 'http://localhost:5000'];
 
-app.use(cors({
+app.use(
+  cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
 
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            logWarning('CORS blocked request from unauthorized origin', { origin });
-            callback(new Error('Not allowed by CORS'));
-        }
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logWarning('CORS blocked request from unauthorized origin', { origin });
+        callback(new Error('Not allowed by CORS'));
+      }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
-}));
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  })
+);
 
 // Rate limiting middleware
 const rateLimit = require('express-rate-limit');
 const apiLimiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true,
-    legacyHeaders: false
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Apply rate limiting to all /api routes
@@ -189,170 +220,195 @@ app.use('/api', apiLimiter);
 
 // API info endpoint
 app.get('/api', (req, res) => {
-    res.json({
-        success: true,
-        message: 'ChatGrow API Server is running',
-        version: process.env.npm_package_version || '1.0.0',
-        timestamp: new Date(),
-        endpoints: {
-            dashboard: '/dashboard',
-            health: '/health',
-            auth: '/api/auth',
-            logs: '/api/logs',
-            notifications: '/api/notifications',
-            healthMonitoring: '/api/health',
-            rateLimit: '/api/rate-limit'
-        }
-    });
+  res.json({
+    success: true,
+    message: 'ChatGrow API Server is running',
+    version: process.env.npm_package_version || '1.0.0',
+    timestamp: new Date(),
+    endpoints: {
+      dashboard: '/dashboard',
+      health: '/health',
+      auth: '/api/auth',
+      logs: '/api/logs',
+      notifications: '/api/notifications',
+      healthMonitoring: '/api/health',
+      rateLimit: '/api/rate-limit',
+    },
+  });
 });
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
+  try {
+    let dbStatus = 'fallback';
     try {
-        let dbStatus = 'fallback';
-        try {
-            const client = await pool.connect();
-            await client.query('SELECT 1');
-            client.release();
-            dbStatus = 'operational';
-        } catch (error) {
-            dbStatus = 'fallback';
-        }
-
-        const health = {
-            status: 'healthy',
-            timestamp: new Date(),
-            services: {
-                database: dbStatus,
-                logging: 'operational',
-                rateLimiting: 'operational'
-            },
-            version: process.env.npm_package_version || '1.0.0',
-            mode: 'development'
-        };
-
-        // Always return healthy in development mode
-        res.status(200).json(health);
-    } catch (error) {
-        console.error('Health check failed:', error);
-        res.status(200).json({
-            status: 'healthy',
-            timestamp: new Date(),
-            mode: 'development',
-            note: 'Running in fallback mode'
-        });
+      const client = await postgresPool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      dbStatus = 'operational';
+    } catch (_error) {
+      dbStatus = 'fallback';
     }
+
+    const health = {
+      status: 'healthy',
+      timestamp: new Date(),
+      services: {
+        database: dbStatus,
+        logging: 'operational',
+        rateLimiting: 'operational',
+      },
+      version: process.env.npm_package_version || '1.0.0',
+      mode: 'development',
+    };
+
+    // Always return healthy in development mode
+    res.status(200).json(health);
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date(),
+      mode: 'development',
+      note: 'Running in fallback mode',
+    });
+  }
 });
 
 // Favicon handler
 app.get('/favicon.ico', (req, res) => {
-    res.status(204).end();
+  res.status(204).end();
 });
 
 // Swagger API Documentation
 try {
-    const swaggerUi = require('swagger-ui-express');
-    const swaggerSpec = require('./config/swagger');
+  const swaggerUi = require('swagger-ui-express');
+  const swaggerSpec = require('./config/swagger');
 
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-        customCss: '.swagger-ui .topbar { display: none }',
-        customSiteTitle: 'ChatGrow API Documentation',
-        swaggerOptions: {
-            persistAuthorization: true,
-            displayRequestDuration: true,
-            filter: true,
-            syntaxHighlight: {
-                activate: true,
-                theme: 'monokai'
-            }
-        }
-    }));
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'ChatGrow API Documentation',
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        filter: true,
+        syntaxHighlight: {
+          activate: true,
+          theme: 'monokai',
+        },
+      },
+    })
+  );
 
-    console.log('✅ Swagger documentation available at /api-docs');
+  console.log('✅ Swagger documentation available at /api-docs');
 } catch (error) {
-    console.warn('Swagger documentation not available:', error.message);
+  console.warn('Swagger documentation not available:', error.message);
 }
 
 // Public API Routes (NO authentication required) - MUST be before authenticated routes
 try {
-    const publicRoutes = require('./routes/public');
-    app.use('/api/public', publicRoutes);
-    console.log('✅ Public routes loaded successfully');
+  const publicRoutes = require('./routes/public');
+  app.use('/api/public', publicRoutes);
+  console.log('✅ Public routes loaded successfully');
 } catch (error) {
-    console.warn('Public routes not available:', error.message);
-    app.get('/api/public', (req, res) => res.json({ message: 'Public service not available' }));
+  console.warn('Public routes not available:', error.message);
+  app.get('/api/public', (req, res) => res.json({ message: 'Public service not available' }));
 }
 
 // API Routes with error handling
-if (authRoutes) app.use('/api/auth', authRoutes);
-if (eventsRoutes) app.use('/api/events', eventsRoutes);
-if (logsRoutes) app.use('/api/logs', logsRoutes);
-if (healthRoutes) app.use('/api/health', healthRoutes);
+if (authRoutes) {
+  app.use('/api/auth', authRoutes);
+}
+if (eventsRoutes) {
+  app.use('/api/events', eventsRoutes);
+}
+if (logsRoutes) {
+  app.use('/api/logs', logsRoutes);
+}
+if (healthRoutes) {
+  app.use('/api/health', healthRoutes);
+}
 
 // WhatsApp API removed - using NotificationService instead
 
 // Load appointments and customers routes with error handling
 try {
-    app.use('/api/appointments', require('./routes/appointments'));
-    app.use('/api/customers', require('./routes/customers'));
-    app.use('/api/analytics', require('./routes/analytics'));
-    app.use('/api/payments', require('./routes/payments'));
-    app.use('/api/payment-onboarding', require('./routes/paymentOnboarding'));
-    app.use('/api/invoices', require('./routes/invoices'));
-    app.use('/api/receipts', require('./routes/receipts'));
-    app.use('/api/provider-settings', require('./routes/providerSettings'));
-    app.use('/api/cron', require('./routes/cron'));
-    app.use('/api/stats', require('./routes/stats'));
-    app.use('/api/landing-pages', require('./routes/landingPages'));
-    app.use('/api/availability', require('./routes/availability'));
-    app.use('/api/google-calendar', require('./routes/googleCalendar'));
-    app.use('/api/calendar', require('./routes/calendar'));
-    app.use('/api/uploads', require('./routes/uploads'));
-    app.use('/api/media', require('./routes/media'));
-    app.use('/api/strategic-reports', require('./routes/strategicReports'));
-    app.use('/api/growth/get', require('./routes/growth/get'));
-    app.use('/api/growth/keep', require('./routes/growth/keep'));
-    app.use('/api/growth/grow', require('./routes/growth/grow'));
-    app.use('/api/debug', require('./routes/debug'));
-    app.use('/api/webhooks', require('./routes/webhooks'));
-    console.log('✅ All business management routes loaded successfully');
+  app.use('/api/appointments', require('./routes/appointments'));
+  app.use('/api/customers', require('./routes/customers'));
+  app.use('/api/analytics', require('./routes/analytics'));
+  app.use('/api/payments', require('./routes/payments'));
+  app.use('/api/payment-onboarding', require('./routes/paymentOnboarding'));
+  app.use('/api/invoices', require('./routes/invoices'));
+  app.use('/api/receipts', require('./routes/receipts'));
+  app.use('/api/provider-settings', require('./routes/providerSettings'));
+  app.use('/api/cron', require('./routes/cron'));
+  app.use('/api/stats', require('./routes/stats'));
+  app.use('/api/landing-pages', require('./routes/landingPages'));
+  app.use('/api/availability', require('./routes/availability'));
+  app.use('/api/google-calendar', require('./routes/googleCalendar'));
+  app.use('/api/calendar', require('./routes/calendar'));
+  app.use('/api/uploads', require('./routes/uploads'));
+  app.use('/api/media', require('./routes/media'));
+  app.use('/api/strategic-reports', require('./routes/strategicReports'));
+  app.use('/api/growth/get', require('./routes/growth/get'));
+  app.use('/api/growth/keep', require('./routes/growth/keep'));
+  app.use('/api/growth/grow', require('./routes/growth/grow'));
+  app.use('/api/debug', require('./routes/debug'));
+  app.use('/api/webhooks', require('./routes/webhooks'));
+  app.use('/api/monitoring', require('./routes/monitoring'));
+  console.log('✅ All business management routes loaded successfully');
 } catch (error) {
-    console.error('Error loading business routes:', error.message);
-    console.warn('Some business routes not available, creating fallback routes');
-    app.get('/api/appointments', (req, res) => res.json({ message: 'Appointments service not available' }));
-    app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
-    app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
-    app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
-    app.use('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
-    app.use('/api/receipts', (req, res) => res.json({ message: 'Receipts service not available' }));
-    app.use('/api/provider-settings', (req, res) => res.json({ message: 'Provider settings service not available' }));
-    app.get('/api/cron', (req, res) => res.json({ message: 'CRON service not available' }));
-    app.get('/api/stats', (req, res) => res.json({ message: 'Stats service not available' }));
-    app.get('/api/landing-pages', (req, res) => res.json({ message: 'Landing pages service not available' }));
-    app.get('/api/availability', (req, res) => res.json({ message: 'Availability service not available' }));
-    app.get('/api/google-calendar', (req, res) => res.json({ message: 'Google Calendar service not available' }));
-    app.use('/api/uploads', (req, res) => res.json({ message: 'Uploads service not available' }));
+  console.error('Error loading business routes:', error.message);
+  console.warn('Some business routes not available, creating fallback routes');
+  app.get('/api/appointments', (req, res) =>
+    res.json({ message: 'Appointments service not available' })
+  );
+  app.get('/api/customers', (req, res) => res.json({ message: 'Customers service not available' }));
+  app.get('/api/analytics', (req, res) => res.json({ message: 'Analytics service not available' }));
+  app.get('/api/payments', (req, res) => res.json({ message: 'Payments service not available' }));
+  app.use('/api/invoices', (req, res) => res.json({ message: 'Invoices service not available' }));
+  app.use('/api/receipts', (req, res) => res.json({ message: 'Receipts service not available' }));
+  app.use('/api/provider-settings', (req, res) =>
+    res.json({ message: 'Provider settings service not available' })
+  );
+  app.get('/api/cron', (req, res) => res.json({ message: 'CRON service not available' }));
+  app.get('/api/stats', (req, res) => res.json({ message: 'Stats service not available' }));
+  app.get('/api/landing-pages', (req, res) =>
+    res.json({ message: 'Landing pages service not available' })
+  );
+  app.get('/api/availability', (req, res) =>
+    res.json({ message: 'Availability service not available' })
+  );
+  app.get('/api/google-calendar', (req, res) =>
+    res.json({ message: 'Google Calendar service not available' })
+  );
+  app.use('/api/uploads', (req, res) => res.json({ message: 'Uploads service not available' }));
 }
 
 // Load super-admin routes separately with its own error handling
 try {
-    const superAdminRoutes = require('./routes/superAdmin');
-    app.use('/api/super-admin', superAdminRoutes);
-    console.log('✅ Super Admin routes loaded successfully');
+  const superAdminRoutes = require('./routes/superAdmin');
+  app.use('/api/super-admin', superAdminRoutes);
+  console.log('✅ Super Admin routes loaded successfully');
 } catch (error) {
-    console.error('Super Admin routes error:', error.message);
-    console.error(error.stack);
-    app.get('/api/super-admin/check', authMiddleware, (req, res) => {
-        const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
-        const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(req.user.email);
-        res.json({ success: true, isSuperAdmin });
-    });
-    app.get('/api/super-admin/*', (req, res) => res.json({ message: 'Super Admin service not available' }));
+  console.error('Super Admin routes error:', error.message);
+  console.error(error.stack);
+  app.get('/api/super-admin/check', authMiddleware, (req, res) => {
+    const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(req.user.email);
+    res.json({ success: true, isSuperAdmin });
+  });
+  app.get('/api/super-admin/*', (req, res) =>
+    res.json({ message: 'Super Admin service not available' })
+  );
 }
 
 // Add missing routes for dashboard links
 app.get('/api/calendar', (req, res) => {
-    res.send(`
+  res.send(`
         <!DOCTYPE html>
         <html lang="he" dir="rtl">
         <head>
@@ -415,102 +471,108 @@ app.get('/api/calendar', (req, res) => {
 });
 
 try {
-    app.use('/auth', authRoutes);
-    console.log('✅ Auth routes applied');
-    
-    app.use('/provider', providerRoutes);
-    console.log('✅ Provider routes applied');
-    
-    app.use('/api/subscribers', subscriberRoutes);
-    console.log('✅ Subscriber routes applied');
-    
-    app.use('/health', healthRoutes);
-    console.log('✅ Health routes applied');
-    
-    if (logsRoutes) {
-        app.use('/logs', logsRoutes);
-        console.log('✅ Logs routes applied');
-    }
+  app.use('/auth', authRoutes);
+  console.log('✅ Auth routes applied');
+
+  app.use('/provider', providerRoutes);
+  console.log('✅ Provider routes applied');
+
+  app.use('/api/subscribers', subscriberRoutes);
+  console.log('✅ Subscriber routes applied');
+
+  app.use('/health', healthRoutes);
+  console.log('✅ Health routes applied');
+
+  if (logsRoutes) {
+    app.use('/logs', logsRoutes);
+    console.log('✅ Logs routes applied');
+  }
 } catch (error) {
-    console.error('❌ Error applying routes:', error.message);
-    console.error(error.stack);
+  console.error('❌ Error applying routes:', error.message);
+  console.error(error.stack);
 }
 
 // Rate limiting routes (with comprehensive error handling)
 let rateLimiter;
 try {
-    if (RateLimiterMiddleware) {
-        console.log('⚙️ Initializing rate limiter...');
-        rateLimiter = new RateLimiterMiddleware();
-        
-        if (typeof rateLimiter.createRouter === 'function') {
-            app.use('/api/rate-limit', rateLimiter.createRouter());
-            console.log('✅ Rate limiter routes created successfully');
-        } else {
-            app.use('/api/rate-limit', (req, res) => {
-                res.json({ message: 'Rate limiting not available in fallback mode' });
-            });
-            console.log('⚠️ Rate limiter using fallback mode (no createRouter method)');
-        }
-    } else {
-        app.use('/api/rate-limit', (req, res) => {
-            res.json({ message: 'Rate limiting not available in fallback mode' });
-        });
-        console.log('⚠️ Rate limiter using fallback mode (middleware not available)');
-    }
-} catch (error) {
-    console.error('❌ Rate limiter initialization failed:', error.message);
-    console.error(error.stack);
-    app.use('/api/rate-limit', (req, res) => {
-        res.json({ message: 'Rate limiting failed to initialize', error: error.message });
-    });
-}
+  if (RateLimiterMiddleware) {
+    console.log('⚙️ Initializing rate limiter...');
+    rateLimiter = new RateLimiterMiddleware();
 
+    if (typeof rateLimiter.createRouter === 'function') {
+      app.use('/api/rate-limit', rateLimiter.createRouter());
+      console.log('✅ Rate limiter routes created successfully');
+    } else {
+      app.use('/api/rate-limit', (req, res) => {
+        res.json({ message: 'Rate limiting not available in fallback mode' });
+      });
+      console.log('⚠️ Rate limiter using fallback mode (no createRouter method)');
+    }
+  } else {
+    app.use('/api/rate-limit', (req, res) => {
+      res.json({ message: 'Rate limiting not available in fallback mode' });
+    });
+    console.log('⚠️ Rate limiter using fallback mode (middleware not available)');
+  }
+} catch (error) {
+  console.error('❌ Rate limiter initialization failed:', error.message);
+  console.error(error.stack);
+  app.use('/api/rate-limit', (req, res) => {
+    res.json({ message: 'Rate limiting failed to initialize', error: error.message });
+  });
+}
 
 // Queue endpoints removed - using NotificationService instead
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
-    const clientBuildPath = path.join(__dirname, '../dist');
-    console.log('📁 Serving static files from:', clientBuildPath);
-    
-    app.use(express.static(clientBuildPath));
-    
-    // Catch-all route to serve index.html for client-side routing (React Router)
-    // This MUST come after all API routes but before 404 handler
-    app.get('*', (req, res, next) => {
-        // Skip if it's an API route
-        if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || 
-            req.path.startsWith('/health') || req.path.startsWith('/logs') || 
-            req.path.startsWith('/provider')) {
-            return next();
-        }
-        res.sendFile(path.join(clientBuildPath, 'index.html'));
-    });
+  const clientBuildPath = path.join(__dirname, '../dist');
+  console.log('📁 Serving static files from:', clientBuildPath);
+
+  app.use(express.static(clientBuildPath));
+
+  // Catch-all route to serve index.html for client-side routing (React Router)
+  // This MUST come after all API routes but before 404 handler
+  app.get('*', (req, res, next) => {
+    // Skip if it's an API route
+    if (
+      req.path.startsWith('/api/') ||
+      req.path.startsWith('/auth/') ||
+      req.path.startsWith('/health') ||
+      req.path.startsWith('/logs') ||
+      req.path.startsWith('/provider')
+    ) {
+      return next();
+    }
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
 }
+
+// Sentry error handler - MUST be before other error handlers
+app.use(getSentryErrorHandler());
 
 // Error handling middleware
 app.use((error, req, res, next) => {
-    logError('Unhandled error', error, {
-        url: req.originalUrl,
-        method: req.method,
-        ip: req.ip
-    });
+  logError('Unhandled error', error, {
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+  });
 
-    res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    });
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
+  });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Route not found',
-        message: `Cannot ${req.method} ${req.originalUrl}`
-    });
+  res.status(404).json({
+    success: false,
+    error: 'Route not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+  });
 });
 
 // Import database configurations
@@ -522,15 +584,15 @@ const { pool: postgresPool, testConnection: testPostgres } = require('./config/p
 async function connectToPostgreSQL() {
   try {
     const isConnected = await testPostgres();
-    
+
     // Initialize tables
     const Subscriber = require('./models/Subscriber');
     const ServiceProvider = require('./models/ServiceProvider');
-    
+
     await Subscriber.createTable();
     await Subscriber.migrateAddFreemiumFields();
     await ServiceProvider.createTable();
-    
+
     logInfo('Connected to PostgreSQL successfully');
     return true;
   } catch (error) {
@@ -544,13 +606,13 @@ async function connectToDatabase() {
   const results = await Promise.allSettled([
     connectToPostgreSQL(),
     connectMongoDB(),
-    connectRedis()
+    connectRedis(),
   ]);
 
   logInfo('Database connections initialized', {
     postgresql: results[0].status === 'fulfilled' && results[0].value,
     mongodb: results[1].status === 'fulfilled' && isMongoDBConnected(),
-    redis: results[2].status === 'fulfilled' && isRedisConnected()
+    redis: results[2].status === 'fulfilled' && isRedisConnected(),
   });
 
   // Initialize CronService after database connections
@@ -568,94 +630,94 @@ async function connectToDatabase() {
 
 // Simplified graceful shutdown
 async function gracefulShutdown(signal, server) {
-    console.log(`Received ${signal}. Starting graceful shutdown...`);
-    try {
-        // Stop CronService
-        if (cronService) {
-            cronService.stopAll();
-            console.log('CronService stopped');
-        }
-
-        // Close PostgreSQL pool
-        if (postgresPool) {
-            await postgresPool.end();
-            console.log('PostgreSQL pool closed');
-        }
-        if (server) {
-            server.close(() => process.exit(0));
-        } else {
-            process.exit(0);
-        }
-    } catch (error) {
-        console.error('Shutdown error:', error.message);
-        process.exit(1);
+  console.log(`Received ${signal}. Starting graceful shutdown...`);
+  try {
+    // Stop CronService
+    if (cronService) {
+      cronService.stopAll();
+      console.log('CronService stopped');
     }
+
+    // Close PostgreSQL pool
+    if (postgresPool) {
+      await postgresPool.end();
+      console.log('PostgreSQL pool closed');
+    }
+    if (server) {
+      server.close(() => process.exit(0));
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error('Shutdown error:', error.message);
+    process.exit(1);
+  }
 }
 
 // Removed complex startServer function - using simple startup instead
 
 // Only start if this file is run directly
 if (require.main === module) {
-    const PORT = process.env.PORT || 3000;
-    const HOST = process.env.HOST || '0.0.0.0';
+  const PORT = process.env.PORT || 3000;
+  const HOST = process.env.HOST || '0.0.0.0';
 
-    // Add detailed global error handlers before starting server
-    process.on('uncaughtException', (error) => {
-        console.error('🚨 UNCAUGHT EXCEPTION - THIS CRASHES THE APP:');
-        console.error('Error:', error.message);
-        console.error('Stack:', error.stack);
-        console.error('Location:', error.fileName, error.lineNumber);
-        // Don't exit in development - just log
-    });
+  // Add detailed global error handlers before starting server
+  process.on('uncaughtException', error => {
+    console.error('🚨 UNCAUGHT EXCEPTION - THIS CRASHES THE APP:');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('Location:', error.fileName, error.lineNumber);
+    // Don't exit in development - just log
+  });
 
-    process.on('unhandledRejection', (reason, promise) => {
-        console.error('🚨 UNHANDLED PROMISE REJECTION - THIS CRASHES THE APP:');
-        console.error('Reason:', reason);
-        console.error('Promise:', promise);
-        if (reason && reason.stack) {
-            console.error('Stack:', reason.stack);
-        }
-        // Don't exit in development - just log
-    });
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('🚨 UNHANDLED PROMISE REJECTION - THIS CRASHES THE APP:');
+    console.error('Reason:', reason);
+    console.error('Promise:', promise);
+    if (reason && reason.stack) {
+      console.error('Stack:', reason.stack);
+    }
+    // Don't exit in development - just log
+  });
 
-    // Add warning for deprecated warnings
-    process.on('warning', (warning) => {
-        console.warn('⚠️ Warning:', warning.name, warning.message);
-    });
+  // Add warning for deprecated warnings
+  process.on('warning', warning => {
+    console.warn('⚠️ Warning:', warning.name, warning.message);
+  });
 
-    // Simple server startup without complex error handling
-    const server = app.listen(PORT, HOST, () => {
-        console.log(`🚀 ChatGrow Server running on ${HOST}:${PORT}`);
-        console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
-        console.log(`🏥 Health: http://localhost:${PORT}/health`);
-        
-        // Try database connection after server is up (non-blocking)
-        setTimeout(() => {
-            connectToDatabase().catch(err => {
-                console.warn('Database connection failed, continuing in fallback mode:', err.message);
-            });
-        }, 1000);
-    });
+  // Simple server startup without complex error handling
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 ChatGrow Server running on ${HOST}:${PORT}`);
+    console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
+    console.log(`🏥 Health: http://localhost:${PORT}/health`);
 
-    // Simple error handling
-    server.on('error', (error) => {
-        console.error('Server error:', error.message);
-    });
+    // Try database connection after server is up (non-blocking)
+    setTimeout(() => {
+      connectToDatabase().catch(err => {
+        console.warn('Database connection failed, continuing in fallback mode:', err.message);
+      });
+    }, 1000);
+  });
 
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-        console.log('Received SIGTERM, shutting down gracefully...');
-        server.close(() => {
-            process.exit(0);
-        });
-    });
+  // Simple error handling
+  server.on('error', error => {
+    console.error('Server error:', error.message);
+  });
 
-    process.on('SIGINT', () => {
-        console.log('Received SIGINT, shutting down gracefully...');
-        server.close(() => {
-            process.exit(0);
-        });
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM, shutting down gracefully...');
+    server.close(() => {
+      process.exit(0);
     });
+  });
+
+  process.on('SIGINT', () => {
+    console.log('Received SIGINT, shutting down gracefully...');
+    server.close(() => {
+      process.exit(0);
+    });
+  });
 }
 
 module.exports = app;
