@@ -104,8 +104,8 @@ try {
 // Initialize CronService for automated tasks
 let cronService;
 try {
-    cronService = require('./services/cronService');
-    console.log('CronService loaded successfully');
+    cronService = require('./services/cron');
+    console.log('CronService loaded successfully (modular version)');
 } catch (error) {
     console.warn('CronService not available:', error.message);
 }
@@ -488,25 +488,15 @@ app.use('*', (req, res) => {
     });
 });
 
-// PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
-
 // Import database configurations
 const { connectMongoDB, isMongoDBConnected } = require('./config/database');
 const { connectRedis, isRedisConnected } = require('./config/redis');
+const { pool: postgresPool, testConnection: testPostgres } = require('./config/postgres');
 
-// Connect to PostgreSQL
+// Connect to PostgreSQL (using shared pool from config)
 async function connectToPostgreSQL() {
   try {
-    const client = await pool.connect();
-    await client.query('SELECT NOW()');
-    client.release();
+    const isConnected = await testPostgres();
     
     // Initialize tables
     const Subscriber = require('./models/Subscriber');
@@ -560,9 +550,11 @@ async function gracefulShutdown(signal, server) {
             cronService.stopAll();
             console.log('CronService stopped');
         }
-        
-        if (pool) {
-            await pool.end();
+
+        // Close PostgreSQL pool
+        if (postgresPool) {
+            await postgresPool.end();
+            console.log('PostgreSQL pool closed');
         }
         if (server) {
             server.close(() => process.exit(0));
